@@ -1,0 +1,41 @@
+name: translation_frontend
+description: A Flutter project for document translation marketplace.
+
+publish_to: "none"
+
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.9.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.5
+  http: ^1.1.0
+  google_fonts: ^6.3.2
+  carousel_slider: 5.1.1
+  file_picker: ^10.3.3  # updated to latest Android-compatible version
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.3  # latest stable for Flutter 3.35
+  lints: ^2.1.1
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/
+
+  fonts:
+    - family: DancingScript
+      fonts:
+        - asset: assets/fonts/DancingScript-VariableFont_wght.ttf
+
+    - family: Roboto
+      fonts:
+        - asset: assets/fonts/Roboto-VariableFont_wdth,wght.ttf
+        - asset: assets/fonts/Roboto-Italic-VariableFont_wdth,wght.ttf
+          style: italic

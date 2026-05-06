@@ -1,0 +1,16 @@
+Analyzing home_screen.dart...                                   
+
+   info - The import of 'dart:ui' is unnecessary because all of the used elements are also provided by the import of 'package:flutter/material.dart' - lib\home_screen.dart:1:8 - unnecessary_import
+   info - The private field _carouselIndex could be 'final' - lib\home_screen.dart:24:7 - prefer_final_fields
+warning - The value of the field '_carouselIndex' isn't used - lib\home_screen.dart:24:7 - unused_field
+warning - The value of the field '_phoneNumber' isn't used - lib\home_screen.dart:31:11 - unused_field
+warning - The value of the field '_address' isn't used - lib\home_screen.dart:32:11 - unused_field
+warning - The value of the field '_walletBalance' isn't used - lib\home_screen.dart:33:10 - unused_field
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\home_screen.dart:403:39 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\home_screen.dart:557:45 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\home_screen.dart:577:52 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\home_screen.dart:580:41 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\home_screen.dart:622:39 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\home_screen.dart:743:44 - deprecated_member_use
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\home_screen.dart:913:31 - use_build_context_synchronously
+

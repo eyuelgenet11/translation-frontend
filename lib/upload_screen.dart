@@ -1,10 +1,11 @@
-import 'dart:io' show File;
-import 'dart:typed_data';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:file_picker/file_picker.dart';
-import 'package:google_fonts/google_fonts.dart';
-import '../api_service.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:path/path.dart' as p;
+import 'services/notification_sound_service.dart';
+import 'l10n/app_localizations.dart';
 
 class UploadScreen extends StatefulWidget {
   final Map<String, dynamic> company;
@@ -15,406 +16,324 @@ class UploadScreen extends StatefulWidget {
 }
 
 class _UploadScreenState extends State<UploadScreen> {
-  File? selectedFile;
-  Uint8List? selectedFileBytes;
-  String? selectedFileName;
-  bool uploading = false;
-  List<Map<String, dynamic>> uploadedFiles = [];
+  final supabase = Supabase.instance.client;
+  static const Color brandBrown = Color(0xFF895129);
+  late Color bgTheme;
+  late Color cardTheme;
+  late Color textThemeHeader;
+  late Color textThemeSec;
+  late bool isDark;
 
-  String? fromLanguage;
-  String? toLanguage;
+  // --- PRESERVED STATE ---
+  String? fromLang;
+  String? toLang;
+  bool processing = false;
 
-  final List<String> languages = [
-    'English',
-    'Amharic',
-    'Afan Oromo',
-    'Tigrigna',
-    'Arabic',
-    'French',
-    'Italian',
-    'German',
-    'Spanish',
-    'Chinese',
+
+  XFile? _pickedFile;
+  Uint8List? _webImage;
+  final picker = ImagePicker();
+
+  // --- DYNAMIC LANGUAGES ---
+  List<String> allLanguages = [
+    'English', 'Amharic', 'Tigrinya', 'Oromiffa', 'French', 'Arabic', 
+    'Sidama', 'Wolayta', 'Somali'
   ];
+  bool loadingLanguages = false;
 
   @override
   void initState() {
     super.initState();
-    fetchUploadedFiles();
+    _fetchLanguages();
   }
 
-  Future<void> fetchUploadedFiles() async {
+  Future<void> _fetchLanguages() async {
+    if (!mounted) return;
+    setState(() => loadingLanguages = true);
+    
     try {
-      final files = await ApiService.getUploadedFiles(widget.company['id']);
-      setState(() => uploadedFiles = files);
-    } catch (e) {
-      debugPrint('Failed to fetch uploaded files: $e');
-    }
-  }
-
-  Future<void> pickFile() async {
-    final result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
-      withData: kIsWeb,
-    );
-
-    if (result != null) {
-      setState(() {
-        selectedFileName = result.files.single.name;
-        if (kIsWeb) {
-          selectedFileBytes = result.files.single.bytes;
-          selectedFile = null;
-        } else {
-          final path = result.files.single.path;
-          if (path != null) selectedFile = File(path);
-          selectedFileBytes = null;
+      final data = await supabase
+          .from('languages')
+          .select('name')
+          .order('name', ascending: true);
+      
+      if (data.isNotEmpty) {
+        final List<String> fetchedLangs = (data as List)
+            .map((item) => item['name'] as String)
+            .toList();
+        
+        if (mounted) {
+          setState(() {
+            allLanguages = fetchedLangs;
+          });
         }
-      });
-    }
-  }
-
-  Future<void> uploadFile() async {
-    if ((kIsWeb && selectedFileBytes == null) ||
-        (!kIsWeb && selectedFile == null)) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('No file selected')));
-      return;
-    }
-
-    if (fromLanguage == null || toLanguage == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select both languages')),
-      );
-      return;
-    }
-
-    setState(() => uploading = true);
-
-    try {
-      Map<String, dynamic> response;
-
-      if (kIsWeb) {
-        response = await ApiService.uploadFileWeb(
-          fileBytes: selectedFileBytes!,
-          filename: selectedFileName!,
-          companyId: widget.company['id'],
-        );
-      } else {
-        response = await ApiService.uploadFile(
-          file: selectedFile!,
-          companyId: widget.company['id'],
-        );
-      }
-
-      if (response['success'] == true) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('File uploaded successfully!')),
-        );
-        setState(() {
-          selectedFile = null;
-          selectedFileBytes = null;
-          selectedFileName = null;
-          fromLanguage = null;
-          toLanguage = null;
-        });
-        fetchUploadedFiles();
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Upload failed: ${response['message']}')),
-        );
       }
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error uploading file: $e')));
+      debugPrint("Language fetch failed: $e (Using fallbacks)");
     } finally {
-      setState(() => uploading = false);
+      if (mounted) setState(() => loadingLanguages = false);
     }
   }
 
   @override
-  Widget build(BuildContext context) {
-    final company = widget.company;
+  void dispose() {
 
-    const Color brandColor = Color(0xFF895129);
-    const Color accentColor = Color(0xFFD8B88A);
-    const Color backgroundColor = Color(0xFFF9F5F2);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    isDark = Theme.of(context).brightness == Brightness.dark;
+    bgTheme = Theme.of(context).scaffoldBackgroundColor;
+    cardTheme = Theme.of(context).cardColor;
+    textThemeHeader = isDark ? Colors.white : Colors.black;
+    textThemeSec = isDark ? Colors.white70 : Colors.black54;
 
     return Scaffold(
-      backgroundColor: backgroundColor,
+      backgroundColor: bgTheme,
       appBar: AppBar(
-        backgroundColor: brandColor,
-        title: Text(
-          'Upload Documents',
-          style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
-        ),
-        centerTitle: true,
         elevation: 0,
+        backgroundColor: bgTheme,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios_new, color: textThemeHeader, size: 20),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: Text("TRANSLATION REQUEST",
+            style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: 1.2, color: brandBrown)),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Company Card
-            Container(
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFFEEDBC3), Color(0xFF895129)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Colors.black26,
-                    blurRadius: 6,
-                    offset: Offset(0, 3),
-                  ),
-                ],
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    AspectRatio(
-                      aspectRatio: 3 / 2,
-                      child: Image.asset(
-                        company['image_url'] ?? 'assets/images/placeholder.png',
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) =>
-                            const Icon(Icons.business, size: 50),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            company['business_name'] ?? 'Unnamed Company',
-                            style: GoogleFonts.poppins(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Languages: ${company['languages_supported']?.join(', ') ?? '-'}',
-                            style: GoogleFonts.poppins(
-                              fontSize: 12,
-                              color: Colors.white70,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Row(
-                            children: [
-                              const Icon(
-                                Icons.star,
-                                size: 16,
-                                color: Colors.amber,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                company['rating']?.toStringAsFixed(1) ?? '0.0',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 12,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
+            _buildSectionLabelWithIcon(Icons.person_outline_rounded, "TRANSLATOR"),
+            const SizedBox(height: 12),
+            _translatorProfileHeader(),
+            const SizedBox(height: 32),
+            _buildSectionLabelWithIcon(Icons.assignment_outlined, "ASSIGNMENT SPECIFICATIONS"),
+            const SizedBox(height: 16),
+            _infoTakingBox(
+                label: "Source Language",
+                child: _customDropdown(fromLang, (v) => setState(() => fromLang = v), allLanguages)),
+            const SizedBox(height: 12),
+            _infoTakingBox(
+                label: "Target Language",
+                child: _customDropdown(toLang, (v) => setState(() => toLang = v), 
+                    allLanguages.where((l) => l != fromLang).toList())),
+            const SizedBox(height: 32),
+            _buildSectionLabelWithIcon(Icons.attach_file_rounded, "DOCUMENT ATTACHMENT"),
+            const SizedBox(height: 16),
+            _documentPickerArea(),
+            const SizedBox(height: 32),
 
-            // Language Selection + Upload
-            Card(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              elevation: 4,
-              shadowColor: brandColor.withOpacity(0.3),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: DropdownButtonFormField<String>(
-                            decoration: InputDecoration(
-                              labelText: 'From:',
-                              labelStyle: GoogleFonts.poppins(
-                                color: brandColor,
-                                fontWeight: FontWeight.w500,
-                                fontSize: 14,
-                              ),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                            initialValue: fromLanguage,
-                            items: languages
-                                .map(
-                                  (lang) => DropdownMenuItem(
-                                    value: lang,
-                                    child: Text(lang),
-                                  ),
-                                )
-                                .toList(),
-                            onChanged: (value) {
-                              setState(() {
-                                fromLanguage = value;
-                                if (toLanguage == fromLanguage) {
-                                  toLanguage = null;
-                                }
-                              });
-                            },
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: DropdownButtonFormField<String>(
-                            decoration: InputDecoration(
-                              labelText: 'To:',
-                              labelStyle: GoogleFonts.poppins(
-                                color: brandColor,
-                                fontWeight: FontWeight.w500,
-                                fontSize: 14,
-                              ),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                            initialValue: toLanguage,
-                            items: languages
-                                .where((lang) => lang != fromLanguage)
-                                .map(
-                                  (lang) => DropdownMenuItem(
-                                    value: lang,
-                                    child: Text(lang),
-                                  ),
-                                )
-                                .toList(),
-                            onChanged: (value) =>
-                                setState(() => toLanguage = value),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-                    ElevatedButton.icon(
-                      icon: const Icon(Icons.attach_file, color: Colors.white),
-                      label: const Text(
-                        'Select a File',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: brandColor,
-                        minimumSize: const Size(double.infinity, 45),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      onPressed: pickFile,
-                    ),
-                    if (selectedFileName != null)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 10),
-                        child: Text(
-                          'Selected file: $selectedFileName',
-                          style: GoogleFonts.poppins(fontSize: 14),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    const SizedBox(height: 15),
-                    ElevatedButton.icon(
-                      icon: uploading
-                          ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 2,
-                              ),
-                            )
-                          : const Icon(Icons.cloud_upload, color: Colors.white),
-                      label: Text(
-                        uploading ? 'Uploading...' : 'Upload File',
-                        style: GoogleFonts.poppins(
-                          fontSize: 14,
-                          color: Colors.white,
-                        ),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: accentColor,
-                        foregroundColor: brandColor,
-                        minimumSize: const Size(double.infinity, 45),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      onPressed: uploading ? null : uploadFile,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-
-            // Uploaded Files List
-            if (uploadedFiles.isNotEmpty)
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Uploaded Files:',
-                    style: GoogleFonts.poppins(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: brandColor,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  ...uploadedFiles.map(
-                    (file) => Card(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      elevation: 2,
-                      margin: const EdgeInsets.symmetric(vertical: 4),
-                      child: ListTile(
-                        leading: const Icon(
-                          Icons.insert_drive_file,
-                          color: brandColor,
-                        ),
-                        title: Text(
-                          file['fileName'],
-                          style: GoogleFonts.poppins(fontSize: 13),
-                        ),
-                        subtitle: Text(
-                          file['uploadedAt'] ?? '',
-                          style: GoogleFonts.poppins(
-                            fontSize: 11,
-                            color: Colors.grey,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+            const SizedBox(height: 48),
+            _actionButton(),
+            const SizedBox(height: 40),
           ],
         ),
+      ),
+    );
+  }
+
+  // --- ACTIONS ---
+
+  Future<void> _submitJob() async {
+    if (fromLang == null || toLang == null || _pickedFile == null) {
+      _showSnack("Please select languages and upload a document");
+      return;
+    }
+
+    setState(() => processing = true);
+
+    try {
+      final user = supabase.auth.currentUser;
+      if (user == null) throw Exception("User not authenticated");
+
+      final fileExt = p.extension(_pickedFile!.name);
+      final fileName = "${DateTime.now().millisecondsSinceEpoch}$fileExt";
+      final filePath = "jobs/${user.id}/$fileName";
+
+      final bytes = await _pickedFile!.readAsBytes();
+      await supabase.storage.from('translations').uploadBinary(filePath, bytes);
+
+      final String publicUrl = supabase.storage.from('translations').getPublicUrl(filePath);
+
+      final data = await supabase.from('jobs').insert({
+        'client_id': user.id,
+        'translator_id': widget.company['id'],
+        'from_lang': fromLang,
+        'to_lang': toLang,
+        'file_url': publicUrl,
+        'status': 'pending',
+
+        'created_at': DateTime.now().toIso8601String(),
+      }).select().single();
+
+      if (mounted) {
+        NotificationSoundService.playSuccessSound();
+        _showSnack("✅ Job submitted! Translator notified.");
+        Navigator.pushReplacementNamed(context, '/live_tracker', arguments: data);
+      }
+    } catch (e) {
+      _showSnack("Upload failed: ${e.toString()}");
+    } finally {
+      if (mounted) setState(() => processing = false);
+    }
+  }
+
+  // --- UI COMPONENTS ---
+
+  Widget _translatorProfileHeader() {
+    final avatar = widget.company['avatar_url'];
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+          color: cardTheme,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: isDark ? Colors.white.withOpacity(0.1) : Colors.grey.shade200)),
+      child: Row(
+        children: [
+          Hero(
+            tag: 'translator_avatar_${widget.company['id']}',
+            child: CircleAvatar(
+              radius: 24,
+              backgroundColor: brandBrown.withOpacity(0.05),
+              backgroundImage: (avatar != null && avatar.isNotEmpty) ? NetworkImage(avatar) : null,
+              child: (avatar == null || avatar.isEmpty) ? const Icon(Icons.person, color: brandBrown) : null,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(widget.company['full_name'] ?? "Expert Translator",
+                    style: TextStyle(color: textThemeHeader, fontWeight: FontWeight.w800, fontSize: 15),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis),
+                const Text("Translator Profile",
+                    style: TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.w500)),
+              ],
+            ),
+          ),
+          const Icon(Icons.verified_user_rounded, color: Colors.green, size: 20),
+        ],
+      ),
+    );
+  }
+
+  Widget _infoTakingBox({required String label, required Widget child}) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      decoration: BoxDecoration(color: isDark ? Colors.white.withOpacity(0.05) : const Color(0xFFF1F5F9), borderRadius: BorderRadius.circular(18)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label.toUpperCase(),
+              style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: brandBrown, letterSpacing: 0.5)),
+          const SizedBox(height: 4),
+          child,
+        ],
+      ),
+    );
+  }
+
+  Widget _customDropdown(String? value, Function(String?) onChanged, List<String> items) {
+    return DropdownButtonHideUnderline(
+      child: DropdownButton<String>(
+        value: value,
+        isExpanded: true,
+        icon: Icon(Icons.expand_more_rounded, color: isDark ? Colors.white38 : Colors.black38),
+        hint: Text("Select...", style: TextStyle(color: isDark ? Colors.white24 : Colors.black26, fontSize: 14)),
+        items: items.map((e) => DropdownMenuItem(
+            value: e,
+            child: Text(e, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15)))).toList(),
+        onChanged: onChanged,
+      ),
+    );
+  }
+
+  Widget _documentPickerArea() {
+    return GestureDetector(
+      onTap: () async {
+        final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery, imageQuality: 80);
+        if (pickedFile != null) {
+          final bytes = await pickedFile.readAsBytes();
+          setState(() {
+            _webImage = bytes;
+            _pickedFile = pickedFile;
+          });
+        }
+      },
+      child: Container(
+        height: 180,
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: isDark ? Colors.white.withOpacity(0.05) : brandBrown,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: isDark ? Colors.white10 : Colors.black.withOpacity(0.05), width: 1.5),
+        ),
+        child: _pickedFile == null
+            ? Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                   Icon(Icons.cloud_upload_rounded, size: 40, color: textThemeHeader),
+                   const SizedBox(height: 12),
+                   Text(AppLocalizations.of(context)!.translate('upload'),
+                      style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: textThemeHeader)),
+                   Text("JPG, PNG or PDF supported", style: TextStyle(fontSize: 11, color: textThemeSec)),
+                ],
+              )
+            : ClipRRect(
+                borderRadius: BorderRadius.circular(24),
+                child: Image.memory(_webImage!, fit: BoxFit.cover),
+              ),
+      ),
+    );
+  }
+
+
+
+  Widget _actionButton() {
+    return SizedBox(
+      width: double.infinity,
+      height: 68,
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: brandBrown,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
+          elevation: 0,
+        ),
+        onPressed: processing ? null : _submitJob,
+        child: processing
+            ? const CircularProgressIndicator(color: Colors.white)
+            : const Text("PLACE ORDER",
+                style: TextStyle(fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: 1.5)),
+      ),
+    );
+  }
+
+  Widget _buildSectionLabel(String text) {
+    return Text(text,
+        style: TextStyle(fontWeight: FontWeight.w800, fontSize: 11, color: Colors.grey.shade500, letterSpacing: 0.5));
+  }
+
+  Widget _buildSectionLabelWithIcon(IconData icon, String text) {
+    return Row(
+      children: [
+        Icon(icon, size: 16, color: Colors.grey.shade400),
+        const SizedBox(width: 8),
+        _buildSectionLabel(text),
+      ],
+    );
+  }
+
+  void _showSnack(String msg) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(msg),
+        backgroundColor: Theme.of(context).snackBarTheme.backgroundColor,
       ),
     );
   }

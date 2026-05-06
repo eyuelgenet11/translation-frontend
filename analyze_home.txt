@@ -1,0 +1,11 @@
+Analyzing home_screen.dart...                                   
+
+  error - Target of URI doesn't exist: '../api_service.dart' - lib\home_screen.dart:4:8 - uri_does_not_exist
+  error - Undefined name 'ApiService' - lib\home_screen.dart:49:28 - undefined_identifier
+  error - Undefined name 'ApiService' - lib\home_screen.dart:53:30 - undefined_identifier
+  error - Undefined name 'ApiService' - lib\home_screen.dart:63:21 - undefined_identifier
+  error - Undefined name 'ApiService' - lib\home_screen.dart:64:29 - undefined_identifier
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\home_screen.dart:96:35 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\home_screen.dart:166:45 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\home_screen.dart:254:48 - deprecated_member_use
+

@@ -1,0 +1,65 @@
+Analyzing home_screen.dart...                                   
+
+  error - Missing concrete implementation of 'abstract class State<T extends StatefulWidget> with Diagnosticable.build' - lib\home_screen.dart:17:7 - non_abstract_class_inherits_abstract_member
+   info - The private field _carouselIndex could be 'final' - lib\home_screen.dart:24:7 - prefer_final_fields
+warning - The value of the field '_carouselIndex' isn't used - lib\home_screen.dart:24:7 - unused_field
+warning - The value of the field '_phoneNumber' isn't used - lib\home_screen.dart:31:11 - unused_field
+warning - The value of the field '_address' isn't used - lib\home_screen.dart:32:11 - unused_field
+warning - The value of the field '_walletBalance' isn't used - lib\home_screen.dart:33:10 - unused_field
+  error - The method '_applyFilters' isn't defined for the type '_HomeScreenState' - lib\home_screen.dart:129:11 - undefined_method
+  error - The method 'in_' isn't defined for the type 'PostgrestFilterBuilder' - lib\home_screen.dart:148:12 - undefined_method
+  error - The class 'EdgeInsets' doesn't have a constant constructor 'bottom' - lib\home_screen.dart:206:33 - const_with_undefined_constructor
+   info - Use 'const' with the constructor to improve performance - lib\home_screen.dart:212:25 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\home_screen.dart:251:19 - prefer_const_constructors
+   info - Use 'const' literals as arguments to constructors of '@immutable' classes - lib\home_screen.dart:251:42 - prefer_const_literals_to_create_immutables
+   info - Use 'const' with the constructor to improve performance - lib\home_screen.dart:251:43 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\home_screen.dart:251:62 - prefer_const_constructors
+   info - Use 'const' literals as arguments to constructors of '@immutable' classes - lib\home_screen.dart:253:20 - prefer_const_literals_to_create_immutables
+   info - Use 'const' with the constructor to improve performance - lib\home_screen.dart:253:21 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\home_screen.dart:253:78 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\home_screen.dart:275:25 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\home_screen.dart:309:26 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\home_screen.dart:309:56 - prefer_const_constructors
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\home_screen.dart:332:61 - deprecated_member_use
+   info - Use 'const' with the constructor to improve performance - lib\home_screen.dart:333:69 - prefer_const_constructors
+  error - The argument type 'Color?' can't be assigned to the parameter type 'Color'.  - lib\home_screen.dart:340:127 - argument_type_not_assignable
+   info - Use 'const' with the constructor to improve performance - lib\home_screen.dart:390:32 - prefer_const_constructors
+warning - The value of the local variable 'user' isn't used - lib\home_screen.dart:417:11 - unused_local_variable
+  error - Undefined name '_showAccountDetailsDialog' - lib\home_screen.dart:427:108 - undefined_identifier
+  error - Undefined name '_showPrivacySettings' - lib\home_screen.dart:428:81 - undefined_identifier
+  error - The method '_showSignOutConfirmation' isn't defined for the type '_HomeScreenState' - lib\home_screen.dart:436:32 - undefined_method
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\home_screen.dart:439:45 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\home_screen.dart:455:98 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\home_screen.dart:458:41 - deprecated_member_use
+  error - Undefined name '_pickAndUploadImage' - lib\home_screen.dart:463:71 - undefined_identifier
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\home_screen.dart:478:102 - deprecated_member_use
+  error - The method '_applyFilters' isn't defined for the type '_HomeScreenState' - lib\home_screen.dart:538:27 - undefined_method
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\home_screen.dart:549:206 - deprecated_member_use
+  error - The method '_applyFilters' isn't defined for the type '_HomeScreenState' - lib\home_screen.dart:562:86 - undefined_method
+  error - Expected to find ';' - lib\home_screen.dart:574:3 - expected_token
+warning - Dead code - lib\home_screen.dart:578:3 - dead_code
+  error - Expected to find ')' - lib\home_screen.dart:578:3 - expected_token
+   info - The local variable '_applyFilters' starts with an underscore - lib\home_screen.dart:578:8 - no_leading_underscores_for_local_identifiers
+warning - The declaration '_applyFilters' isn't referenced - lib\home_screen.dart:578:8 - unused_element
+   info - The local variable '_showPrivacySettings' starts with an underscore - lib\home_screen.dart:588:8 - no_leading_underscores_for_local_identifiers
+warning - The declaration '_showPrivacySettings' isn't referenced - lib\home_screen.dart:588:8 - unused_element
+   info - The local variable '_showAccountDetailsDialog' starts with an underscore - lib\home_screen.dart:592:8 - no_leading_underscores_for_local_identifiers
+warning - The declaration '_showAccountDetailsDialog' isn't referenced - lib\home_screen.dart:592:8 - unused_element
+   info - The local variable '_showSignOutConfirmation' starts with an underscore - lib\home_screen.dart:596:8 - no_leading_underscores_for_local_identifiers
+warning - The declaration '_showSignOutConfirmation' isn't referenced - lib\home_screen.dart:596:8 - unused_element
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\home_screen.dart:597:450 - use_build_context_synchronously
+   info - The local variable '_pickAndUploadImage' starts with an underscore - lib\home_screen.dart:600:16 - no_leading_underscores_for_local_identifiers
+warning - The declaration '_pickAndUploadImage' isn't referenced - lib\home_screen.dart:600:16 - unused_element
+warning - The declaration 'build' isn't referenced - lib\home_screen.dart:620:10 - unused_element
+  error - Local variable '_buildBottomNav' can't be referenced before it is declared - lib\home_screen.dart:629:106 - referenced_before_declaration
+   info - The local variable '_buildBottomNav' starts with an underscore - lib\home_screen.dart:632:10 - no_leading_underscores_for_local_identifiers
+   info - Use 'const' literals as arguments to constructors of '@immutable' classes - lib\home_screen.dart:636:117 - prefer_const_literals_to_create_immutables
+   info - Use 'const' with the constructor to improve performance - lib\home_screen.dart:636:118 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\home_screen.dart:636:175 - prefer_const_constructors
+  error - Local variable '_navIcon' can't be referenced before it is declared - lib\home_screen.dart:640:11 - referenced_before_declaration
+  error - Local variable '_navIcon' can't be referenced before it is declared - lib\home_screen.dart:641:11 - referenced_before_declaration
+  error - Local variable '_navIcon' can't be referenced before it is declared - lib\home_screen.dart:642:11 - referenced_before_declaration
+  error - Local variable '_navIcon' can't be referenced before it is declared - lib\home_screen.dart:643:11 - referenced_before_declaration
+   info - The local variable '_navIcon' starts with an underscore - lib\home_screen.dart:649:10 - no_leading_underscores_for_local_identifiers
+  error - Expected to find '}' - lib\home_screen.dart:663:1 - expected_token
+

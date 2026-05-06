@@ -1,39 +1,75 @@
-name: translation_frontend
+name: geez_translation_marketplace
 description: A Flutter project for document translation marketplace.
-
 publish_to: "none"
-
-version: 1.0.0+1
+version: 1.0.0+4
 
 environment:
-  sdk: ">=3.9.0 <4.0.0"
+  sdk: ">=3.0.0 <4.0.0"
 
 dependencies:
   flutter:
     sdk: flutter
-  cupertino_icons: ^1.0.5
-  http: ^1.1.0
-  google_fonts: ^6.3.2
-  carousel_slider: 5.1.1
-  file_picker: ^10.3.3  # updated to latest Android-compatible version
+  flutter_localizations:
+    sdk: flutter
+  path_provider: ^2.1.2
+  supabase_flutter: ^2.6.0
+  google_sign_in: ^6.2.1
+  dio: ^5.4.0
+  http: ^1.2.2
+  url_launcher: ^6.2.0
+  file_picker: ^8.0.0
+  path: ^1.9.0
+  open_filex: ^4.5.0
+  flutter_pdfview: ^1.4.1
+  cupertino_icons: ^1.0.8
+  google_fonts: ^6.2.1
+  carousel_slider: ^5.0.0
+  flutter_secure_storage: ^9.0.0
+  shared_preferences: ^2.2.2
+  image_picker: ^1.2.1
+  firebase_core: ^4.5.0
+  firebase_messaging: ^16.1.2
+  flutter_local_notifications: ^21.0.0
+  share_plus: ^10.1.0
+  shimmer: ^3.0.0
+  audioplayers: ^6.1.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^2.0.3  # latest stable for Flutter 3.35
-  lints: ^2.1.1
+  flutter_lints: ^4.0.0
+  flutter_launcher_icons: ^0.13.1
+  flutter_native_splash: ^2.4.0
+
+# This section MUST be at the top level (no spaces before it)
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/icon/fffinal icon.png"
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "assets/icon/fffinal icon.png"
+
+flutter_native_splash:
+  color: "#0D0A08"
+  image: "assets/icon/fffinal logo.png"
+  android_12:
+    color: "#0D0A08"
+    image: "assets/icon/fffinal logo.png"
+  ios: true
+  android: true
 
 flutter:
   uses-material-design: true
-
   assets:
     - assets/images/
+    - assets/icon/
+    - assets/ss/
+    - assets/sounds/
 
   fonts:
     - family: DancingScript
       fonts:
         - asset: assets/fonts/DancingScript-VariableFont_wght.ttf
-
     - family: Roboto
       fonts:
         - asset: assets/fonts/Roboto-VariableFont_wdth,wght.ttf

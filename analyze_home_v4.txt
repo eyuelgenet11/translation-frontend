@@ -1,0 +1,15 @@
+Analyzing home_screen.dart...                                   
+
+  error - The class 'EdgeInsets' doesn't have a constant constructor 'bottom' - lib\home_screen.dart:204:33 - const_with_undefined_constructor
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\home_screen.dart:270:45 - deprecated_member_use
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\home_screen.dart:350:42 - use_build_context_synchronously
+   info - 'activeColor' is deprecated and shouldn't be used. Use activeThumbColor instead. This feature was deprecated after v3.31.0-2.0.pre - lib\home_screen.dart:369:106 - deprecated_member_use
+   info - 'activeColor' is deprecated and shouldn't be used. Use activeThumbColor instead. This feature was deprecated after v3.31.0-2.0.pre - lib\home_screen.dart:370:101 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\home_screen.dart:485:59 - deprecated_member_use
+  error - The argument type 'Color?' can't be assigned to the parameter type 'Color'.  - lib\home_screen.dart:493:125 - argument_type_not_assignable
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\home_screen.dart:544:430 - use_build_context_synchronously
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\home_screen.dart:586:98 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\home_screen.dart:589:41 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\home_screen.dart:609:102 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\home_screen.dart:667:206 - deprecated_member_use
+

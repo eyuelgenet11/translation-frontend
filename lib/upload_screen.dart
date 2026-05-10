@@ -190,14 +190,14 @@ class _UploadScreenState extends State<UploadScreen> {
       decoration: BoxDecoration(
           color: cardTheme,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: isDark ? Colors.white.withOpacity(0.1) : Colors.grey.shade200)),
+          border: Border.all(color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.grey.shade200)),
       child: Row(
         children: [
           Hero(
             tag: 'translator_avatar_${widget.company['id']}',
             child: CircleAvatar(
               radius: 24,
-              backgroundColor: brandBrown.withOpacity(0.05),
+              backgroundColor: brandBrown.withValues(alpha: 0.05),
               backgroundImage: (avatar != null && avatar.isNotEmpty) ? NetworkImage(avatar) : null,
               child: (avatar == null || avatar.isEmpty) ? const Icon(Icons.person, color: brandBrown) : null,
             ),
@@ -226,7 +226,7 @@ class _UploadScreenState extends State<UploadScreen> {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-      decoration: BoxDecoration(color: isDark ? Colors.white.withOpacity(0.05) : const Color(0xFFF1F5F9), borderRadius: BorderRadius.circular(18)),
+      decoration: BoxDecoration(color: isDark ? Colors.white.withValues(alpha: 0.05) : const Color(0xFFF1F5F9), borderRadius: BorderRadius.circular(18)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -270,9 +270,9 @@ class _UploadScreenState extends State<UploadScreen> {
         height: 180,
         width: double.infinity,
         decoration: BoxDecoration(
-          color: isDark ? Colors.white.withOpacity(0.05) : brandBrown,
+          color: isDark ? Colors.white.withValues(alpha: 0.05) : brandBrown,
           borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: isDark ? Colors.white10 : Colors.black.withOpacity(0.05), width: 1.5),
+          border: Border.all(color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05), width: 1.5),
         ),
         child: _pickedFile == null
             ? Column(
@@ -330,6 +330,7 @@ class _UploadScreenState extends State<UploadScreen> {
   }
 
   void _showSnack(String msg) {
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(msg),

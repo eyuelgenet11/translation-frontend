@@ -72,11 +72,11 @@ class PushNotificationService {
       summaryText: 'Translation Update',
     );
 
-    await (_notificationsPlugin as dynamic).show(
-      title.hashCode,
-      title,
-      body,
-      NotificationDetails(
+    await _notificationsPlugin.show(
+      id: title.hashCode,
+      title: title,
+      body: body,
+      notificationDetails: NotificationDetails(
         android: AndroidNotificationDetails(
           _channel.id,
           _channel.name,

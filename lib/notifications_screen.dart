@@ -23,7 +23,7 @@ class NotificationsScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.notifications_none_rounded, size: 80, color: brandColor.withOpacity(0.2)),
+            Icon(Icons.notifications_none_rounded, size: 80, color: brandColor.withValues(alpha: 0.2)),
             const SizedBox(height: 16),
             Text(
               'No new notifications',

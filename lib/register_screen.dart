@@ -118,6 +118,7 @@ class _RegisterScreenState extends State<RegisterScreen>
   }
 
   void _snack(String msg) {
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text(msg),
       behavior: SnackBarBehavior.floating,
@@ -193,8 +194,8 @@ class _RegisterScreenState extends State<RegisterScreen>
               height: 40,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.white.withOpacity(0.07),
-                border: Border.all(color: Colors.white.withOpacity(0.1)),
+                color: Colors.white.withValues(alpha: 0.07),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
               ),
               child: const Icon(Icons.arrow_back_ios_new_rounded,
                   color: Colors.white70, size: 16),
@@ -228,7 +229,7 @@ class _RegisterScreenState extends State<RegisterScreen>
             gradient: LinearGradient(
               colors: _step >= 2
                   ? [_brown, _brown]
-                  : [_brown, Colors.white.withOpacity(0.1)],
+                  : [_brown, Colors.white.withValues(alpha: 0.1)],
             ),
           ),
         ),
@@ -245,13 +246,13 @@ class _RegisterScreenState extends State<RegisterScreen>
       height: 32,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: active ? _brown : Colors.white.withOpacity(0.07),
+        color: active ? _brown : Colors.white.withValues(alpha: 0.07),
         border: Border.all(
-          color: active ? _brown : Colors.white.withOpacity(0.15),
+          color: active ? _brown : Colors.white.withValues(alpha: 0.15),
           width: 2,
         ),
         boxShadow: active
-            ? [BoxShadow(color: _brown.withOpacity(0.4), blurRadius: 12)]
+            ? [BoxShadow(color: _brown.withValues(alpha: 0.4), blurRadius: 12)]
             : [],
       ),
       child: Center(
@@ -273,7 +274,7 @@ class _RegisterScreenState extends State<RegisterScreen>
     final titles = ['Your Identity', 'Account Type'];
     final subtitles = [
       'Set up your name, email & password',
-      'Tell us how you plan to use Geez Script',
+      'Tell us how you plan to use Geez Translation',
     ];
     return Column(
       children: [
@@ -290,7 +291,7 @@ class _RegisterScreenState extends State<RegisterScreen>
         Text(
           subtitles[_step - 1],
           style: TextStyle(
-            color: Colors.white.withOpacity(0.4),
+            color: Colors.white.withValues(alpha: 0.4),
             fontSize: 13,
             fontWeight: FontWeight.w500,
           ),
@@ -308,8 +309,8 @@ class _RegisterScreenState extends State<RegisterScreen>
           padding: const EdgeInsets.all(28),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(32),
-            color: Colors.white.withOpacity(0.04),
-            border: Border.all(color: Colors.white.withOpacity(0.09)),
+            color: Colors.white.withValues(alpha: 0.04),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.09)),
           ),
           child:
               _step == 1 ? _buildStep1Fields() : _buildStep2Fields(),
@@ -398,15 +399,15 @@ class _RegisterScreenState extends State<RegisterScreen>
               fontSize: 10,
               fontWeight: FontWeight.w800,
               letterSpacing: 2,
-              color: _brown.withOpacity(0.9),
+              color: _brown.withValues(alpha: 0.9),
             ),
           ),
         ),
         Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
-            color: Colors.white.withOpacity(0.05),
-            border: Border.all(color: Colors.white.withOpacity(0.1)),
+            color: Colors.white.withValues(alpha: 0.05),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
           ),
           child: TextField(
             controller: controller,
@@ -419,14 +420,14 @@ class _RegisterScreenState extends State<RegisterScreen>
               fontWeight: FontWeight.w500,
             ),
             decoration: InputDecoration(
-              prefixIcon: Icon(icon, color: _brown.withOpacity(0.8), size: 20),
+              prefixIcon: Icon(icon, color: _brown.withValues(alpha: 0.8), size: 20),
               suffixIcon: isPass && onToggle != null
                   ? IconButton(
                       icon: Icon(
                         obscure
                             ? Icons.visibility_off_outlined
                             : Icons.visibility_outlined,
-                        color: Colors.white.withOpacity(0.3),
+                        color: Colors.white.withValues(alpha: 0.3),
                         size: 18,
                       ),
                       onPressed: onToggle,
@@ -435,7 +436,7 @@ class _RegisterScreenState extends State<RegisterScreen>
               border: InputBorder.none,
               hintText: hint,
               hintStyle: TextStyle(
-                color: Colors.white.withOpacity(0.2),
+                color: Colors.white.withValues(alpha: 0.2),
                 fontSize: 14,
               ),
               contentPadding:
@@ -457,7 +458,7 @@ class _RegisterScreenState extends State<RegisterScreen>
             fontSize: 10,
             fontWeight: FontWeight.w800,
             letterSpacing: 2,
-            color: _brown.withOpacity(0.9),
+            color: _brown.withValues(alpha: 0.9),
           ),
         ),
         const SizedBox(height: 12),
@@ -481,13 +482,13 @@ class _RegisterScreenState extends State<RegisterScreen>
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(18),
-          color: isSel ? _brown.withOpacity(0.15) : Colors.white.withOpacity(0.04),
+          color: isSel ? _brown.withValues(alpha: 0.15) : Colors.white.withValues(alpha: 0.04),
           border: Border.all(
-            color: isSel ? _brown : Colors.white.withOpacity(0.1),
+            color: isSel ? _brown : Colors.white.withValues(alpha: 0.1),
             width: isSel ? 2 : 1,
           ),
           boxShadow: isSel
-              ? [BoxShadow(color: _brown.withOpacity(0.25), blurRadius: 16)]
+              ? [BoxShadow(color: _brown.withValues(alpha: 0.25), blurRadius: 16)]
               : [],
         ),
         child: Column(
@@ -530,9 +531,9 @@ class _RegisterScreenState extends State<RegisterScreen>
             margin: const EdgeInsets.only(top: 1),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(7),
-              color: _termsAccepted ? _brown : Colors.white.withOpacity(0.07),
+              color: _termsAccepted ? _brown : Colors.white.withValues(alpha: 0.07),
               border: Border.all(
-                color: _termsAccepted ? _brown : Colors.white.withOpacity(0.2),
+                color: _termsAccepted ? _brown : Colors.white.withValues(alpha: 0.2),
               ),
             ),
             child: _termsAccepted
@@ -547,7 +548,7 @@ class _RegisterScreenState extends State<RegisterScreen>
                   TextSpan(
                     text: 'I agree to the ',
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.45),
+                      color: Colors.white.withValues(alpha: 0.45),
                       fontSize: 13,
                     ),
                   ),
@@ -562,7 +563,7 @@ class _RegisterScreenState extends State<RegisterScreen>
                   TextSpan(
                     text: ' and ',
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.45),
+                      color: Colors.white.withValues(alpha: 0.45),
                       fontSize: 13,
                     ),
                   ),
@@ -604,7 +605,7 @@ class _RegisterScreenState extends State<RegisterScreen>
               ? []
               : [
                   BoxShadow(
-                    color: _brown.withOpacity(0.45),
+                    color: _brown.withValues(alpha: 0.45),
                     blurRadius: 22,
                     offset: const Offset(0, 8),
                   ),
@@ -648,7 +649,7 @@ class _RegisterScreenState extends State<RegisterScreen>
         Text(
           'Already have an account? ',
           style: TextStyle(
-            color: Colors.white.withOpacity(0.4),
+            color: Colors.white.withValues(alpha: 0.4),
             fontSize: 13,
           ),
         ),
@@ -719,7 +720,7 @@ class _AnimatedBg extends StatelessWidget {
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           gradient: RadialGradient(
-            colors: [color.withOpacity(opacity), Colors.transparent],
+            colors: [color.withValues(alpha: opacity), Colors.transparent],
           ),
         ),
       );

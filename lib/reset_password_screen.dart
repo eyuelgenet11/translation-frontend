@@ -92,7 +92,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
               fontSize: 11,
               fontWeight: FontWeight.w800,
               letterSpacing: 1.5,
-              color: brandColor.withOpacity(0.6),
+              color: brandColor.withValues(alpha: 0.6),
             ),
           ),
         ),
@@ -101,11 +101,11 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
             color: isDark ? const Color(0xFF1E293B) : Colors.white,
             borderRadius: BorderRadius.circular(30),
             border: Border.all(
-                color: isDark ? Colors.white.withOpacity(0.1) : Colors.grey[200]!, 
+                color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.grey[200]!, 
                 width: 1),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(isDark ? 0.2 : 0.02),
+                color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.02),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               )
@@ -131,7 +131,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
               border: InputBorder.none,
               hintText: hint,
               hintStyle: TextStyle(
-                  color: isDark ? Colors.white.withOpacity(0.3) : Colors.grey[300], 
+                  color: isDark ? Colors.white.withValues(alpha: 0.3) : Colors.grey[300], 
                   fontSize: 14),
               contentPadding:
                   const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
@@ -196,7 +196,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                       "Please enter your new password below. Make sure it's at least 6 characters long.",
                       style: TextStyle(
                         fontSize: 14,
-                        color: brandColor.withOpacity(0.6),
+                        color: brandColor.withValues(alpha: 0.6),
                         height: 1.5,
                       ),
                     ),
@@ -237,13 +237,13 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
         gradient: LinearGradient(
           colors: _loading
               ? [Colors.grey[400]!, Colors.grey[500]!]
-              : [accentColor, accentColor.withOpacity(0.85)],
+              : [accentColor, accentColor.withValues(alpha: 0.85)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         boxShadow: _loading ? [] : [
           BoxShadow(
-            color: accentColor.withOpacity(0.3),
+            color: accentColor.withValues(alpha: 0.3),
             blurRadius: 16,
             offset: const Offset(0, 8),
           )

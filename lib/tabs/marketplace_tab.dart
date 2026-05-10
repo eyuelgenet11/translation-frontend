@@ -228,7 +228,7 @@ class MarketplaceTab extends StatelessWidget {
           decoration: InputDecoration(
             hintText: "Search legal or medical experts...",
             hintStyle:
-                TextStyle(fontSize: 14, color: textSecTheme.withOpacity(0.5)),
+                TextStyle(fontSize: 14, color: textSecTheme.withValues(alpha: 0.5)),
             prefixIcon:
                 Icon(Icons.search_rounded, color: brandBrown, size: 22),
             border: InputBorder.none,
@@ -555,7 +555,7 @@ class MarketplaceTab extends StatelessWidget {
                   margin: const EdgeInsets.only(right: 16),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [brandBrown, brandBrown.withOpacity(0.8)],
+                      colors: [brandBrown, brandBrown.withValues(alpha: 0.8)],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
@@ -574,7 +574,7 @@ class MarketplaceTab extends StatelessWidget {
                         right: -20,
                         top: -20,
                         child: Icon(Icons.verified_user_rounded,
-                            size: 100, color: Colors.white.withOpacity(0.1)),
+                            size: 100, color: Colors.white.withValues(alpha: 0.1)),
                       ),
                       Padding(
                         padding: const EdgeInsets.all(20),
@@ -619,7 +619,7 @@ class MarketplaceTab extends StatelessWidget {
                                           Text(
                                             "${t['rating'] ?? '4.9'} • (40+ reviews)",
                                             style: TextStyle(
-                                                color: Colors.white.withOpacity(0.8),
+                                                color: Colors.white.withValues(alpha: 0.8),
                                                 fontSize: 10,
                                                 fontWeight: FontWeight.w600),
                                           ),

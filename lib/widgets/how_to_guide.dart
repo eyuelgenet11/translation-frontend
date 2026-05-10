@@ -99,7 +99,7 @@ void showHowToGuide(BuildContext context, Color textSecTheme) {
                       border: Border.all(color: Colors.grey.shade100),
                       boxShadow: [
                         BoxShadow(
-                            color: Colors.black.withOpacity(0.04),
+                            color: Colors.black.withValues(alpha: 0.04),
                             blurRadius: 12,
                             offset: const Offset(0, 4))
                       ],
@@ -126,7 +126,7 @@ void showHowToGuide(BuildContext context, Color textSecTheme) {
                               fit: BoxFit.contain,
                               errorBuilder: (_, __, ___) => Container(
                                 height: 180,
-                                color: (s['color'] as Color).withOpacity(0.1),
+                                color: (s['color'] as Color).withValues(alpha: 0.1),
                                 child: Icon(s['icon'] as IconData,
                                     size: 60, color: s['color'] as Color),
                               ),
@@ -143,7 +143,7 @@ void showHowToGuide(BuildContext context, Color textSecTheme) {
                                 height: 32,
                                 decoration: BoxDecoration(
                                   color:
-                                      (s['color'] as Color).withOpacity(0.12),
+                                      (s['color'] as Color).withValues(alpha: 0.12),
                                   shape: BoxShape.circle,
                                 ),
                                 child: Center(

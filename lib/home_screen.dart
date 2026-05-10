@@ -14,7 +14,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:file_picker/file_picker.dart';
 
 import 'upload_screen.dart';
-import 'Job Detail Screen.dart';
+
 import 'services/locale_controller.dart';
 import 'services/push_notification_service.dart';
 import 'tabs/marketplace_tab.dart';
@@ -107,7 +107,7 @@ class _MarketplaceHomeScreenState extends State<MarketplaceHomeScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: brandBrown.withOpacity(0.05),
+                color: brandBrown.withValues(alpha: 0.05),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Row(
@@ -438,7 +438,7 @@ class _MarketplaceHomeScreenState extends State<MarketplaceHomeScreen> {
           borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Colors.black.withValues(alpha: 0.1),
               blurRadius: 20,
               offset: const Offset(0, -5),
             )
@@ -458,7 +458,7 @@ class _MarketplaceHomeScreenState extends State<MarketplaceHomeScreen> {
               height: 4,
               margin: const EdgeInsets.only(bottom: 24),
               decoration: BoxDecoration(
-                color: Colors.grey.withOpacity(0.3),
+                color: Colors.grey.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -529,16 +529,16 @@ class _MarketplaceHomeScreenState extends State<MarketplaceHomeScreen> {
       child: Container(
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
-          color: brandBrown.withOpacity(0.04),
+          color: brandBrown.withValues(alpha: 0.04),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: brandBrown.withOpacity(0.05)),
+          border: Border.all(color: brandBrown.withValues(alpha: 0.05)),
         ),
         child: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: brandBrown.withOpacity(0.12),
+                color: brandBrown.withValues(alpha: 0.12),
                 shape: BoxShape.circle,
               ),
               child: Icon(icon, color: brandBrown, size: 22),
@@ -553,7 +553,7 @@ class _MarketplaceHomeScreenState extends State<MarketplaceHomeScreen> {
               ),
             ),
             const Spacer(),
-            Icon(Icons.arrow_forward_ios_rounded, size: 14, color: textSecTheme.withOpacity(0.3)),
+            Icon(Icons.arrow_forward_ios_rounded, size: 14, color: textSecTheme.withValues(alpha: 0.3)),
           ],
         ),
       ),
@@ -920,12 +920,12 @@ class _MarketplaceHomeScreenState extends State<MarketplaceHomeScreen> {
             child: Container(
               height: 64,
               decoration: BoxDecoration(
-                  color: const Color(0xFF1C1917).withOpacity(0.7),
+                  color: const Color(0xFF1C1917).withValues(alpha: 0.7),
                   borderRadius: BorderRadius.circular(28),
-                  border: Border.all(color: Colors.white.withOpacity(0.1)),
+                  border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
                   boxShadow: [
                     BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
+                        color: Colors.black.withValues(alpha: 0.1),
                         blurRadius: 20,
                         offset: const Offset(0, 10))
                   ]),

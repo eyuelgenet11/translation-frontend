@@ -7,7 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'l10n/app_localizations.dart';
+
 import 'services/locale_controller.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -20,7 +20,7 @@ class _LoginScreenState extends State<LoginScreen>
     with TickerProviderStateMixin {
   final _emailCtrl = TextEditingController();
   final _passCtrl = TextEditingController();
-  final _formKey = GlobalKey<FormState>();
+
 
   bool _loading = false;
   bool _obscure = true;
@@ -29,7 +29,7 @@ class _LoginScreenState extends State<LoginScreen>
 
   static const _brown = Color(0xFF895129);
   static const _darkBg = Color(0xFF0D0A08);
-  static const _cardBg = Color(0xFF1A1209);
+
 
   late AnimationController _bgCtrl;
   late AnimationController _entryCtrl;
@@ -213,6 +213,7 @@ class _LoginScreenState extends State<LoginScreen>
   }
 
   void _snack(String msg) {
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text(msg),
       behavior: SnackBarBehavior.floating,
@@ -276,7 +277,7 @@ class _LoginScreenState extends State<LoginScreen>
             ),
             boxShadow: [
               BoxShadow(
-                color: _brown.withOpacity(0.5),
+                color: _brown.withValues(alpha: 0.5),
                 blurRadius: 30,
                 spreadRadius: 2,
               ),
@@ -296,7 +297,7 @@ class _LoginScreenState extends State<LoginScreen>
         ),
         const SizedBox(height: 20),
         Text(
-          'Geez Script',
+          'Geez Translation',
           style: GoogleFonts.philosopher(
             fontSize: 38,
             fontWeight: FontWeight.w900,
@@ -307,12 +308,12 @@ class _LoginScreenState extends State<LoginScreen>
         ),
         const SizedBox(height: 6),
         Text(
-          'TRANSLATION MARKETPLACE',
+          'MARKETPLACE',
           style: TextStyle(
             fontSize: 9.5,
             fontWeight: FontWeight.w800,
             letterSpacing: 4.5,
-            color: _brown.withOpacity(0.8),
+            color: _brown.withValues(alpha: 0.8),
           ),
         ),
         const SizedBox(height: 12),
@@ -320,14 +321,14 @@ class _LoginScreenState extends State<LoginScreen>
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(30),
-            border: Border.all(color: _brown.withOpacity(0.25)),
-            color: _brown.withOpacity(0.07),
+            border: Border.all(color: _brown.withValues(alpha: 0.25)),
+            color: _brown.withValues(alpha: 0.07),
           ),
           child: Text(
             "Ethiopia's Premier translation marketplace",
             style: TextStyle(
               fontSize: 11,
-              color: Colors.white.withOpacity(0.6),
+              color: Colors.white.withValues(alpha: 0.6),
               fontWeight: FontWeight.w500,
               letterSpacing: 0.3,
             ),
@@ -346,8 +347,8 @@ class _LoginScreenState extends State<LoginScreen>
           padding: const EdgeInsets.all(28),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(32),
-            color: Colors.white.withOpacity(0.04),
-            border: Border.all(color: Colors.white.withOpacity(0.09)),
+            color: Colors.white.withValues(alpha: 0.04),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.09)),
           ),
           child: Column(
             children: [
@@ -375,7 +376,7 @@ class _LoginScreenState extends State<LoginScreen>
           borderRadius: BorderRadius.circular(18),
           boxShadow: [
             BoxShadow(
-              color: Colors.white.withOpacity(0.15),
+              color: Colors.white.withValues(alpha: 0.15),
               blurRadius: 20,
               spreadRadius: -4,
               offset: const Offset(0, 8),
@@ -416,7 +417,7 @@ class _LoginScreenState extends State<LoginScreen>
     return Row(
       children: [
         Expanded(
-          child: Container(height: 1, color: Colors.white.withOpacity(0.08)),
+          child: Container(height: 1, color: Colors.white.withValues(alpha: 0.08)),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -424,14 +425,14 @@ class _LoginScreenState extends State<LoginScreen>
             'OR',
             style: TextStyle(
               fontSize: 10,
-              color: Colors.white.withOpacity(0.35),
+              color: Colors.white.withValues(alpha: 0.35),
               fontWeight: FontWeight.w800,
               letterSpacing: 2,
             ),
           ),
         ),
         Expanded(
-          child: Container(height: 1, color: Colors.white.withOpacity(0.08)),
+          child: Container(height: 1, color: Colors.white.withValues(alpha: 0.08)),
         ),
       ],
     );
@@ -444,8 +445,8 @@ class _LoginScreenState extends State<LoginScreen>
         height: 50,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(14),
-          color: Colors.white.withOpacity(0.06),
-          border: Border.all(color: Colors.white.withOpacity(0.08)),
+          color: Colors.white.withValues(alpha: 0.06),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -459,7 +460,7 @@ class _LoginScreenState extends State<LoginScreen>
             Text(
               _showEmail ? 'Hide Email Login' : 'Sign in with Email',
               style: TextStyle(
-                color: Colors.white.withOpacity(0.8),
+                color: Colors.white.withValues(alpha: 0.8),
                 fontWeight: FontWeight.w600,
                 fontSize: 14,
               ),
@@ -509,11 +510,11 @@ class _LoginScreenState extends State<LoginScreen>
                               borderRadius: BorderRadius.circular(6),
                               color: _rememberMe
                                   ? _brown
-                                  : Colors.white.withOpacity(0.08),
+                                  : Colors.white.withValues(alpha: 0.08),
                               border: Border.all(
                                 color: _rememberMe
                                     ? _brown
-                                    : Colors.white.withOpacity(0.2),
+                                    : Colors.white.withValues(alpha: 0.2),
                               ),
                             ),
                             child: _rememberMe
@@ -524,7 +525,7 @@ class _LoginScreenState extends State<LoginScreen>
                           const SizedBox(width: 8),
                           Text('Remember me',
                               style: TextStyle(
-                                color: Colors.white.withOpacity(0.5),
+                                color: Colors.white.withValues(alpha: 0.5),
                                 fontSize: 12,
                                 fontWeight: FontWeight.w500,
                               )),
@@ -541,7 +542,7 @@ class _LoginScreenState extends State<LoginScreen>
                       child: Text(
                         'Forgot password?',
                         style: TextStyle(
-                          color: _brown.withOpacity(0.9),
+                          color: _brown.withValues(alpha: 0.9),
                           fontSize: 12,
                           fontWeight: FontWeight.w700,
                         ),
@@ -575,15 +576,15 @@ class _LoginScreenState extends State<LoginScreen>
               fontSize: 10,
               fontWeight: FontWeight.w800,
               letterSpacing: 2,
-              color: _brown.withOpacity(0.9),
+              color: _brown.withValues(alpha: 0.9),
             ),
           ),
         ),
         Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
-            color: Colors.white.withOpacity(0.05),
-            border: Border.all(color: Colors.white.withOpacity(0.1)),
+            color: Colors.white.withValues(alpha: 0.05),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
           ),
           child: TextField(
             controller: controller,
@@ -597,14 +598,14 @@ class _LoginScreenState extends State<LoginScreen>
               fontWeight: FontWeight.w500,
             ),
             decoration: InputDecoration(
-              prefixIcon: Icon(icon, color: _brown.withOpacity(0.8), size: 20),
+              prefixIcon: Icon(icon, color: _brown.withValues(alpha: 0.8), size: 20),
               suffixIcon: isPass
                   ? IconButton(
                       icon: Icon(
                         _obscure
                             ? Icons.visibility_off_outlined
                             : Icons.visibility_outlined,
-                        color: Colors.white.withOpacity(0.3),
+                        color: Colors.white.withValues(alpha: 0.3),
                         size: 18,
                       ),
                       onPressed: () => setState(() => _obscure = !_obscure),
@@ -613,7 +614,7 @@ class _LoginScreenState extends State<LoginScreen>
               border: InputBorder.none,
               hintText: hint,
               hintStyle: TextStyle(
-                color: Colors.white.withOpacity(0.2),
+                color: Colors.white.withValues(alpha: 0.2),
                 fontSize: 14,
                 fontWeight: FontWeight.w400,
               ),
@@ -646,7 +647,7 @@ class _LoginScreenState extends State<LoginScreen>
               ? []
               : [
                   BoxShadow(
-                    color: _brown.withOpacity(0.45),
+                    color: _brown.withValues(alpha: 0.45),
                     blurRadius: 22,
                     offset: const Offset(0, 8),
                   )
@@ -688,7 +689,7 @@ class _LoginScreenState extends State<LoginScreen>
         Text(
           "Don't have an account?",
           style: TextStyle(
-            color: Colors.white.withOpacity(0.4),
+            color: Colors.white.withValues(alpha: 0.4),
             fontSize: 13,
             fontWeight: FontWeight.w500,
           ),
@@ -700,8 +701,8 @@ class _LoginScreenState extends State<LoginScreen>
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(30),
-              border: Border.all(color: _brown.withOpacity(0.5)),
-              color: _brown.withOpacity(0.08),
+              border: Border.all(color: _brown.withValues(alpha: 0.5)),
+              color: _brown.withValues(alpha: 0.08),
             ),
             child: Text(
               'CREATE ACCOUNT',
@@ -732,8 +733,8 @@ class _LoginScreenState extends State<LoginScreen>
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(20),
-                color: Colors.white.withOpacity(0.08),
-                border: Border.all(color: Colors.white.withOpacity(0.12)),
+                color: Colors.white.withValues(alpha: 0.08),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
               ),
               child: Row(
                 children: [
@@ -830,7 +831,7 @@ class _AnimatedBg extends StatelessWidget {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         gradient: RadialGradient(
-          colors: [color.withOpacity(opacity), Colors.transparent],
+          colors: [color.withValues(alpha: opacity), Colors.transparent],
         ),
       ),
     );

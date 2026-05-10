@@ -1,7 +1,7 @@
 name: geez_translation_marketplace
 description: A Flutter project for document translation marketplace.
 publish_to: "none"
-version: 1.0.0+4
+version: 1.0.0+7
 
 environment:
   sdk: ">=3.0.0 <4.0.0"
@@ -33,28 +33,26 @@ dependencies:
   share_plus: ^10.1.0
   shimmer: ^3.0.0
   audioplayers: ^6.1.0
+  flutter_native_splash: ^2.4.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^4.0.0
   flutter_launcher_icons: ^0.13.1
-  flutter_native_splash: ^2.4.0
 
 # This section MUST be at the top level (no spaces before it)
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/icon/fffinal icon.png"
-  adaptive_icon_background: "#FFFFFF"
-  adaptive_icon_foreground: "assets/icon/fffinal icon.png"
+  image_path: "assets/icon/ffinal icon.PNG"
+  adaptive_icon_background: "#B07D45"
+  adaptive_icon_foreground: "assets/icon/ffinal_icon_foreground.png"
 
 flutter_native_splash:
   color: "#0D0A08"
-  image: "assets/icon/fffinal logo.png"
   android_12:
     color: "#0D0A08"
-    image: "assets/icon/fffinal logo.png"
   ios: true
   android: true
 

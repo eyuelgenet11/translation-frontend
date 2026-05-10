@@ -190,13 +190,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
               decoration: BoxDecoration(
                 color: Theme.of(context).cardColor,
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.grey.withOpacity(0.1)),
+                border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
               ),
               child: Row(
                 children: [
                   CircleAvatar(
                     radius: 30,
-                    backgroundColor: brandColor.withOpacity(0.1),
+                    backgroundColor: brandColor.withValues(alpha: 0.1),
                     child: Icon(Icons.person, size: 30, color: brandColor),
                   ),
                   const SizedBox(width: 16),
@@ -232,7 +232,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               decoration: BoxDecoration(
                 color: Theme.of(context).cardColor,
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.grey.withOpacity(0.1)),
+                border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
               ),
               child: Column(
                 children: [
@@ -248,9 +248,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       },
                     ),
                   ),
-                  Divider(height: 1, color: Colors.grey.withOpacity(0.1)),
+                  Divider(height: 1, color: Colors.grey.withValues(alpha: 0.1)),
                   _buildThemeTile(),
-                  Divider(height: 1, color: Colors.grey.withOpacity(0.1)),
+                  Divider(height: 1, color: Colors.grey.withValues(alpha: 0.1)),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                     child: Column(
@@ -279,7 +279,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             max: 1.4,
                             divisions: 6,
                             activeColor: brandColor,
-                            inactiveColor: brandColor.withOpacity(0.1),
+                            inactiveColor: brandColor.withValues(alpha: 0.1),
                             onChanged: (val) => FontScaleController.setScale(val),
                           ),
                         ),
@@ -298,7 +298,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               decoration: BoxDecoration(
                 color: Theme.of(context).cardColor,
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.grey.withOpacity(0.1)),
+                border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
               ),
               child: Column(
                 children: [
@@ -307,13 +307,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     title: "Help Center",
                     onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const HelpCenterScreen())),
                   ),
-                  Divider(height: 1, color: Colors.grey.withOpacity(0.1)),
+                  Divider(height: 1, color: Colors.grey.withValues(alpha: 0.1)),
                   _buildListTile(
                     icon: Icons.privacy_tip_outlined,
                     title: "Privacy Policy",
                     onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const PrivacyDataScreen())),
                   ),
-                  Divider(height: 1, color: Colors.grey.withOpacity(0.1)),
+                  Divider(height: 1, color: Colors.grey.withValues(alpha: 0.1)),
                   _buildListTile(
                     icon: Icons.description_outlined,
                     title: "Terms of Service",
@@ -345,9 +345,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   width: double.infinity,
                   padding: const EdgeInsets.all(18),
                   decoration: BoxDecoration(
-                    color: Colors.redAccent.withOpacity(0.08),
+                    color: Colors.redAccent.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.redAccent.withOpacity(0.1)),
+                    border: Border.all(color: Colors.redAccent.withValues(alpha: 0.1)),
                   ),
                   child: const Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -379,7 +379,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   width: double.infinity,
                   padding: const EdgeInsets.all(18),
                   decoration: BoxDecoration(
-                    color: Colors.redAccent.withOpacity(0.05),
+                    color: Colors.redAccent.withValues(alpha: 0.05),
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: const Row(
@@ -529,7 +529,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: brandColor.withOpacity(0.08),
+          color: brandColor.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(10),
         ),
         child: Icon(icon, color: brandColor, size: 22),

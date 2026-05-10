@@ -59,7 +59,7 @@ class TrackerTab extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: surfaceTheme,
                     borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: (cfg['color'] as Color).withOpacity(0.2)),
+                    border: Border.all(color: (cfg['color'] as Color).withValues(alpha: 0.2)),
                     boxShadow: [
                       BoxShadow(
                         color: (cfg['color'] as Color).withValues(alpha: 0.1),
@@ -149,7 +149,7 @@ class TrackerTab extends StatelessWidget {
                           "${job['from_lang'] ?? '?'} → ${job['to_lang'] ?? '?'}",
                           valueColor: brandBrown),
                       const Divider(height: 24),
-                      _trackerRow("Quoted Price", "${job['price'] ?? '-'} ETB"),
+                      _trackerRow("Total Price", "${job['price'] != null ? (job['price'] * 1.15).toStringAsFixed(2) : '-'} ETB"),
                       const Divider(height: 24),
                       _trackerRow("Urgency", (job['urgency'] ?? '-').toString()),
                     ],

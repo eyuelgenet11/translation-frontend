@@ -28,13 +28,13 @@ class PremiumEmptyState extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: brandBrown.withOpacity(0.05),
+                color: brandBrown.withValues(alpha: 0.05),
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 icon,
                 size: 64,
-                color: brandBrown.withOpacity(0.4),
+                color: brandBrown.withValues(alpha: 0.4),
               ),
             ),
             const SizedBox(height: 24),

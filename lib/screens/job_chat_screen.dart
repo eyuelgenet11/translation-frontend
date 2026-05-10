@@ -136,7 +136,7 @@ class _JobChatScreenState extends State<JobChatScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.chat_bubble_outline, size: 64, color: Colors.grey.withOpacity(0.5)),
+                        Icon(Icons.chat_bubble_outline, size: 64, color: Colors.grey.withValues(alpha: 0.5)),
                         const SizedBox(height: 16),
                         const Text("No messages yet.", style: TextStyle(color: Colors.grey)),
                         const Text("Send a message to your translator.", style: TextStyle(color: Colors.grey, fontSize: 12)),
@@ -194,7 +194,7 @@ class _JobChatScreenState extends State<JobChatScreen> {
         color: Theme.of(context).cardColor,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, -5),
           ),

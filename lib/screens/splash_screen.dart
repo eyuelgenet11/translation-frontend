@@ -87,7 +87,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: brandBrown.withOpacity(0.4),
+                        color: brandBrown.withValues(alpha: 0.4),
                         blurRadius: 40,
                         spreadRadius: 5,
                       ),
@@ -108,7 +108,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                 const SizedBox(height: 32),
                 // ✍️ App Name
                 Text(
-                  'Geez Script',
+                  'Geez Translation',
                   style: GoogleFonts.philosopher(
                     fontSize: 48,
                     fontWeight: FontWeight.w900,
@@ -118,12 +118,12 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'TRANSLATION MARKETPLACE',
+                  'MARKETPLACE',
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w800,
                     letterSpacing: 6.0,
-                    color: brandBrown.withOpacity(0.8),
+                    color: brandBrown.withValues(alpha: 0.8),
                   ),
                 ),
                 const SizedBox(height: 60),
@@ -132,8 +132,8 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                   width: 40,
                   height: 2,
                   child: LinearProgressIndicator(
-                    backgroundColor: Colors.white.withOpacity(0.05),
-                    valueColor: AlwaysStoppedAnimation<Color>(brandBrown.withOpacity(0.5)),
+                    backgroundColor: Colors.white.withValues(alpha: 0.05),
+                    valueColor: AlwaysStoppedAnimation<Color>(brandBrown.withValues(alpha: 0.5)),
                   ),
                 ),
               ],

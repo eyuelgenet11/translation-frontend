@@ -95,7 +95,7 @@ class _RatingDialogState extends State<RatingDialog> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: const Color(0xFF895129).withOpacity(0.1),
+                color: const Color(0xFF895129).withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: const Icon(Icons.star_rounded, size: 48, color: Color(0xFF895129)),

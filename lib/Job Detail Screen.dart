@@ -109,8 +109,10 @@ class _CustomerJobDetailState extends State<CustomerJobDetail> {
         }
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text("Download Error: $e"), backgroundColor: Colors.redAccent));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text("Download Error: $e"), backgroundColor: Colors.redAccent));
+      }
     } finally {
       setState(() {
         _isActionLoading = false;
@@ -204,7 +206,7 @@ class _CustomerJobDetailState extends State<CustomerJobDetail> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-                color: brandColor.withOpacity(0.1),
+                color: brandColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12)),
             child: Icon(Icons.description_outlined, color: brandColor),
           ),
@@ -368,10 +370,10 @@ class _CustomerJobDetailState extends State<CustomerJobDetail> {
       decoration: BoxDecoration(
           color: cardTheme,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: color.withOpacity(0.2)),
+          border: Border.all(color: color.withValues(alpha: 0.2)),
           boxShadow: [
             BoxShadow(
-                color: color.withOpacity(0.05),
+                color: color.withValues(alpha: 0.05),
                 blurRadius: 10,
                 offset: const Offset(0, 4))
           ]),
@@ -439,7 +441,7 @@ class _CustomerJobDetailState extends State<CustomerJobDetail> {
             SizedBox(
               width: double.infinity,
               child: OutlinedButton.icon(
-                onPressed: () => _payWithPoints(currentJobData['id'], (price ?? 0) * 0.5),
+                onPressed: () => _payWithPoints(currentJobData['id'], ((price ?? 0) * 1.15) * 0.5),
                 icon: Icon(Icons.stars_rounded, color: brandColor),
                 label: const Text("PAY WITH POINTS"),
                 style: OutlinedButton.styleFrom(
@@ -490,9 +492,9 @@ class _CustomerJobDetailState extends State<CustomerJobDetail> {
       return Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-            color: Colors.green.withOpacity(0.05),
+            color: Colors.green.withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.green.withOpacity(0.2))),
+            border: Border.all(color: Colors.green.withValues(alpha: 0.2))),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -652,13 +654,16 @@ class _CustomerJobDetailState extends State<CustomerJobDetail> {
     final int currentPoints = profile?['loyalty_points'] ?? 0;
 
     if (currentPoints < amount) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text("Insufficient points! You need ${amount.toInt()} points."),
-        backgroundColor: Colors.redAccent,
-      ));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text("Insufficient points! You need ${amount.toInt()} points."),
+          backgroundColor: Colors.redAccent,
+        ));
+      }
       return;
     }
 
+    if (!mounted) return;
     final bool? confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -692,11 +697,15 @@ class _CustomerJobDetailState extends State<CustomerJobDetail> {
         'status': nextStatus
       }).eq('id', jobId);
 
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text("Points request sent to admin!"),
-      ));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text("Points request sent to admin!"),
+        ));
+      }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: $e"), backgroundColor: Colors.redAccent));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: $e"), backgroundColor: Colors.redAccent));
+      }
     }
   }
 

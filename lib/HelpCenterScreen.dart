@@ -71,7 +71,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
                 decoration: BoxDecoration(
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
+                      color: Colors.black.withValues(alpha: 0.1),
                       blurRadius: 20,
                       offset: const Offset(0, 10),
                     ),
@@ -164,7 +164,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  _buildTopicTile(context, "Your Guide to Geez Script", textColor),
+                  _buildTopicTile(context, "Your Guide to Geez Translation", textColor),
                   _buildTopicTile(context, "Pricing and Fees", textColor),
                   _buildTopicTile(context, "Cancellation Policy", textColor),
                   _buildTopicTile(context, "Communicating with Translators", textColor),
@@ -180,9 +180,9 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
               margin: const EdgeInsets.all(24),
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: brandColor.withOpacity(0.08),
+                color: brandColor.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: brandColor.withOpacity(0.2)),
+                border: Border.all(color: brandColor.withValues(alpha: 0.2)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -201,7 +201,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
                   Text(
                     'Our support team is online and ready to help you with anything you need.',
                     style: TextStyle(
-                      color: textColor.withOpacity(0.7),
+                      color: textColor.withValues(alpha: 0.7),
                       fontSize: 14,
                     ),
                   ),
@@ -253,7 +253,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
         decoration: BoxDecoration(
           color: cardColor,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey.withOpacity(0.1)),
+          border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -285,12 +285,12 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
   Widget _buildTopicTile(BuildContext context, String title, Color textColor) {
     return Container(
       decoration: BoxDecoration(
-        border: Border(bottom: BorderSide(color: Colors.grey.withOpacity(0.2))),
+        border: Border(bottom: BorderSide(color: Colors.grey.withValues(alpha: 0.2))),
       ),
       child: ListTile(
         contentPadding: EdgeInsets.zero,
         title: Text(title, style: TextStyle(color: textColor, fontSize: 15)),
-        trailing: Icon(Icons.chevron_right, color: textColor.withOpacity(0.5)),
+        trailing: Icon(Icons.chevron_right, color: textColor.withValues(alpha: 0.5)),
         onTap: () => _openArticle(context, title),
       ),
     );
@@ -313,14 +313,14 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
 
   static const Map<String, String> _helpContent = {
     "Getting Started":
-        "Welcome to the Geez Script Translation Marketplace! To begin your journey, simply browse our curated list of expert translators on the home screen. You can view their profiles, ratings, and specialties. Once you find a match, upload your document and specify the source and target languages. The translator will review your request and provide a price quote. Accept the quote to start the translation process!",
+        "Welcome to the Geez Translation Marketplace! To begin your journey, simply browse our curated list of expert translators on the home screen. You can view their profiles, ratings, and specialties. Once you find a match, upload your document and specify the source and target languages. The translator will review your request and provide a price quote. Accept the quote to start the translation process!",
     "Payment Issues":
         "We currently support payments via Telebirr and CBE (Commercial Bank of Ethiopia). After accepting a quote, you will be prompted to provide a Transaction ID or upload a screenshot of your payment receipt. If your payment is rejected, please ensure the Transaction ID is correct and the screenshot is clear. For any persistent issues, our finance support team is available 24/7.",
     "Translation Quality":
-        "Quality is our top priority. Every translator on our platform is a verified expert with deep knowledge of Geez script and modern languages. All translations undergo a self-review process by the expert before delivery. If you are not completely satisfied with the result, you can use the feedback system to request refinements or contact our quality assurance team.",
+        "Quality is our top priority. Every translator on our platform is a verified expert with deep knowledge of Geez and modern languages. All translations undergo a self-review process by the expert before delivery. If you are not completely satisfied with the result, you can use the feedback system to request refinements or contact our quality assurance team.",
     "Safety & Privacy":
         "Your documents and personal information are handled with the highest level of security. All uploads are stored in encrypted buckets, and access is strictly limited to you and your assigned translator. We never share your data with third parties. Once a job is completed and confirmed, you have full control over your document's visibility.",
-    "Your Guide to Geez Script":
+    "Your Guide to Geez Translation":
         "Geez is an ancient South Semitic language that originated in the Horn of Africa. While it is no longer a primary spoken language, it remains the liturgical language of the Ethiopian Orthodox Tewahedo Church and is vital for historical research. Our specialists are trained to handle everything from religious texts to historical legal documents encoded in this beautiful script.",
     "Pricing and Fees":
         "Transaltion prices are determined by the complexity of the script, the length of the document, and the required turnaround time. Translators set their own rates, which you can see in the 'Quoted' stage of your order. A small platform service fee is included in the final price to help us maintain the marketplace and verify the experts.",
@@ -387,7 +387,7 @@ class HelpArticleDetailScreen extends StatelessWidget {
               content,
               style: TextStyle(
                 fontSize: 16,
-                color: textColor.withOpacity(0.8),
+                color: textColor.withValues(alpha: 0.8),
                 height: 1.6,
               ),
             ),
@@ -416,7 +416,7 @@ class HelpArticleDetailScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey.withOpacity(0.3)),
+        border: Border.all(color: Colors.grey.withValues(alpha: 0.3)),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(

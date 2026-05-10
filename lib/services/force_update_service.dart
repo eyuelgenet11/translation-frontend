@@ -148,7 +148,7 @@ class SoftUpdateDialog extends StatelessWidget {
 Widget _icon(IconData icon, Color color, double opacity) => Container(
   width: 72, height: 72,
   decoration: BoxDecoration(
-    color: color.withOpacity(opacity),
+    color: color.withValues(alpha: opacity),
     shape: BoxShape.circle,
   ),
   child: Icon(icon, color: color, size: 36),

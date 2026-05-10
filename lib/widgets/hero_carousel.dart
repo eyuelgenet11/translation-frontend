@@ -49,7 +49,7 @@ class HeroCarousel extends StatelessWidget {
                 borderRadius: BorderRadius.circular(24),
                 boxShadow: [
                   BoxShadow(
-                    color: brandBrown.withOpacity(0.2),
+                    color: brandBrown.withValues(alpha: 0.2),
                     blurRadius: 15,
                     offset: const Offset(0, 8),
                   )
@@ -58,7 +58,7 @@ class HeroCarousel extends StatelessWidget {
                   image: NetworkImage(slide['url']!),
                   fit: BoxFit.cover,
                   colorFilter: ColorFilter.mode(
-                    Colors.black.withOpacity(0.4),
+                    Colors.black.withValues(alpha: 0.4),
                     BlendMode.darken,
                   ),
                 ),
@@ -94,7 +94,7 @@ class HeroCarousel extends StatelessWidget {
                     Text(
                       slide['subtitle']!,
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.8),
+                        color: Colors.white.withValues(alpha: 0.8),
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
                       ),

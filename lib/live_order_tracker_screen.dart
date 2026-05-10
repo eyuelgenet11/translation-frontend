@@ -38,10 +38,7 @@ class _LiveOrderTrackerScreenState extends State<LiveOrderTrackerScreen> {
   late bool isDark;
 
   // Status & Feedback State
-  int _selectedRating = 0;
-  String? _selectedFeedbackOption;
-  final TextEditingController _feedbackController = TextEditingController();
-  bool _isFeedbackSubmitting = false;
+
 
   // Payment State
   final TextEditingController _refController = TextEditingController();
@@ -57,15 +54,14 @@ class _LiveOrderTrackerScreenState extends State<LiveOrderTrackerScreen> {
   void initState() {
     super.initState();
     _job = widget.job;
-    _selectedRating = _job['rating'] ?? 0;
-    _selectedFeedbackOption = _job['feedback_option'];
+
     _subscribeToStatusUpdates();
   }
 
   @override
   void dispose() {
     _statusSubscription?.unsubscribe();
-    _feedbackController.dispose();
+
     _refController.dispose();
     super.dispose();
   }
@@ -269,7 +265,7 @@ class _LiveOrderTrackerScreenState extends State<LiveOrderTrackerScreen> {
                           hintText: "Describe the specific errors...",
                           hintStyle: TextStyle(color: textThemeSec, fontSize: 13),
                           filled: true,
-                          fillColor: isDark ? Colors.white.withOpacity(0.05) : Colors.grey.shade50,
+                          fillColor: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.grey.shade50,
                           border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
                         ),
                       ),
@@ -278,7 +274,7 @@ class _LiveOrderTrackerScreenState extends State<LiveOrderTrackerScreen> {
                         Container(
                           padding: const EdgeInsets.all(12),
                           margin: const EdgeInsets.only(bottom: 12),
-                          decoration: BoxDecoration(color: Colors.orange.withOpacity(0.1), borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.orange.withOpacity(0.3))),
+                          decoration: BoxDecoration(color: Colors.orange.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.orange.withValues(alpha: 0.3))),
                           child: const Text("⚠️ You have used 3+ revisions. Additional revisions may incur extra charges.", style: TextStyle(fontSize: 12, color: Colors.orange, fontWeight: FontWeight.w600)),
                         ),
                       SizedBox(
@@ -317,23 +313,7 @@ class _LiveOrderTrackerScreenState extends State<LiveOrderTrackerScreen> {
     );
   }
 
-  Future<void> _submitFeedback() async {
-    setState(() => _isFeedbackSubmitting = true);
-    try {
-      final feedbackText = _feedbackController.text.trim();
-      await supabase.from('jobs').update({
-        'rating': _selectedRating,
-        'feedback_option': _selectedFeedbackOption,
-        'feedback_text': feedbackText,
-      }).eq('id', _job['id']);
 
-      _showSnack("Thank you! Feedback saved.");
-    } catch (e) {
-      _showSnack("Error: $e", isError: true);
-    } finally {
-      if (mounted) setState(() => _isFeedbackSubmitting = false);
-    }
-  }
 
   Future<void> _downloadTranslation(String? url) async {
     if (url == null || url.isEmpty) {
@@ -745,19 +725,21 @@ class _LiveOrderTrackerScreenState extends State<LiveOrderTrackerScreen> {
 
   Widget _buildPriceBreakdown() {
     final num price = _job['price'] ?? 0;
-    final num total = price;
+    final num serviceCharge = price * 0.15;
+    final num total = price + serviceCharge;
 
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: isDark ? Colors.white.withOpacity(0.05) : Colors.white, borderRadius: BorderRadius.circular(16)),
+      decoration: BoxDecoration(color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white, borderRadius: BorderRadius.circular(16)),
       child: Column(
         children: [
-          _priceRow("Translation Quote", "$price ETB"),
+          _priceRow("Translation Quote", "${price.toStringAsFixed(2)} ETB"),
+          _priceRow("Service Charge (15%)", "${serviceCharge.toStringAsFixed(2)} ETB"),
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 8),
             child: Divider(height: 1),
           ),
-          _priceRow("Total Amount", "$total ETB", isBold: true),
+          _priceRow("Total Amount", "${total.toStringAsFixed(2)} ETB", isBold: true),
         ],
       ),
     );
@@ -824,7 +806,7 @@ class _LiveOrderTrackerScreenState extends State<LiveOrderTrackerScreen> {
           padding: const EdgeInsets.all(18),
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [brandColor.withOpacity(0.9), brandColor.withOpacity(0.6)],
+              colors: [brandColor.withValues(alpha: 0.9), brandColor.withValues(alpha: 0.6)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -862,7 +844,7 @@ class _LiveOrderTrackerScreenState extends State<LiveOrderTrackerScreen> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
+                        color: Colors.white.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(color: Colors.white30),
                       ),
@@ -890,7 +872,7 @@ class _LiveOrderTrackerScreenState extends State<LiveOrderTrackerScreen> {
             hintText: "Telebirr/CBE Transaction ID (Optional)",
             hintStyle: TextStyle(color: textThemeSec),
             filled: true,
-            fillColor: isDark ? Colors.white.withOpacity(0.05) : Colors.white,
+            fillColor: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white,
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
           ),
         ),
@@ -918,7 +900,7 @@ class _LiveOrderTrackerScreenState extends State<LiveOrderTrackerScreen> {
             height: 80,
             width: double.infinity,
             decoration: BoxDecoration(
-              color: isDark ? Colors.white.withOpacity(0.05) : Colors.white,
+              color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white,
               borderRadius: BorderRadius.circular(14),
               border: Border.all(color: _receiptFile != null ? Colors.green : (isDark ? Colors.white12 : Colors.black12)),
             ),
@@ -1029,9 +1011,9 @@ class _LiveOrderTrackerScreenState extends State<LiveOrderTrackerScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.orange.withOpacity(0.08),
+        color: Colors.orange.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.orange.withOpacity(0.3)),
+        border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1084,7 +1066,7 @@ class _LiveOrderTrackerScreenState extends State<LiveOrderTrackerScreen> {
         const SizedBox(height: 16),
         _summaryRow("Job ID", _job['id'].toString().substring(0, 8).toUpperCase()),
         _summaryRow("Languages", "${_job['from_lang']} → ${_job['to_lang']}"),
-        _summaryRow("Price", "${_job['price'] ?? 'Pending'} ETB"),
+        _summaryRow("Price (Total)", "${_job['price'] != null ? ((_job['price'] ?? 0) * 1.15).toStringAsFixed(2) : 'Pending'} ETB"),
         _summaryRow("Urgency", _job['urgency'] ?? "Normal"),
       ],
     );

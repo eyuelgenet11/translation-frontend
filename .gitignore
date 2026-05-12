@@ -11,7 +11,6 @@
 .svn/
 .swiftpm/
 migrate_working_dir/
-assets
 
 # IntelliJ related
 *.iml
@@ -44,3 +43,21 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# FVM Version Cache
+.fvm/
+
+# Environment files — never commit secrets
+.env
+assets/.env
+ios/.env.fastlane
+
+# Firebase credentials — contain API keys
+ios/Runner/GoogleService-Info.plist
+android/app/google-services.json
+ios/fastlane/report.xml
+ios/fastlane/Preview.html
+ios/fastlane/screenshots
+ios/fastlane/test_output
+ios/build/*.ipa
+ios/build/*.dSYM.zip

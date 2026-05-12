@@ -38,7 +38,7 @@ class PushNotificationService {
       const InitializationSettings initializationSettings = InitializationSettings(
         android: initializationSettingsAndroid,
       );
-      await _notificationsPlugin.initialize(settings: initializationSettings);
+      await _notificationsPlugin.initialize(initializationSettings);
 
       // Create the High Importance channel
       await _notificationsPlugin
@@ -73,10 +73,10 @@ class PushNotificationService {
     );
 
     await _notificationsPlugin.show(
-      id: title.hashCode,
-      title: title,
-      body: body,
-      notificationDetails: NotificationDetails(
+      title.hashCode,
+      title,
+      body,
+      NotificationDetails(
         android: AndroidNotificationDetails(
           _channel.id,
           _channel.name,

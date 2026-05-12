@@ -56,17 +56,14 @@
 					<string>io.supabase.geezapp</string>
 				</array>
 			</dict>
-			<!-- TODO: Your friend must add Google Sign-In REVERSED_CLIENT_ID here -->
-			<!-- Example:
-		<dict>
-			<key>CFBundleTypeRole</key>
-			<string>Editor</string>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>com.googleusercontent.apps.YOUR_IOS_CLIENT_ID</string>
-			</array>
-		</dict>
-		-->
+			<dict>
+				<key>CFBundleTypeRole</key>
+				<string>Editor</string>
+				<key>CFBundleURLSchemes</key>
+				<array>
+					<string>com.googleusercontent.apps.335644615293-mpphi284nmvashqringdbof6vfu2r7f4</string>
+				</array>
+			</dict>
 		</array>
 		<key>LSApplicationQueriesSchemes</key>
 		<array>

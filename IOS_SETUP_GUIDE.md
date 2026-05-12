@@ -1,4 +1,4 @@
-# 🍎 iOS Setup Guide — Geez Translation Marketplace
+ # 🍎 iOS Setup Guide — Geez Translation Marketplace
 
 > **For the Mac collaborator:** This guide covers everything you need to do to get the iOS version built, signed, and submitted to the App Store.
 > The Windows developer has already prepared all the code. You handle the Mac-only tasks below.

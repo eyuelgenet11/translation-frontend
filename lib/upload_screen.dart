@@ -28,6 +28,8 @@ class _UploadScreenState extends State<UploadScreen> {
   String? fromLang;
   String? toLang;
   bool processing = false;
+  String urgency = 'Normal';
+  double urgencyFee = 0;
 
 
   XFile? _pickedFile;
@@ -125,6 +127,22 @@ class _UploadScreenState extends State<UploadScreen> {
             const SizedBox(height: 16),
             _documentPickerArea(),
             const SizedBox(height: 32),
+            _buildSectionLabelWithIcon(Icons.speed_rounded, "SERVICE URGENCY"),
+            const SizedBox(height: 16),
+            Container(
+              decoration: BoxDecoration(
+                color: isDark ? Colors.white.withValues(alpha: 0.05) : const Color(0xFFF1F5F9),
+                borderRadius: BorderRadius.circular(18),
+              ),
+              child: Column(
+                children: [
+                  _buildUrgencyRadio("Normal", "Today", 0),
+                  _buildUrgencyRadio("Express", "Less than 2hr", 150),
+                  _buildUrgencyRadio("Rush", "Less than 1hr", 300),
+                ],
+              ),
+            ),
+            const SizedBox(height: 32),
 
             const SizedBox(height: 48),
             _actionButton(),
@@ -147,7 +165,11 @@ class _UploadScreenState extends State<UploadScreen> {
 
     try {
       final user = supabase.auth.currentUser;
-      if (user == null) throw Exception("User not authenticated");
+      if (user == null) {
+        setState(() => processing = false);
+        _showLoginRequiredDialog();
+        return;
+      }
 
       final fileExt = p.extension(_pickedFile!.name);
       final fileName = "${DateTime.now().millisecondsSinceEpoch}$fileExt";
@@ -165,7 +187,8 @@ class _UploadScreenState extends State<UploadScreen> {
         'to_lang': toLang,
         'file_url': publicUrl,
         'status': 'pending',
-
+        'urgency': urgency,
+        'urgency_fee': urgencyFee,
         'created_at': DateTime.now().toIso8601String(),
       }).select().single();
 
@@ -182,6 +205,27 @@ class _UploadScreenState extends State<UploadScreen> {
   }
 
   // --- UI COMPONENTS ---
+
+  Widget _buildUrgencyRadio(String value, String subtitle, double fee) {
+    bool isSel = urgency == value;
+    return RadioListTile<String>(
+      value: value,
+      groupValue: urgency,
+      onChanged: (v) {
+        if (v != null) {
+          setState(() {
+            urgency = v;
+            urgencyFee = fee;
+          });
+        }
+      },
+      activeColor: brandBrown,
+      title: Text(value, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: isSel ? brandBrown : textThemeHeader)),
+      subtitle: Text(subtitle, style: TextStyle(fontSize: 12, color: textThemeSec)),
+      secondary: Text(fee == 0 ? "Free" : "+$fee ETB", style: TextStyle(fontWeight: FontWeight.bold, color: isSel ? brandBrown : textThemeSec, fontSize: 13)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+    );
+  }
 
   Widget _translatorProfileHeader() {
     final avatar = widget.company['avatar_url'];
@@ -326,6 +370,45 @@ class _UploadScreenState extends State<UploadScreen> {
         const SizedBox(width: 8),
         _buildSectionLabel(text),
       ],
+    );
+  }
+
+  void _showLoginRequiredDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: cardTheme,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: const Row(
+          children: [
+            Icon(Icons.lock_outline_rounded, color: brandBrown, size: 28),
+            SizedBox(width: 12),
+            Text("Sign In Required", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+          ],
+        ),
+        content: const Text(
+          "Please sign in to your account to upload documents and place translation orders.",
+          style: TextStyle(fontSize: 14, height: 1.5),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("CANCEL", style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: brandBrown,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            child: const Text("SIGN IN"),
+          ),
+        ],
+      ),
     );
   }
 

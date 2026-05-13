@@ -39,7 +39,7 @@ class TrackerTab extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.fromLTRB(24, 40, 24, 10),
             child: Text("Live Tracker",
-                style: GoogleFonts.philosopher(
+                style: GoogleFonts.inter(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
                     color: textMainTheme)),

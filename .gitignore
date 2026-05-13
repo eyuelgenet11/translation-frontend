@@ -61,3 +61,4 @@ ios/fastlane/screenshots
 ios/fastlane/test_output
 ios/build/*.ipa
 ios/build/*.dSYM.zip
+assets/images/com*

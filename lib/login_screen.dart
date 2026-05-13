@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 import 'services/locale_controller.dart';
 
@@ -18,14 +19,7 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen>
     with TickerProviderStateMixin {
-  final _emailCtrl = TextEditingController();
-  final _passCtrl = TextEditingController();
-
-
   bool _loading = false;
-  bool _obscure = true;
-  bool _showEmail = false;
-  bool _rememberMe = false;
 
   static const _brown = Color(0xFF895129);
   static const _darkBg = Color(0xFF0D0A08);
@@ -36,6 +30,7 @@ class _LoginScreenState extends State<LoginScreen>
   late Animation<double> _fadeIn;
   late Animation<Offset> _slideUp;
 
+  final supabase = Supabase.instance.client;
   late StreamSubscription<AuthState> _authSub;
 
   @override
@@ -70,8 +65,6 @@ class _LoginScreenState extends State<LoginScreen>
   void dispose() {
     _bgCtrl.dispose();
     _entryCtrl.dispose();
-    _emailCtrl.dispose();
-    _passCtrl.dispose();
     _authSub.cancel();
     super.dispose();
   }
@@ -79,137 +72,77 @@ class _LoginScreenState extends State<LoginScreen>
   void _onAuth(AuthState data) {
     if (data.event == AuthChangeEvent.signedIn && data.session != null) {
       final user = data.session!.user;
-      Supabase.instance.client
+      
+      // Check if profile exists
+      supabase
           .from('profiles')
           .select('id')
           .eq('id', user.id)
           .maybeSingle()
-          .then((res) {
-        if (res != null) {
-          if (mounted) Navigator.pushReplacementNamed(context, '/home');
-          return;
-        }
-        Supabase.instance.client
-            .from('customer_accounts')
-            .select('id')
-            .eq('id', user.id)
-            .maybeSingle()
-            .then((profile) async {
-          if (profile == null) {
-            final name = user.userMetadata?['full_name'] ??
-                user.userMetadata?['name'] ??
-                'User';
-            try {
-              await Supabase.instance.client.from('customer_accounts').insert({
-                'id': user.id,
-                'full_name': name,
-                'email': user.email,
-                'avatar_url': user.userMetadata?['avatar_url'] ??
-                    user.userMetadata?['picture'],
-                'account_type': 'personal',
-              });
-            } catch (_) {}
+          .then((profile) async {
+        
+        if (profile == null) {
+          // New user! Create records in both tables
+          final name = user.userMetadata?['full_name'] ??
+              user.userMetadata?['name'] ??
+              'User';
+          final email = user.email;
+          final avatar = user.userMetadata?['avatar_url'] ?? user.userMetadata?['picture'];
+
+          try {
+            // 1. Insert into profiles (Master table for auth/chat)
+            await supabase.from('profiles').insert({
+              'id': user.id,
+              'full_name': name,
+              'email': email,
+              'avatar_url': avatar,
+              'role': 'customer',
+            });
+
+            // 2. Insert into customer_accounts (App logic table)
+            await supabase.from('customer_accounts').insert({
+              'id': user.id,
+              'full_name': name,
+              'email': email,
+              'avatar_url': avatar,
+              'account_type': 'personal',
+            });
+          } catch (e) {
+            debugPrint("Error creating user profiles: $e");
           }
-          if (mounted) Navigator.pushReplacementNamed(context, '/home');
-        });
-      }).catchError((_) {
+        }
+        
+        if (mounted) Navigator.pushReplacementNamed(context, '/home');
+      }).catchError((err) {
+        debugPrint("Auth verification error: $err");
         if (mounted) Navigator.pushReplacementNamed(context, '/home');
       });
     }
   }
 
   Future<void> _loadSaved() async {
-    final p = await SharedPreferences.getInstance();
-    if (mounted) {
-      setState(() {
-        _rememberMe = p.getBool('remember_me') ?? false;
-        if (_rememberMe) _emailCtrl.text = p.getString('saved_email') ?? '';
-      });
-    }
-  }
-
-  Future<void> _saveCredentials() async {
-    final p = await SharedPreferences.getInstance();
-    if (_rememberMe) {
-      await p.setString('saved_email', _emailCtrl.text.trim());
-      await p.setBool('remember_me', true);
-    } else {
-      await p.remove('saved_email');
-      await p.setBool('remember_me', false);
-    }
-  }
-
-  Future<void> _login() async {
-    if (_emailCtrl.text.isEmpty || _passCtrl.text.isEmpty) {
-      HapticFeedback.vibrate();
-      _snack('Please enter your email and password.');
-      return;
-    }
-    setState(() => _loading = true);
-    try {
-      final res = await Supabase.instance.client.auth.signInWithPassword(
-        email: _emailCtrl.text.trim(),
-        password: _passCtrl.text.trim(),
-      );
-      if (res.user != null) {
-        await _saveCredentials();
-        HapticFeedback.lightImpact();
-        if (mounted) Navigator.pushReplacementNamed(context, '/home');
-      }
-    } on AuthException catch (e) {
-      HapticFeedback.heavyImpact();
-      _snack(e.message.contains('Invalid login credentials')
-          ? 'Incorrect email or password.'
-          : e.message);
-    } catch (_) {
-      _snack('Login failed. Please check your connection.');
-    } finally {
-      if (mounted) setState(() => _loading = false);
-    }
+    // No saved credentials needed without email login
   }
 
   Future<void> _googleSignIn() async {
     setState(() => _loading = true);
     try {
-      const webClientId =
-          '335644615293-icvtd7fm7f5ngljnje1l9o5e7v6aeqrp.apps.googleusercontent.com';
-      final googleUser =
-          await GoogleSignIn(serverClientId: webClientId).signIn();
-      if (googleUser == null) {
-        setState(() => _loading = false);
-        return;
-      }
-      final auth = await googleUser.authentication;
-      if (auth.idToken == null) throw 'No ID Token.';
-      await Supabase.instance.client.auth.signInWithIdToken(
-        provider: OAuthProvider.google,
-        idToken: auth.idToken!,
-        accessToken: auth.accessToken,
+      debugPrint('Starting Google OAuth sign-in...');
+      await supabase.auth.signInWithOAuth(
+        OAuthProvider.google,
+        redirectTo: kIsWeb ? null : 'io.supabase.geezapp://login-callback/',
       );
     } catch (e) {
+      debugPrint('Google Sign-In Error: $e');
       _snack('Google Sign-In failed: $e');
+    } finally {
       if (mounted) setState(() => _loading = false);
     }
   }
 
-  Future<void> _forgotPassword() async {
-    final email = _emailCtrl.text.trim();
-    if (email.isEmpty || !email.contains('@')) {
-      _snack('Enter your email above first.');
-      return;
-    }
-    setState(() => _loading = true);
-    try {
-      await Supabase.instance.client.auth.resetPasswordForEmail(
-        email,
-        redirectTo: 'io.supabase.geezapp://reset-callback/',
-      );
-      _snack('Recovery link sent to $email');
-    } catch (_) {
-      _snack('Could not send recovery email.');
-    } finally {
-      if (mounted) setState(() => _loading = false);
-    }
+  void _enterGuestMode() {
+    HapticFeedback.lightImpact();
+    if (mounted) Navigator.pushReplacementNamed(context, '/home');
   }
 
   void _snack(String msg) {
@@ -283,14 +216,13 @@ class _LoginScreenState extends State<LoginScreen>
               ),
             ],
           ),
-          child: CircleAvatar(
-            radius: 46,
-            backgroundColor: Colors.white,
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
+          child: ClipOval(
+            child: SizedBox(
+              width: 92,
+              height: 92,
               child: Image.asset(
                 'assets/icon/fffinal logo.png',
-                fit: BoxFit.contain,
+                fit: BoxFit.cover,
               ),
             ),
           ),
@@ -298,7 +230,7 @@ class _LoginScreenState extends State<LoginScreen>
         const SizedBox(height: 20),
         Text(
           'Geez Translation',
-          style: GoogleFonts.philosopher(
+          style: GoogleFonts.inter(
             fontSize: 38,
             fontWeight: FontWeight.w900,
             color: Colors.white,
@@ -353,11 +285,10 @@ class _LoginScreenState extends State<LoginScreen>
           child: Column(
             children: [
               _buildGoogleBtn(),
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
               _buildDivider(),
               const SizedBox(height: 20),
-              _buildEmailToggle(),
-              _buildEmailSection(),
+              _buildGuestBtn(),
             ],
           ),
         ),
@@ -438,32 +369,40 @@ class _LoginScreenState extends State<LoginScreen>
     );
   }
 
-  Widget _buildEmailToggle() {
+  Widget _buildGuestBtn() {
     return GestureDetector(
-      onTap: () => setState(() => _showEmail = !_showEmail),
-      child: Container(
-        height: 50,
+      onTap: _loading ? null : _enterGuestMode,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        height: 54,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(16),
           color: Colors.white.withValues(alpha: 0.06),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.13)),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              _showEmail ? Icons.expand_less_rounded : Icons.email_outlined,
-              color: _brown,
-              size: 18,
+              Icons.person_outline_rounded,
+              color: Colors.white.withValues(alpha: 0.6),
+              size: 20,
             ),
             const SizedBox(width: 10),
             Text(
-              _showEmail ? 'Hide Email Login' : 'Sign in with Email',
+              'Continue as Guest',
               style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.8),
+                color: Colors.white.withValues(alpha: 0.7),
                 fontWeight: FontWeight.w600,
-                fontSize: 14,
+                fontSize: 15,
+                letterSpacing: 0.3,
               ),
+            ),
+            const SizedBox(width: 8),
+            Icon(
+              Icons.arrow_forward_ios_rounded,
+              color: Colors.white.withValues(alpha: 0.3),
+              size: 13,
             ),
           ],
         ),
@@ -471,251 +410,16 @@ class _LoginScreenState extends State<LoginScreen>
     );
   }
 
-  Widget _buildEmailSection() {
-    return AnimatedSize(
-      duration: const Duration(milliseconds: 420),
-      curve: Curves.easeInOutCubic,
-      alignment: Alignment.topCenter,
-      child: _showEmail
-          ? Column(
-              children: [
-                const SizedBox(height: 24),
-                _buildField(
-                  controller: _emailCtrl,
-                  label: 'EMAIL',
-                  hint: 'you@example.com',
-                  icon: Icons.alternate_email_rounded,
-                ),
-                const SizedBox(height: 16),
-                _buildField(
-                  controller: _passCtrl,
-                  label: 'PASSWORD',
-                  hint: '••••••••••',
-                  icon: Icons.lock_outline_rounded,
-                  isPass: true,
-                ),
-                const SizedBox(height: 10),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    GestureDetector(
-                      onTap: () => setState(() => _rememberMe = !_rememberMe),
-                      child: Row(
-                        children: [
-                          AnimatedContainer(
-                            duration: const Duration(milliseconds: 200),
-                            width: 20,
-                            height: 20,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(6),
-                              color: _rememberMe
-                                  ? _brown
-                                  : Colors.white.withValues(alpha: 0.08),
-                              border: Border.all(
-                                color: _rememberMe
-                                    ? _brown
-                                    : Colors.white.withValues(alpha: 0.2),
-                              ),
-                            ),
-                            child: _rememberMe
-                                ? const Icon(Icons.check,
-                                    color: Colors.white, size: 13)
-                                : null,
-                          ),
-                          const SizedBox(width: 8),
-                          Text('Remember me',
-                              style: TextStyle(
-                                color: Colors.white.withValues(alpha: 0.5),
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
-                              )),
-                        ],
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: _loading ? null : _forgotPassword,
-                      style: TextButton.styleFrom(
-                        padding: EdgeInsets.zero,
-                        minimumSize: Size.zero,
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      ),
-                      child: Text(
-                        'Forgot password?',
-                        style: TextStyle(
-                          color: _brown.withValues(alpha: 0.9),
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 28),
-                _buildLoginBtn(),
-              ],
-            )
-          : const SizedBox(width: double.infinity, height: 0),
-    );
-  }
-
-  Widget _buildField({
-    required TextEditingController controller,
-    required String label,
-    required String hint,
-    required IconData icon,
-    bool isPass = false,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(left: 2, bottom: 8),
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 2,
-              color: _brown.withValues(alpha: 0.9),
-            ),
-          ),
-        ),
-        Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            color: Colors.white.withValues(alpha: 0.05),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-          ),
-          child: TextField(
-            controller: controller,
-            obscureText: isPass ? _obscure : false,
-            keyboardType:
-                isPass ? TextInputType.text : TextInputType.emailAddress,
-            autocorrect: false,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 15,
-              fontWeight: FontWeight.w500,
-            ),
-            decoration: InputDecoration(
-              prefixIcon: Icon(icon, color: _brown.withValues(alpha: 0.8), size: 20),
-              suffixIcon: isPass
-                  ? IconButton(
-                      icon: Icon(
-                        _obscure
-                            ? Icons.visibility_off_outlined
-                            : Icons.visibility_outlined,
-                        color: Colors.white.withValues(alpha: 0.3),
-                        size: 18,
-                      ),
-                      onPressed: () => setState(() => _obscure = !_obscure),
-                    )
-                  : null,
-              border: InputBorder.none,
-              hintText: hint,
-              hintStyle: TextStyle(
-                color: Colors.white.withValues(alpha: 0.2),
-                fontSize: 14,
-                fontWeight: FontWeight.w400,
-              ),
-              contentPadding:
-                  const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildLoginBtn() {
-    return GestureDetector(
-      onTap: _loading ? null : _login,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        width: double.infinity,
-        height: 58,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(18),
-          gradient: _loading
-              ? const LinearGradient(colors: [Colors.grey, Colors.grey])
-              : const LinearGradient(
-                  colors: [Color(0xFFA0622F), _brown],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-          boxShadow: _loading
-              ? []
-              : [
-                  BoxShadow(
-                    color: _brown.withValues(alpha: 0.45),
-                    blurRadius: 22,
-                    offset: const Offset(0, 8),
-                  )
-                ],
-        ),
-        child: Center(
-          child: _loading
-              ? const SizedBox(
-                  height: 22,
-                  width: 22,
-                  child: CircularProgressIndicator(
-                      color: Colors.white, strokeWidth: 2.5),
-                )
-              : Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      'SIGN IN',
-                      style: GoogleFonts.philosopher(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 2.5,
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    const Icon(Icons.arrow_forward_rounded,
-                        color: Colors.white, size: 18),
-                  ],
-                ),
-        ),
-      ),
-    );
-  }
-
   Widget _buildFooter() {
-    return Column(
-      children: [
-        Text(
-          "Don't have an account?",
-          style: TextStyle(
-            color: Colors.white.withValues(alpha: 0.4),
-            fontSize: 13,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        const SizedBox(height: 8),
-        GestureDetector(
-          onTap: () => Navigator.pushNamed(context, '/register'),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(30),
-              border: Border.all(color: _brown.withValues(alpha: 0.5)),
-              color: _brown.withValues(alpha: 0.08),
-            ),
-            child: Text(
-              'CREATE ACCOUNT',
-              style: GoogleFonts.philosopher(
-                color: _brown,
-                fontWeight: FontWeight.w900,
-                fontSize: 13,
-                letterSpacing: 2,
-              ),
-            ),
-          ),
-        ),
-      ],
+    return Text(
+      'By continuing, you agree to our Terms & Privacy Policy.',
+      textAlign: TextAlign.center,
+      style: TextStyle(
+        color: Colors.white.withValues(alpha: 0.25),
+        fontSize: 11,
+        fontWeight: FontWeight.w400,
+        height: 1.5,
+      ),
     );
   }
 

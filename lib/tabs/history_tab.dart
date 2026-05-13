@@ -41,7 +41,7 @@ class HistoryTab extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.fromLTRB(24, 40, 24, 20),
           child: Text("Document History",
-              style: GoogleFonts.philosopher(
+              style: GoogleFonts.inter(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
                   color: textMainTheme)),

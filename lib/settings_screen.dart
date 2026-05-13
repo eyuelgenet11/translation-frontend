@@ -172,7 +172,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text('Settings',
-            style: GoogleFonts.philosopher(fontWeight: FontWeight.bold, color: brandColor)),
+            style: GoogleFonts.inter(fontWeight: FontWeight.bold, color: brandColor)),
         backgroundColor: Theme.of(context).cardColor,
         elevation: 0.5,
         iconTheme: IconThemeData(color: brandColor),
@@ -507,7 +507,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       padding: const EdgeInsets.only(left: 4),
       child: Text(
         title.toUpperCase(),
-        style: GoogleFonts.philosopher(
+        style: GoogleFonts.inter(
             fontSize: 13,
             fontWeight: FontWeight.w800,
             color: Colors.grey.shade500,

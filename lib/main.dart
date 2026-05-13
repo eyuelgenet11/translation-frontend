@@ -137,7 +137,7 @@ class _TranslationAppState extends State<TranslationApp> {
                       onPrimary: Colors.white,
                     ),
                     scaffoldBackgroundColor: const Color(0xFFFFFFFF),
-                    textTheme: GoogleFonts.philosopherTextTheme(),
+                    textTheme: GoogleFonts.interTextTheme(),
                     snackBarTheme: SnackBarThemeData(
                       backgroundColor: const Color(0xFF1E293B),
                       contentTextStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
@@ -155,7 +155,7 @@ class _TranslationAppState extends State<TranslationApp> {
                       onPrimary: Colors.white,
                     ),
                     scaffoldBackgroundColor: const Color(0xFF000000), // Pure black
-                    textTheme: GoogleFonts.philosopherTextTheme(ThemeData.dark().textTheme),
+                    textTheme: GoogleFonts.interTextTheme(ThemeData.dark().textTheme),
                     snackBarTheme: SnackBarThemeData(
                       backgroundColor: const Color(0xFF222222), // Dark grey
                       contentTextStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),

@@ -60,7 +60,7 @@ class _RatingDialogState extends State<RatingDialog> {
       });
 
       if (mounted) {
-        Navigator.pop(context);
+        Navigator.of(context).pop(true); // Return true to indicate success
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Thank you for your review! 🌟'), backgroundColor: Colors.green),
         );
@@ -89,94 +89,96 @@ class _RatingDialogState extends State<RatingDialog> {
           borderRadius: BorderRadius.circular(24),
           boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 20)],
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: const Color(0xFF895129).withValues(alpha: 0.1),
-                shape: BoxShape.circle,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF895129).withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.star_rounded, size: 48, color: Color(0xFF895129)),
               ),
-              child: const Icon(Icons.star_rounded, size: 48, color: Color(0xFF895129)),
-            ),
-            const SizedBox(height: 20),
-            Text(
-              "Rate Your Experience",
-              style: GoogleFonts.philosopher(fontSize: 22, fontWeight: FontWeight.bold),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              "How was your translation from ${widget.job['translator_name'] ?? 'your translator'}?",
-              style: const TextStyle(color: Colors.grey, fontSize: 14),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(5, (index) {
-                return GestureDetector(
-                  onTap: () => setState(() => _rating = index + 1),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                    child: Icon(
-                      index < _rating ? Icons.star_rounded : Icons.star_outline_rounded,
-                      size: 40,
-                      color: index < _rating ? Colors.amber : Colors.grey[400],
+              const SizedBox(height: 20),
+              Text(
+                "Rate Your Experience",
+                style: GoogleFonts.inter(fontSize: 22, fontWeight: FontWeight.bold),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                "How was your translation from ${widget.job['translator_name'] ?? 'your translator'}?",
+                style: const TextStyle(color: Colors.grey, fontSize: 14),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(5, (index) {
+                  return GestureDetector(
+                    onTap: () => setState(() => _rating = index + 1),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      child: Icon(
+                        index < _rating ? Icons.star_rounded : Icons.star_outline_rounded,
+                        size: 40,
+                        color: index < _rating ? Colors.amber : Colors.grey[400],
+                      ),
+                    ),
+                  );
+                }),
+              ),
+              const SizedBox(height: 24),
+              TextField(
+                controller: _commentController,
+                maxLines: 3,
+                decoration: InputDecoration(
+                  hintText: "Leave a comment (optional)",
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide(color: Colors.grey.shade300),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide(color: Colors.grey.shade300),
+                  ),
+                  filled: true,
+                  fillColor: Theme.of(context).brightness == Brightness.dark 
+                      ? Colors.grey[800] 
+                      : Colors.grey[50],
+                ),
+              ),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextButton(
+                      onPressed: _isSubmitting ? null : () => Navigator.pop(context),
+                      child: const Text("Skip", style: TextStyle(color: Colors.grey)),
                     ),
                   ),
-                );
-              }),
-            ),
-            const SizedBox(height: 24),
-            TextField(
-              controller: _commentController,
-              maxLines: 3,
-              decoration: InputDecoration(
-                hintText: "Leave a comment (optional)",
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide(color: Colors.grey.shade300),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide(color: Colors.grey.shade300),
-                ),
-                filled: true,
-                fillColor: Theme.of(context).brightness == Brightness.dark 
-                    ? Colors.grey[800] 
-                    : Colors.grey[50],
-              ),
-            ),
-            const SizedBox(height: 24),
-            Row(
-              children: [
-                Expanded(
-                  child: TextButton(
-                    onPressed: _isSubmitting ? null : () => Navigator.pop(context),
-                    child: const Text("Skip", style: TextStyle(color: Colors.grey)),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  flex: 2,
-                  child: ElevatedButton(
-                    onPressed: _rating == 0 || _isSubmitting ? null : _submitReview,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF895129),
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      disabledBackgroundColor: Colors.grey.shade300,
+                  const SizedBox(width: 12),
+                  Expanded(
+                    flex: 2,
+                    child: ElevatedButton(
+                      onPressed: _rating == 0 || _isSubmitting ? null : _submitReview,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF895129),
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        disabledBackgroundColor: Colors.grey.shade300,
+                      ),
+                      child: _isSubmitting
+                          ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                          : const Text("Submit Review", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                     ),
-                    child: _isSubmitting
-                        ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                        : const Text("Submit Review", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                   ),
-                ),
-              ],
-            ),
-          ],
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

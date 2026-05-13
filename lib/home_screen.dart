@@ -76,6 +76,54 @@ class _MarketplaceHomeScreenState extends State<MarketplaceHomeScreen> {
     PushNotificationService().saveTokenToSupabase();
   }
 
+
+  bool _checkAuth() {
+    if (supabase.auth.currentUser == null) {
+      _showAuthRequiredDialog();
+      return false;
+    }
+    return true;
+  }
+
+  void _showAuthRequiredDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: surfaceTheme,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: Row(
+          children: [
+            const Icon(Icons.lock_outline_rounded, color: brandBrown, size: 28),
+            const SizedBox(width: 12),
+            Text("Sign In Required", style: GoogleFonts.philosopher(fontWeight: FontWeight.bold, fontSize: 20)),
+          ],
+        ),
+        content: const Text(
+          "Please sign in to your account to upload documents and place translation orders.",
+          style: TextStyle(fontSize: 15, height: 1.5),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text("CANCEL", style: TextStyle(color: textSecTheme)),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: brandBrown,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            child: const Text("SIGN IN"),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _showCriticalAlert({required String title, required String message, required Map<String, dynamic> job}) {
     if (!mounted) return;
     
@@ -177,8 +225,19 @@ class _MarketplaceHomeScreenState extends State<MarketplaceHomeScreen> {
               ScaffoldMessenger.of(context).removeCurrentSnackBar();
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text("Order status: ${newStatus.toUpperCase()}"),
+                  content: Row(
+                    children: [
+                      const Icon(Icons.track_changes_rounded, color: Colors.white, size: 18),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text("Live Tracking: Order #${payload.newRecord['id'].toString().substring(0,8)} is now ${newStatus.toUpperCase()}",
+                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                      ),
+                    ],
+                  ),
                   backgroundColor: brandBrown,
+                  duration: const Duration(seconds: 3),
+                  behavior: SnackBarBehavior.floating,
                   action: SnackBarAction(
                     label: "VIEW",
                     textColor: Colors.white,
@@ -854,10 +913,14 @@ class _MarketplaceHomeScreenState extends State<MarketplaceHomeScreen> {
             _applyFilters();
           },
           onSearchChanged: _applyFilters,
-          onTranslatorTapped: (t) => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => UploadScreen(company: t)),
-          ),
+          onTranslatorTapped: (t) {
+            if (_checkAuth()) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => UploadScreen(company: t)),
+              );
+            }
+          },
           onProfileTapped: () => setState(() => _currentIndex = 3),
           onLanguageToggle: () => LocaleController.toggleLocale(),
         );
@@ -911,112 +974,70 @@ class _MarketplaceHomeScreenState extends State<MarketplaceHomeScreen> {
     final bool hasActiveJob = _activeTrackerJob != null;
     return SafeArea(
       top: false,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(28),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-            child: Container(
-              height: 64,
-              decoration: BoxDecoration(
-                  color: const Color(0xFF1C1917).withValues(alpha: 0.7),
-                  borderRadius: BorderRadius.circular(28),
-                  border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-                  boxShadow: [
-                    BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.1),
-                        blurRadius: 20,
-                        offset: const Offset(0, 10))
-                  ]),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  _navItem(Icons.grid_view_rounded, "Home", 0),
-                  _navItem(Icons.assignment_outlined, "History", 1),
-                  _navItemWithBadge(Icons.track_changes_rounded, "Tracker", 2, hasActiveJob),
-                  _navItem(Icons.person_outline_rounded, "Profile", 3),
-                ],
-              ),
-            ),
-          ),
+      child: Container(
+        height: 64,
+        margin: const EdgeInsets.symmetric(horizontal: 24),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            _navItem(Icons.grid_view_rounded, "Home", 0),
+            _navItem(Icons.assignment_outlined, "History", 1),
+            _navItemWithBadge(Icons.track_changes_rounded, "Tracker", 2, hasActiveJob),
+            _navItem(Icons.person_outline_rounded, "Profile", 3),
+          ],
         ),
       ),
     );
   }
 
   Widget _navItem(IconData icon, String label, int index) {
-    bool active = _currentIndex == index;
+    final bool active = _currentIndex == index;
     return GestureDetector(
+      onTap: () => setState(() => _currentIndex = index),
       behavior: HitTestBehavior.opaque,
-      onTap: () {
-        setState(() => _currentIndex = index);
-      },
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          AnimatedScale(
-            scale: active ? 1.1 : 1.0,
-            duration: const Duration(milliseconds: 200),
-            child: Icon(icon, color: active ? brandBrown : Colors.white38, size: 22),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            label,
-            style: TextStyle(
-              color: active ? brandBrown : Colors.white38,
-              fontSize: 10,
-              fontWeight: active ? FontWeight.w800 : FontWeight.w500,
-            ),
-          ),
-        ],
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: Icon(
+          icon,
+          color: active ? brandBrown : textSecTheme.withValues(alpha: 0.4),
+          size: active ? 28 : 24,
+        ),
       ),
     );
   }
 
   Widget _navItemWithBadge(IconData icon, String label, int index, bool showBadge) {
-    bool active = _currentIndex == index;
+    final bool active = _currentIndex == index;
     return GestureDetector(
-      behavior: HitTestBehavior.opaque,
       onTap: () {
         _fetchActiveTrackerJob();
         setState(() => _currentIndex = index);
       },
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
+      behavior: HitTestBehavior.opaque,
+      child: Stack(
+        clipBehavior: Clip.none,
         children: [
-          Stack(
-            clipBehavior: Clip.none,
-            children: [
-              AnimatedScale(
-                scale: active ? 1.1 : 1.0,
-                duration: const Duration(milliseconds: 200),
-                child: Icon(icon, color: active ? brandBrown : Colors.white38, size: 22),
-              ),
-              if (showBadge)
-                Positioned(
-                  right: -4,
-                  top: -4,
-                  child: Container(
-                    width: 8,
-                    height: 8,
-                    decoration: const BoxDecoration(
-                      color: Colors.orange,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                ),
-            ],
-          ),
-          const SizedBox(height: 2),
-          Text(
-            label,
-            style: TextStyle(
-              color: active ? brandBrown : Colors.white38,
-              fontSize: 10,
-              fontWeight: active ? FontWeight.w800 : FontWeight.w500,
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Icon(
+              icon,
+              color: active ? brandBrown : textSecTheme.withValues(alpha: 0.4),
+              size: active ? 28 : 24,
             ),
           ),
+          if (showBadge)
+            Positioned(
+              top: 8,
+              right: 12,
+              child: Container(
+                width: 8,
+                height: 8,
+                decoration: const BoxDecoration(
+                  color: brandBrown,
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ),
         ],
       ),
     );

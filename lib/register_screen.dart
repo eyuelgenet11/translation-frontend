@@ -204,7 +204,7 @@ class _RegisterScreenState extends State<RegisterScreen>
           const SizedBox(width: 16),
           Text(
             'Create Account',
-            style: GoogleFonts.philosopher(
+            style: GoogleFonts.inter(
               color: Colors.white,
               fontSize: 20,
               fontWeight: FontWeight.w800,
@@ -280,7 +280,7 @@ class _RegisterScreenState extends State<RegisterScreen>
       children: [
         Text(
           titles[_step - 1],
-          style: GoogleFonts.philosopher(
+          style: GoogleFonts.inter(
             fontSize: 28,
             fontWeight: FontWeight.w900,
             color: Colors.white,
@@ -624,7 +624,7 @@ class _RegisterScreenState extends State<RegisterScreen>
                   children: [
                     Text(
                       label,
-                      style: GoogleFonts.philosopher(
+                      style: GoogleFonts.inter(
                         color: Colors.white,
                         fontSize: 16,
                         fontWeight: FontWeight.w900,

@@ -14,7 +14,7 @@ class PrivacyDataScreen extends StatelessWidget {
       backgroundColor: bgColor,
       appBar: AppBar(
         title: Text('Privacy & Data',
-            style: GoogleFonts.philosopher(fontWeight: FontWeight.bold, color: brandColor)),
+            style: GoogleFonts.inter(fontWeight: FontWeight.bold, color: brandColor)),
         backgroundColor: bgColor,
         elevation: 0.5,
         iconTheme: IconThemeData(color: brandColor),
@@ -67,7 +67,7 @@ class PrivacyDataScreen extends StatelessWidget {
         children: [
           Text(
             title,
-            style: GoogleFonts.philosopher(
+            style: GoogleFonts.inter(
               fontSize: 18,
               fontWeight: FontWeight.bold,
               color: brandColor,

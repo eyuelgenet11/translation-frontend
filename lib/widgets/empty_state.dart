@@ -41,7 +41,7 @@ class PremiumEmptyState extends StatelessWidget {
             Text(
               title,
               textAlign: TextAlign.center,
-              style: GoogleFonts.philosopher(
+              style: GoogleFonts.inter(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
                 color: isDark ? Colors.white : Colors.black87,

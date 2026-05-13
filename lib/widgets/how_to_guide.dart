@@ -78,7 +78,7 @@ void showHowToGuide(BuildContext context, Color textSecTheme) {
                     borderRadius: BorderRadius.circular(2))),
             const SizedBox(height: 20),
             Text(AppLocalizations.of(context)!.translate('how_it_works'),
-                style: GoogleFonts.philosopher(
+                style: GoogleFonts.inter(
                     fontSize: 24, fontWeight: FontWeight.w900)),
             const SizedBox(height: 4),
             Text("Your step-by-step guide",
@@ -161,7 +161,7 @@ void showHowToGuide(BuildContext context, Color textSecTheme) {
                                       CrossAxisAlignment.start,
                                   children: [
                                     Text(s['title'] as String,
-                                        style: GoogleFonts.philosopher(
+                                        style: GoogleFonts.inter(
                                             fontWeight: FontWeight.w800,
                                             fontSize: 16)),
                                     const SizedBox(height: 4),

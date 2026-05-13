@@ -153,7 +153,7 @@ class _JobStatusScreenState extends State<JobStatusScreen> {
         backgroundColor: _brown,
         title: Text(
           'My Jobs',
-          style: GoogleFonts.philosopher(
+          style: GoogleFonts.inter(
             color: Colors.white,
             fontWeight: FontWeight.bold,
           ),
@@ -190,7 +190,7 @@ class _JobStatusScreenState extends State<JobStatusScreen> {
           const SizedBox(height: 16),
           Text(
             'No Jobs Yet',
-            style: GoogleFonts.philosopher(
+            style: GoogleFonts.inter(
               fontSize: 20,
               fontWeight: FontWeight.bold,
               color: textThemeHeader,
@@ -249,7 +249,7 @@ class _JobStatusScreenState extends State<JobStatusScreen> {
                           job['title'] ?? job['from_lang'] != null
                               ? '${job['from_lang'] ?? ''} → ${job['to_lang'] ?? ''}'
                               : 'Translation Job',
-                          style: GoogleFonts.philosopher(
+                          style: GoogleFonts.inter(
                             fontWeight: FontWeight.bold,
                             fontSize: 15,
                             color: textThemeHeader,

@@ -29,14 +29,14 @@ class HeroCarousel extends StatelessWidget {
 
     return CarouselSlider(
       options: CarouselOptions(
-        height: 200.0,
+        height: 120.0,
         enlargeCenterPage: true,
         autoPlay: true,
-        aspectRatio: 16 / 9,
+        aspectRatio: 2.5,
         autoPlayCurve: Curves.fastOutSlowIn,
         enableInfiniteScroll: true,
         autoPlayAnimationDuration: const Duration(milliseconds: 1000),
-        viewportFraction: 0.9,
+        viewportFraction: 0.8,
       ),
       items: slides.map((slide) {
         return Builder(
@@ -46,56 +46,44 @@ class HeroCarousel extends StatelessWidget {
               margin: const EdgeInsets.symmetric(horizontal: 5.0),
               decoration: BoxDecoration(
                 color: brandBrown,
-                borderRadius: BorderRadius.circular(24),
+                borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: brandBrown.withValues(alpha: 0.2),
-                    blurRadius: 15,
-                    offset: const Offset(0, 8),
+                    color: brandBrown.withValues(alpha: 0.1),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
                   )
                 ],
                 image: DecorationImage(
                   image: NetworkImage(slide['url']!),
                   fit: BoxFit.cover,
                   colorFilter: ColorFilter.mode(
-                    Colors.black.withValues(alpha: 0.4),
+                    Colors.black.withValues(alpha: 0.3),
                     BlendMode.darken,
                   ),
                 ),
               ),
               child: Padding(
-                padding: const EdgeInsets.all(24.0),
+                padding: const EdgeInsets.all(16.0),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.end,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: Colors.white24,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Text(
-                        "PRO SERVICE",
-                        style: TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.w900, letterSpacing: 1),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
                     Text(
                       slide['title']!,
-                      style: GoogleFonts.philosopher(
+                      style: GoogleFonts.inter(
                         color: Colors.white,
-                        fontSize: 22,
+                        fontSize: 16,
                         fontWeight: FontWeight.w900,
                         height: 1.1,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 2),
                     Text(
                       slide['subtitle']!,
                       style: TextStyle(
                         color: Colors.white.withValues(alpha: 0.8),
-                        fontSize: 12,
+                        fontSize: 10,
                         fontWeight: FontWeight.w500,
                       ),
                     ),

@@ -41,7 +41,7 @@ class _OtpScreenState extends State<OtpScreen> {
     return Scaffold(
       backgroundColor: bgColor,
       appBar: AppBar(
-        title: Text('Verify OTP', style: GoogleFonts.philosopher(fontWeight: FontWeight.bold, color: brandColor)),
+        title: Text('Verify OTP', style: GoogleFonts.inter(fontWeight: FontWeight.bold, color: brandColor)),
         centerTitle: true,
         backgroundColor: bgColor,
         foregroundColor: brandColor,
@@ -88,7 +88,7 @@ class _OtpScreenState extends State<OtpScreen> {
               ),
               child: Text(
                 'Verify',
-                style: GoogleFonts.philosopher(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold),
+                style: GoogleFonts.inter(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold),
               ),
             ),
 

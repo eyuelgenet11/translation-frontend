@@ -12,7 +12,6 @@ import 'package:path_provider/path_provider.dart';
 import 'package:file_picker/file_picker.dart';
 import 'services/notification_sound_service.dart';
 import 'services/push_notification_service.dart';
-import 'screens/job_chat_screen.dart';
 import 'widgets/rating_dialog.dart';
 
 class LiveOrderTrackerScreen extends StatefulWidget {
@@ -45,6 +44,7 @@ class _LiveOrderTrackerScreenState extends State<LiveOrderTrackerScreen> {
   PlatformFile? _receiptFile;
   Uint8List? _webReceipt;
   bool _uploadingReceipt = false;
+  bool _ratingDialogShown = false;
 
   // Download State
   double _downloadProgress = 0;
@@ -174,7 +174,10 @@ class _LiveOrderTrackerScreenState extends State<LiveOrderTrackerScreen> {
       
       // Delay slightly to let the status update complete, then show Rating Dialog
       Future.delayed(const Duration(milliseconds: 500), () {
-        if (mounted) RatingDialog.show(context, _job);
+        if (mounted && !_ratingDialogShown) {
+          _ratingDialogShown = true;
+          RatingDialog.show(context, _job);
+        }
       });
     }
   }
@@ -383,8 +386,17 @@ class _LiveOrderTrackerScreenState extends State<LiveOrderTrackerScreen> {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(msg),
-        backgroundColor: isError ? Colors.redAccent : Theme.of(context).snackBarTheme.backgroundColor,
+        content: Row(
+          children: [
+            Icon(isError ? Icons.error_outline_rounded : Icons.track_changes_rounded, color: Colors.white, size: 18),
+            const SizedBox(width: 12),
+            Expanded(child: Text(msg, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold))),
+          ],
+        ),
+        backgroundColor: isError ? Colors.redAccent : brandColor,
+        duration: const Duration(seconds: 3),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }
@@ -419,7 +431,7 @@ class _LiveOrderTrackerScreenState extends State<LiveOrderTrackerScreen> {
         ),
         title: Text("LIVE ORDER TRACKER",
             overflow: TextOverflow.ellipsis,
-            style: GoogleFonts.philosopher(
+            style: GoogleFonts.inter(
                 fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: 1.2, color: brandColor)),
       ),
       body: SingleChildScrollView(
@@ -430,25 +442,9 @@ class _LiveOrderTrackerScreenState extends State<LiveOrderTrackerScreen> {
             _buildStatusHeader(),
             const SizedBox(height: 32),
             _buildTrackerCard(),
-            const SizedBox(height: 40),
-            _buildJobSummary(),
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => JobChatScreen(job: _job),
-            ),
-          );
-        },
-        backgroundColor: brandColor,
-        icon: const Icon(Icons.chat_bubble_outline, color: Colors.white),
-        label: const Text("Chat", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-      ),
-
     );
   }
 
@@ -457,16 +453,16 @@ class _LiveOrderTrackerScreenState extends State<LiveOrderTrackerScreen> {
     
     // Status Display Mapping
     Map<String, dynamic> statusUi = {
-      'pending': {'label': 'WAITING FOR QUOTE', 'color': Colors.orange},
-      'quoted': {'label': 'PRICE QUOTED', 'color': const Color(0xFF7C3AED)},
-      'price quoted': {'label': 'PRICE QUOTED', 'color': const Color(0xFF7C3AED)},
-      'awaiting payment': {'label': 'AWAITING PAYMENT', 'color': Colors.orange},
-      'awaiting verification': {'label': 'VERIFYING PAYMENT', 'color': Colors.blue},
+      'pending': {'label': 'WAITING FOR QUOTE', 'color': Colors.grey},
+      'quoted': {'label': 'PRICE QUOTED', 'color': brandColor},
+      'price quoted': {'label': 'PRICE QUOTED', 'color': brandColor},
+      'awaiting payment': {'label': 'AWAITING PAYMENT', 'color': brandColor},
+      'awaiting verification': {'label': 'VERIFYING PAYMENT', 'color': Colors.blueGrey},
       'in progress': {'label': 'WORK IN PROGRESS', 'color': brandColor},
       'in_progress': {'label': 'WORK IN PROGRESS', 'color': brandColor},
-      'pending_review': {'label': 'READY FOR REVIEW', 'color': Colors.green},
-      'revision_requested': {'label': 'REVISION IN PROGRESS', 'color': Colors.orange},
-      'completed': {'label': 'ORDER COMPLETED', 'color': Colors.green},
+      'pending_review': {'label': 'READY FOR REVIEW', 'color': brandColor},
+      'revision_requested': {'label': 'REVISION IN PROGRESS', 'color': Colors.grey},
+      'completed': {'label': 'ORDER COMPLETED', 'color': brandColor},
       'rejected': {'label': 'ORDER REJECTED', 'color': Colors.red},
     };
 
@@ -494,7 +490,7 @@ class _LiveOrderTrackerScreenState extends State<LiveOrderTrackerScreen> {
         ),
         const SizedBox(height: 8),
         Text(ui['label'] as String,
-            style: GoogleFonts.philosopher(
+            style: GoogleFonts.inter(
                 fontWeight: FontWeight.w900, fontSize: 32, color: textThemeHeader, letterSpacing: -0.5)),
       ],
     );
@@ -519,7 +515,7 @@ class _LiveOrderTrackerScreenState extends State<LiveOrderTrackerScreen> {
       title = "Official Quote Ready";
       message = "We've analyzed your document. Please review the professional service fee and turnaround time below.";
       icon = Icons.request_quote_rounded;
-      statusColor = const Color(0xFF7C3AED);
+      statusColor = brandColor;
       actions = _buildQuotedState();
     } else if (status == 'accepted' || status == 'in progress' || status == 'in_progress') {
       title = "Translation in Progress";
@@ -725,15 +721,19 @@ class _LiveOrderTrackerScreenState extends State<LiveOrderTrackerScreen> {
 
   Widget _buildPriceBreakdown() {
     final num price = _job['price'] ?? 0;
-    final num serviceCharge = price * 0.15;
-    final num total = price + serviceCharge;
+    final num urgencyFee = _job['urgency_fee'] ?? 0;
+    final num subtotal = price + urgencyFee;
+    final num serviceCharge = subtotal * 0.15;
+    final num total = subtotal + serviceCharge;
 
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white, borderRadius: BorderRadius.circular(16)),
       child: Column(
         children: [
-          _priceRow("Translation Quote", "${price.toStringAsFixed(2)} ETB"),
+          _priceRow("Translation Fee", "${price.toStringAsFixed(2)} ETB"),
+          if (urgencyFee > 0)
+            _priceRow("Urgency Fee (${_job['urgency']})", "${urgencyFee.toStringAsFixed(2)} ETB"),
           _priceRow("Service Charge (15%)", "${serviceCharge.toStringAsFixed(2)} ETB"),
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 8),
@@ -767,8 +767,8 @@ class _LiveOrderTrackerScreenState extends State<LiveOrderTrackerScreen> {
           child: OutlinedButton(
             onPressed: () => _updateJobStatus('rejected', reason: '[CLIENT_REJECTED] Quote declined by customer'),
             style: OutlinedButton.styleFrom(
-              foregroundColor: Colors.redAccent,
-              side: const BorderSide(color: Colors.redAccent),
+              foregroundColor: textThemeHeader,
+              side: BorderSide(color: textThemeHeader.withValues(alpha: 0.2)),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
               padding: const EdgeInsets.symmetric(vertical: 16),
             ),
@@ -780,11 +780,11 @@ class _LiveOrderTrackerScreenState extends State<LiveOrderTrackerScreen> {
           child: ElevatedButton(
             onPressed: () => _updateJobStatus('awaiting payment'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF0F172A),
+              backgroundColor: brandColor,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
               padding: const EdgeInsets.symmetric(vertical: 16),
             ),
-            child: Text("ACCEPT", style: TextStyle(fontWeight: FontWeight.w900, color: Colors.white)),
+            child: const Text("ACCEPT", style: TextStyle(fontWeight: FontWeight.w900, color: Colors.white)),
           ),
         ),
       ],
@@ -1066,8 +1066,9 @@ class _LiveOrderTrackerScreenState extends State<LiveOrderTrackerScreen> {
         const SizedBox(height: 16),
         _summaryRow("Job ID", _job['id'].toString().substring(0, 8).toUpperCase()),
         _summaryRow("Languages", "${_job['from_lang']} → ${_job['to_lang']}"),
-        _summaryRow("Price (Total)", "${_job['price'] != null ? ((_job['price'] ?? 0) * 1.15).toStringAsFixed(2) : 'Pending'} ETB"),
-        _summaryRow("Urgency", _job['urgency'] ?? "Normal"),
+        _summaryRow("Base Price", "${(_job['price'] ?? 0).toStringAsFixed(2)} ETB"),
+        _summaryRow("Urgency", "${_job['urgency'] ?? 'Normal'} (+${(_job['urgency_fee'] ?? 0).toStringAsFixed(2)} ETB)"),
+        _summaryRow("Total (with Tax)", "${(((_job['price'] ?? 0) + (_job['urgency_fee'] ?? 0)) * 1.15).toStringAsFixed(2)} ETB"),
       ],
     );
   }

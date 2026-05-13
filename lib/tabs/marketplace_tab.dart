@@ -67,7 +67,7 @@ class MarketplaceTab extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text("All Translators",
-                    style: GoogleFonts.philosopher(
+                    style: GoogleFonts.inter(
                         fontWeight: FontWeight.w800,
                         fontSize: 17,
                         color: textMainTheme)),
@@ -87,31 +87,27 @@ class MarketplaceTab extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Container(
-            margin: const EdgeInsets.only(right: 12),
+            margin: const EdgeInsets.only(right: 16),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
+              shape: BoxShape.circle,
+              border: Border.all(color: brandBrown, width: 2),
               boxShadow: [
                 BoxShadow(
-                  color: brandBrown.withValues(alpha: 0.2),
+                  color: brandBrown.withValues(alpha: 0.15),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 )
               ],
             ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: Padding(
-                padding: const EdgeInsets.all(4.0),
-                child: Image.asset(
-                  'assets/icon/fffinal logo.png',
-                  width: 48,
-                  height: 48,
-                  fit: BoxFit.contain,
-                ),
+            child: ClipOval(
+              child: Image.asset(
+                'assets/icon/fffinal logo.png',
+                width: 52,
+                height: 52,
+                fit: BoxFit.cover,
               ),
             ),
           ),
@@ -120,88 +116,24 @@ class MarketplaceTab extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  "Hello, ${userName ?? 'Guest'}",
+                  "Hello,",
                   style: TextStyle(
-                      fontSize: 13,
-                      color: textSecTheme,
+                      fontSize: 12,
+                      color: textSecTheme.withValues(alpha: 0.6),
                       fontWeight: FontWeight.w500),
                 ),
-                const SizedBox(height: 2),
-                ShaderMask(
-                  shaderCallback: (bounds) => const LinearGradient(
-                    colors: [Colors.white, Colors.white70],
-                  ).createShader(bounds),
-                  child: Text(
-                    "Find Your Expert",
-                    style: GoogleFonts.philosopher(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w900,
-                      color: Colors.white,
-                      letterSpacing: -0.5,
-                    ),
-                    overflow: TextOverflow.ellipsis,
+                Text(
+                  userName ?? 'Guest',
+                  style: GoogleFonts.inter(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w900,
+                    color: textMainTheme,
+                    height: 1.1,
                   ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
-          ),
-          Row(
-            children: [
-              GestureDetector(
-                onTap: onLanguageToggle,
-                child: Container(
-                  padding: const EdgeInsets.all(8),
-                  margin: const EdgeInsets.only(right: 8),
-                  decoration: BoxDecoration(
-                    color: brandBrown.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    Localizations.localeOf(context).languageCode == 'en' ? 'AM' : 'EN',
-                    style: TextStyle(
-                      color: brandBrown,
-                      fontWeight: FontWeight.w900,
-                      fontSize: 12,
-                    ),
-                  ),
-                ),
-              ),
-              GestureDetector(
-                onTap: () => showHowToGuide(context, textSecTheme),
-                child: Container(
-                  padding: const EdgeInsets.all(10),
-                  margin: const EdgeInsets.only(right: 10),
-                  decoration: BoxDecoration(
-                    color: brandBrown.withValues(alpha: 0.08),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(Icons.help_outline_rounded,
-                      color: brandBrown, size: 20),
-                ),
-              ),
-              GestureDetector(
-                onTap: onProfileTapped,
-                child: Hero(
-                  tag: 'profile_avatar',
-                  child: Container(
-                    padding: const EdgeInsets.all(2),
-                    decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(color: brandBrown.withValues(alpha: 0.2))),
-                    child: CircleAvatar(
-                      radius: 20,
-                      backgroundColor: brandBrown.withValues(alpha: 0.05),
-                      backgroundImage: (avatarUrl != null && avatarUrl!.isNotEmpty)
-                          ? NetworkImage(avatarUrl!)
-                          : null,
-                      child: (avatarUrl == null || avatarUrl!.isEmpty)
-                          ? Icon(Icons.person_outline, color: brandBrown)
-                          : null,
-                    ),
-                  ),
-                ),
-              )
-            ],
           ),
         ],
       ),
@@ -439,7 +371,7 @@ class MarketplaceTab extends StatelessWidget {
                         child: (t['avatar_url'] == null)
                             ? Text(
                                 (t['full_name'] ?? "?")[0].toUpperCase(),
-                                style: GoogleFonts.philosopher(
+                                style: GoogleFonts.inter(
                                     fontSize: 28,
                                     fontWeight: FontWeight.bold,
                                     color: brandBrown),
@@ -473,7 +405,7 @@ class MarketplaceTab extends StatelessWidget {
                     Expanded(
                       child: Text(
                         t['office_name'] ?? t['full_name'] ?? "Unknown",
-                        style: GoogleFonts.philosopher(
+                        style: GoogleFonts.inter(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
                             color: textMainTheme),
@@ -531,7 +463,7 @@ class MarketplaceTab extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text("Top Rated Experts",
-                  style: GoogleFonts.philosopher(
+                  style: GoogleFonts.inter(
                       fontWeight: FontWeight.w800,
                       fontSize: 17,
                       color: textMainTheme)),
@@ -603,7 +535,7 @@ class MarketplaceTab extends StatelessWidget {
                                     children: [
                                       Text(
                                         t['office_name'] ?? t['full_name'] ?? "Expert",
-                                        style: GoogleFonts.philosopher(
+                                        style: GoogleFonts.inter(
                                             color: Colors.white,
                                             fontWeight: FontWeight.bold,
                                             fontSize: 15),

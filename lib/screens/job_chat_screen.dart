@@ -72,15 +72,33 @@ class _JobChatScreenState extends State<JobChatScreen> {
     final text = _msgController.text.trim();
     if (text.isEmpty) return;
 
+    final user = _supabase.auth.currentUser;
+    if (user == null) return;
+
     _msgController.clear();
 
-    final userId = _supabase.auth.currentUser?.id;
-    if (userId == null) return;
-
     try {
+      // PROACTIVE FIX: Ensure user exists in 'profiles' table to satisfy Foreign Key constraint
+      final profileExists = await _supabase
+          .from('profiles')
+          .select('id')
+          .eq('id', user.id)
+          .maybeSingle();
+
+      if (profileExists == null) {
+        debugPrint("Chat: User profile missing. Creating on-the-fly...");
+        await _supabase.from('profiles').insert({
+          'id': user.id,
+          'full_name': user.userMetadata?['full_name'] ?? user.userMetadata?['name'] ?? 'User',
+          'email': user.email,
+          'avatar_url': user.userMetadata?['avatar_url'] ?? user.userMetadata?['picture'],
+          'role': 'customer',
+        });
+      }
+
       await _supabase.from('job_messages').insert({
         'job_id': widget.job['id'],
-        'sender_id': userId,
+        'sender_id': user.id,
         'content': text,
       });
     } catch (e) {
@@ -121,7 +139,7 @@ class _JobChatScreenState extends State<JobChatScreen> {
       appBar: AppBar(
         title: Text(
           "Job #${widget.job['id'].toString().substring(0, 8).toUpperCase()}",
-          style: GoogleFonts.philosopher(fontWeight: FontWeight.bold),
+          style: GoogleFonts.inter(fontWeight: FontWeight.bold),
         ),
         backgroundColor: bgTheme,
         elevation: 0,

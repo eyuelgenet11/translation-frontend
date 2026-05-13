@@ -135,22 +135,25 @@ class _CustomerJobDetailState extends State<CustomerJobDetail> {
     return Scaffold(
       backgroundColor: bgTheme,
       appBar: AppBar(
-        title: Text("Track Your Order",
+        title: Text("TRACK YOUR ORDER",
             style: GoogleFonts.philosopher(
-                fontWeight: FontWeight.w700,
-                color: Colors.black,
-                fontSize: 20)),
+                fontWeight: FontWeight.w900,
+                color: textThemeHeader,
+                fontSize: 16,
+                letterSpacing: 1.2)),
         centerTitle: true,
         backgroundColor: cardTheme,
-        elevation: 0.5,
+        elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new,
-              size: 20, color: Colors.black),
+          icon: Icon(Icons.arrow_back_ios_new,
+              size: 20, color: textThemeHeader),
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      body: SingleChildScrollView(
-        child: Column(
+      body: SafeArea(
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          child: Column(
           children: [
             _buildStatusHeader(status),
             Padding(
@@ -178,18 +181,20 @@ class _CustomerJobDetailState extends State<CustomerJobDetail> {
                   _buildSectionLabel("PROJECT INFO"),
                   const SizedBox(height: 12),
                   _buildProjectDetails(),
+                  const SizedBox(height: 100), // Extra space at the bottom for scrolling
                 ],
               ),
             ),
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildSectionLabel(String text) {
     return Text(text,
-        style: GoogleFonts.philosopher(
+        style: GoogleFonts.inter(
             fontSize: 12,
             fontWeight: FontWeight.w800,
             color: Colors.grey.shade500,
@@ -216,7 +221,7 @@ class _CustomerJobDetailState extends State<CustomerJobDetail> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(currentJobData['title'] ?? "Translation Project",
-                    style: GoogleFonts.philosopher(
+                    style: GoogleFonts.inter(
                         fontWeight: FontWeight.bold, fontSize: 18)),
                 const SizedBox(height: 4),
                 Text(
@@ -335,13 +340,7 @@ class _CustomerJobDetailState extends State<CustomerJobDetail> {
           "New Quote",
           "Check dashboard to approve the price.",
           Icons.account_balance_wallet,
-          Colors.orange);
-    } else if (status == 'awaiting down payment') {
-      return _buildActionCard(
-          "Down Payment Needed",
-          "Please pay 50% to start the translation.",
-          Icons.payments_outlined,
-          Colors.orange,
+          brandColor,
           showPaymentOptions: true);
     } else if (status == 'down payment verification') {
       return _buildActionCard(
@@ -382,7 +381,7 @@ class _CustomerJobDetailState extends State<CustomerJobDetail> {
           Icon(icon, size: 48, color: color),
           const SizedBox(height: 16),
           Text(title,
-              style: GoogleFonts.philosopher(
+              style: GoogleFonts.inter(
                   fontWeight: FontWeight.bold, fontSize: 18)),
           const SizedBox(height: 4),
           Text(sub,
@@ -532,15 +531,15 @@ class _CustomerJobDetailState extends State<CustomerJobDetail> {
       decoration: BoxDecoration(
           color: cardTheme,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey.shade200)),
+          border: Border.all(color: Colors.grey.withValues(alpha: 0.1))),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text("RATE YOUR EXPERIENCE",
-              style: GoogleFonts.philosopher(
+              style: GoogleFonts.inter(
                   fontSize: 11,
                   fontWeight: FontWeight.w800,
-                  color: Colors.grey,
+                  color: textThemeSec,
                   letterSpacing: 0.8)),
           const SizedBox(height: 12),
           Row(
@@ -548,40 +547,52 @@ class _CustomerJobDetailState extends State<CustomerJobDetail> {
             children: List.generate(5, (index) {
               return IconButton(
                 onPressed: () => setState(() => _selectedRating = index + 1),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
                 icon: Icon(
                   index < _selectedRating ? Icons.star_rounded : Icons.star_outline_rounded,
-                  color: index < _selectedRating ? Colors.orange : Colors.grey.shade300,
-                  size: 40,
+                  color: index < _selectedRating ? Colors.orange : Colors.grey.withValues(alpha: 0.2),
+                  size: 36,
                 ),
               );
             }),
           ),
           const SizedBox(height: 24),
           Text("WHAT WAS THE BEST PART?",
-              style: GoogleFonts.philosopher(
+              style: GoogleFonts.inter(
                   fontSize: 11,
                   fontWeight: FontWeight.w800,
-                  color: Colors.grey,
+                  color: textThemeSec,
                   letterSpacing: 0.8)),
           const SizedBox(height: 8),
-          ...feedbackOptions.map((opt) => RadioListTile<String>(
-                title: Text(opt, style: const TextStyle(fontSize: 14)),
-                value: opt,
-                groupValue: _selectedFeedbackOption,
-                activeColor: brandColor,
-                contentPadding: EdgeInsets.zero,
-                onChanged: (val) =>
-                    setState(() => _selectedFeedbackOption = val),
-              )),
-          const SizedBox(height: 12),
+          // Use a Wrap or a more compact layout for feedback options to save space
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: feedbackOptions.map((opt) {
+              final bool isSel = _selectedFeedbackOption == opt;
+              return ChoiceChip(
+                label: Text(opt, style: TextStyle(fontSize: 12, color: isSel ? Colors.white : textThemeSec)),
+                selected: isSel,
+                onSelected: (val) => setState(() => _selectedFeedbackOption = val ? opt : null),
+                selectedColor: brandColor,
+                backgroundColor: cardTheme,
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide(color: isSel ? brandColor : Colors.grey.withValues(alpha: 0.2))),
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: 20),
           TextField(
             controller: _feedbackController,
-            maxLines: 3,
+            maxLines: 2,
+            style: TextStyle(fontSize: 14, color: textThemeHeader),
             decoration: InputDecoration(
-              hintText: "Add additional comments (optional)",
+              hintText: "Additional comments...",
               hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 13),
               filled: true,
               fillColor: bgTheme,
+              contentPadding: const EdgeInsets.all(12),
               border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide.none),
@@ -596,17 +607,18 @@ class _CustomerJobDetailState extends State<CustomerJobDetail> {
                   : _submitFeedback,
               style: ElevatedButton.styleFrom(
                 backgroundColor: brandColor,
-                foregroundColor: cardTheme,
+                foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12)),
+                elevation: 0,
               ),
               child: _isFeedbackSubmitting
-                  ? SizedBox(
+                  ? const SizedBox(
                       height: 20,
                       width: 20,
                       child: CircularProgressIndicator(
-                          color: cardTheme, strokeWidth: 2))
+                          color: Colors.white, strokeWidth: 2))
                   : const Text("SUBMIT FEEDBACK",
                       style: TextStyle(fontWeight: FontWeight.bold)),
             ),

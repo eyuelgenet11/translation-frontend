@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../notifications_screen.dart';
 import '../privacy_data_screen.dart';
 import '../HelpCenterScreen.dart';
+import '../widgets/how_to_guide.dart';
 
 class ProfileTab extends StatelessWidget {
   final String? displayName;
@@ -41,73 +42,76 @@ class ProfileTab extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SizedBox(height: 40),
-          Row(
-            children: [
-              Stack(
+          InkWell(
+            onTap: onEditProfile,
+            borderRadius: BorderRadius.circular(16),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Row(
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(3),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(color: brandBrown, width: 1.5),
-                    ),
-                    child: CircleAvatar(
-                      radius: 38,
-                      backgroundColor: brandBrown.withValues(alpha: 0.05),
-                      backgroundImage: (avatarUrl != null && avatarUrl!.isNotEmpty)
-                          ? NetworkImage(avatarUrl!)
-                          : null,
-                      child: (avatarUrl == null || avatarUrl!.isEmpty)
-                          ? Icon(Icons.person, size: 30, color: brandBrown)
-                          : null,
-                    ),
-                  ),
-                  Positioned(
-                    bottom: 0,
-                    right: 0,
-                    child: GestureDetector(
-                      onTap: onEditProfile,
-                      child: Container(
-                        padding: const EdgeInsets.all(6),
+                  Stack(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(3),
                         decoration: BoxDecoration(
-                          color: brandBrown,
                           shape: BoxShape.circle,
+                          border: Border.all(color: brandBrown.withValues(alpha: 0.3), width: 1.5),
                         ),
-                        child: const Icon(Icons.edit, size: 14, color: Colors.white),
+                        child: CircleAvatar(
+                          radius: 38,
+                          backgroundColor: brandBrown.withValues(alpha: 0.05),
+                          backgroundImage: (avatarUrl != null && avatarUrl!.isNotEmpty)
+                              ? NetworkImage(avatarUrl!)
+                              : null,
+                          child: (avatarUrl == null || avatarUrl!.isEmpty)
+                              ? Icon(Icons.person, size: 30, color: brandBrown)
+                              : null,
+                        ),
                       ),
+                      Positioned(
+                        bottom: 0,
+                        right: 0,
+                        child: Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: const BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.edit, size: 14, color: Colors.black),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(width: 20),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(displayName ?? "User Name",
+                            style: GoogleFonts.inter(
+                                fontSize: 22,
+                                fontWeight: FontWeight.w900,
+                                color: textMainTheme)),
+                        const SizedBox(height: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: textSecTheme.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text("${accountType.toUpperCase()} ACCOUNT",
+                              style: TextStyle(
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w800,
+                                  color: textSecTheme.withValues(alpha: 0.8),
+                                  letterSpacing: 0.5)),
+                        ),
+                      ],
                     ),
                   ),
                 ],
               ),
-              const SizedBox(width: 20),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(displayName ?? "User Name",
-                        style: GoogleFonts.philosopher(
-                            fontSize: 22,
-                            fontWeight: FontWeight.w900,
-                            color: textMainTheme)),
-                    const SizedBox(height: 6),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: brandBrown.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: brandBrown.withValues(alpha: 0.2)),
-                      ),
-                      child: Text("${accountType.toUpperCase()} ACCOUNT",
-                          style: TextStyle(
-                              fontSize: 9,
-                              fontWeight: FontWeight.w800,
-                              color: brandBrown,
-                              letterSpacing: 0.5)),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+            ),
           ),
           const SizedBox(height: 40),
           Row(
@@ -123,6 +127,10 @@ class ProfileTab extends StatelessWidget {
           ),
           const SizedBox(height: 40),
           _sectionLabel("PREFERENCES"),
+          _profileTile(context, Icons.help_outline_rounded, "How to Guide",
+              "Learn how to use the marketplace", () {
+                showHowToGuide(context, textSecTheme);
+              }),
           _profileTile(context, Icons.settings_outlined, "App Settings",
               "Theme, language, and font scaling", () {
                 Navigator.pushNamed(context, '/settings');
@@ -141,7 +149,7 @@ class ProfileTab extends StatelessWidget {
               }),
           const SizedBox(height: 24),
           _sectionLabel("SUPPORT"),
-          _profileTile(context, Icons.help_outline_rounded, "Help Center",
+          _profileTile(context, Icons.support_agent_rounded, "Help Center",
               "FAQs and support contacts", () {
                 Navigator.push(context, MaterialPageRoute(builder: (context) => HelpCenterScreen()));
               }),
@@ -155,19 +163,19 @@ class ProfileTab extends StatelessWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
-                  color: Colors.redAccent.withValues(alpha: 0.08),
+                  color: Colors.white,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.redAccent.withValues(alpha: 0.1)),
+                  border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
                 ),
                 child: const Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.logout_rounded, color: Colors.redAccent, size: 20),
+                    Icon(Icons.logout_rounded, color: Colors.black, size: 20),
                     SizedBox(width: 12),
                     Text(
                       "Sign Out of Account",
                       style: TextStyle(
-                        color: Colors.redAccent,
+                        color: Colors.black,
                         fontWeight: FontWeight.w900,
                         fontSize: 15,
                       ),
@@ -190,7 +198,7 @@ class ProfileTab extends StatelessWidget {
         decoration: BoxDecoration(
           color: surfaceTheme,
           borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: Colors.grey.shade100),
+          border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
           boxShadow: [
             BoxShadow(
                 color: Colors.black.withValues(alpha: 0.02),
@@ -201,10 +209,10 @@ class ProfileTab extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(icon, color: brandBrown, size: 24),
+            Icon(icon, color: brandBrown.withValues(alpha: 0.8), size: 24),
             const SizedBox(height: 16),
             Text(value,
-                style: GoogleFonts.philosopher(
+                style: GoogleFonts.inter(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                     color: textMainTheme)),
@@ -227,7 +235,7 @@ class ProfileTab extends StatelessWidget {
           style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w900,
-              color: brandBrown,
+              color: textSecTheme.withValues(alpha: 0.4),
               letterSpacing: 1.2)),
     );
   }
@@ -243,16 +251,16 @@ class ProfileTab extends StatelessWidget {
           decoration: BoxDecoration(
             color: surfaceTheme,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.grey.shade100),
+            border: Border.all(color: Colors.grey.withValues(alpha: 0.05)),
           ),
           child: Row(
             children: [
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                    color: brandBrown.withValues(alpha: 0.06),
+                    color: brandBrown.withValues(alpha: 0.04),
                     borderRadius: BorderRadius.circular(12)),
-                child: Icon(icon, color: brandBrown, size: 22),
+                child: Icon(icon, color: brandBrown.withValues(alpha: 0.8), size: 22),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -271,7 +279,7 @@ class ProfileTab extends StatelessWidget {
                 ),
               ),
               Icon(Icons.chevron_right_rounded,
-                  color: Colors.grey.shade400, size: 20),
+                  color: Colors.grey.withValues(alpha: 0.3), size: 20),
             ],
           ),
         ),

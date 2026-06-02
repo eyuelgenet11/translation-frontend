@@ -12,6 +12,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:upgrader/upgrader.dart';
 
 import 'upload_screen.dart';
 
@@ -21,11 +22,17 @@ import 'tabs/marketplace_tab.dart';
 import 'tabs/history_tab.dart';
 import 'tabs/tracker_tab.dart';
 import 'tabs/profile_tab.dart';
+import 'tabs/admin_dashboard_tab.dart';
+import 'tabs/translator_dashboard_tab.dart';
 import 'live_order_tracker_screen.dart';
 import 'services/notification_sound_service.dart';
+import 'config/security_config.dart';
+import 'services/admin_auth_service.dart';
+import 'services/role_security_service.dart';
 
 class MarketplaceHomeScreen extends StatefulWidget {
-  const MarketplaceHomeScreen({super.key});
+  final int initialIndex;
+  const MarketplaceHomeScreen({super.key, this.initialIndex = 0});
 
   @override
   State<MarketplaceHomeScreen> createState() => _MarketplaceHomeScreenState();
@@ -36,13 +43,15 @@ class _MarketplaceHomeScreenState extends State<MarketplaceHomeScreen> {
   final TextEditingController _searchController = TextEditingController();
 
   // App State
-  int _currentIndex = 0; // Default to Home
+  late int _currentIndex;
   bool loading = true;
 
   // Profile & Wallet Data
   String? _avatarUrl;
   String? _displayName;
   String _accountType = 'personal'; // Add this line
+  bool _isDesignatedAdmin = false;
+  bool _canAccessAdminDashboard = false;
   double _walletBalance = 0.00;
   int _totalOrders = 0;
 
@@ -67,6 +76,8 @@ class _MarketplaceHomeScreenState extends State<MarketplaceHomeScreen> {
   @override
   void initState() {
     super.initState();
+    _currentIndex = widget.initialIndex;
+    _fetchUserProfile();
     _subscribeToProfile();
     _fetchTranslators();
     _fetchActiveTrackerJob();
@@ -74,6 +85,54 @@ class _MarketplaceHomeScreenState extends State<MarketplaceHomeScreen> {
     
     // Ensure the device token is saved now that the user is logged in
     PushNotificationService().saveTokenToSupabase();
+    _enforceRolesOnLaunch();
+    _redirectTranslatorsToPortal();
+  }
+
+  Future<void> _redirectTranslatorsToPortal() async {
+    if (widget.initialIndex == 5) return;
+    final user = supabase.auth.currentUser;
+    if (user == null) return;
+    try {
+      final profile = await supabase
+          .from('profiles')
+          .select('role, status')
+          .eq('id', user.id)
+          .maybeSingle();
+      if (profile?['role'] == 'translator' &&
+          SecurityConfig.isApprovedTranslatorStatus(profile?['status'] as String?)) {
+        if (mounted) {
+          Navigator.pushReplacementNamed(context, '/translator-home');
+        }
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _enforceRolesOnLaunch() async {
+    final user = supabase.auth.currentUser;
+    if (user == null) return;
+    await RoleSecurityService.enforceProfileRoles(user);
+    await _refreshAdminAccess();
+  }
+
+  Future<void> _refreshAdminAccess() async {
+    final user = supabase.auth.currentUser;
+    if (user == null) return;
+
+    // Check designation by email (fast — no DB call needed)
+    final isDesignatedByEmail = SecurityConfig.isSuperAdminEmail(user.email);
+    final isDesignated = isDesignatedByEmail;
+    final granted = isDesignatedByEmail;
+    if (mounted) {
+      setState(() {
+        _isDesignatedAdmin = isDesignated;
+        _canAccessAdminDashboard = granted;
+      });
+      // Only kick out of admin tab if truly not designated at all
+      if (_currentIndex == 4 && !isDesignatedByEmail) {
+        setState(() => _currentIndex = 0);
+      }
+    }
   }
 
 
@@ -193,6 +252,77 @@ class _MarketplaceHomeScreenState extends State<MarketplaceHomeScreen> {
     );
   }
 
+  void _showAdminPaymentAlert({required Map<String, dynamic> job}) {
+    if (!mounted) return;
+
+    // Trigger local push notification (system tray)
+    PushNotificationService().showLocalNotification(
+      title: "Payment Slip Uploaded",
+      body: "A client has uploaded a payment receipt for review: ${job['title'] ?? 'Translation Request'}.",
+    );
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        backgroundColor: surfaceTheme,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: const Row(
+          children: [
+            Icon(Icons.payment_rounded, color: brandBrown, size: 28),
+            SizedBox(width: 12),
+            Text("Payment Slip Uploaded", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text("A client has uploaded a payment receipt for review:", style: TextStyle(fontSize: 15)),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: brandBrown.withValues(alpha: 0.05),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.description_outlined, size: 18, color: brandBrown),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      job['title'] ?? "Translation Request",
+                      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text("DISMISS", style: TextStyle(color: textSecTheme)),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _openAdminTab();
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: brandBrown,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            child: const Text("REVIEW NOW"),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _subscribeToGlobalJobs() {
     final userId = supabase.auth.currentUser?.id;
     if (userId == null) return;
@@ -279,16 +409,25 @@ class _MarketplaceHomeScreenState extends State<MarketplaceHomeScreen> {
           table: 'jobs',
           callback: (payload) {
             // Only trigger if I am an admin
-            if (mounted && _accountType == 'admin') {
+            if (mounted && _isDesignatedAdmin) {
                final eventType = payload.eventType.name.toUpperCase();
-               final status = (payload.newRecord['status'] ?? 'NEW').toString().toUpperCase();
+               if (payload.newRecord == null || payload.newRecord.isEmpty) return;
+
+               final status = (payload.newRecord['status'] ?? 'NEW').toString().toLowerCase();
                
-               NotificationSoundService.playNotificationSound();
-               _showCriticalAlert(
-                 title: "Admin System Alert",
-                 message: "A database change occurred: $eventType\nThe current job status is now $status.",
-                 job: payload.newRecord,
-               );
+               if (status == 'awaiting verification') {
+                 NotificationSoundService.playNotificationSound();
+                 _showAdminPaymentAlert(
+                   job: payload.newRecord,
+                 );
+               } else {
+                 NotificationSoundService.playNotificationSound();
+                 _showCriticalAlert(
+                   title: "Admin System Alert",
+                   message: "A database change occurred: $eventType\nThe current job status is now ${status.toUpperCase()}.",
+                   job: payload.newRecord,
+                 );
+               }
             }
           },
         )
@@ -349,14 +488,41 @@ class _MarketplaceHomeScreenState extends State<MarketplaceHomeScreen> {
     } catch (_) {}
   }
 
+  Future<void> _fetchUserProfile() async {
+    final user = supabase.auth.currentUser;
+    if (user == null) return;
+    try {
+      final profile = await supabase
+          .from('profiles')
+          .select('full_name, role, avatar_url')
+          .eq('id', user.id)
+          .maybeSingle();
+      if (profile != null && mounted) {
+        debugPrint("FETCHED USER PROFILE FROM DB: $profile");
+        setState(() {
+          if (profile['avatar_url'] != null) _avatarUrl = profile['avatar_url'];
+          if (profile['full_name'] != null) _displayName = profile['full_name'];
+          _accountType = profile['role'] ?? 'customer';
+        });
+        _refreshAdminAccess();
+      } else {
+        debugPrint("FETCHED USER PROFILE FROM DB: NULL or NOT FOUND");
+      }
+    } catch (e) {
+      debugPrint("Error fetching user profile: $e");
+    }
+  }
+
   StreamSubscription<List<Map<String, dynamic>>>? _profileSubscription;
+  StreamSubscription<List<Map<String, dynamic>>>? _customerSubscription;
 
   void _subscribeToProfile() {
     final userId = supabase.auth.currentUser?.id;
     if (userId == null) return;
 
+    // Stream 1: Listen to profiles for full name, avatar, and role
     _profileSubscription = supabase
-        .from('customer_accounts')
+        .from('profiles')
         .stream(primaryKey: ['id'])
         .eq('id', userId)
         .listen((data) async {
@@ -376,24 +542,44 @@ class _MarketplaceHomeScreenState extends State<MarketplaceHomeScreen> {
               debugPrint("Error fetching job count: $e");
             }
 
-              if (mounted) {
-                setState(() {
-                  _avatarUrl = profile['avatar_url'];
-                  _displayName = profile['full_name'];
-                  _accountType = profile['role'] ?? 'customer'; // Use 'role' instead of 'account_type'
-                  _walletBalance = (profile['balance'] ?? 0.0).toDouble();
-                  _totalOrders = orders;
-                });
-              }
+            if (mounted) {
+              setState(() {
+                _avatarUrl = profile['avatar_url'];
+                _displayName = profile['full_name'];
+                _accountType = profile['role'] ?? 'customer'; // Use 'role' instead of 'account_type'
+                _totalOrders = orders;
+              });
+              _refreshAdminAccess();
+            }
           }
         }, onError: (err) {
           debugPrint("Profile stream error: $err");
+        });
+
+    // Stream 2: Listen to customer_accounts for wallet balance
+    _customerSubscription = supabase
+        .from('customer_accounts')
+        .stream(primaryKey: ['id'])
+        .eq('id', userId)
+        .listen((data) {
+          if (data.isNotEmpty && mounted) {
+            final customer = data.first;
+            debugPrint("Customer account stream updated: $customer");
+            if (mounted) {
+              setState(() {
+                _walletBalance = (customer['balance'] ?? 0.0).toDouble();
+              });
+            }
+          }
+        }, onError: (err) {
+          debugPrint("Customer account stream error: $err");
         });
   }
 
   @override
   void dispose() {
     _profileSubscription?.cancel();
+    _customerSubscription?.cancel();
     _globalJobsSubscription?.unsubscribe();
     _searchController.dispose();
     super.dispose();
@@ -406,8 +592,15 @@ class _MarketplaceHomeScreenState extends State<MarketplaceHomeScreen> {
     try {
       final profilesData =
           await supabase.from('profiles').select().eq('role', 'translator');
+      debugPrint("FETCHED ALL TRANSLATORS COUNT: ${profilesData.length}");
       
-      final ratingsData = await supabase.from('translator_ratings_view').select();
+      List<dynamic> ratingsData = [];
+      try {
+        ratingsData = await supabase.from('translator_ratings_view').select();
+        debugPrint("FETCHED RATINGS VIEW COUNT: ${ratingsData.length}");
+      } catch (e) {
+        debugPrint("FAILED TO FETCH RATINGS VIEW (Graceful fallback): $e");
+      }
       
       final mergedData = profilesData.map((profile) {
         final ratingInfo = ratingsData.firstWhere(
@@ -435,6 +628,7 @@ class _MarketplaceHomeScreenState extends State<MarketplaceHomeScreen> {
         });
       }
     } catch (e) {
+      debugPrint("CRITICAL ERROR IN _fetchTranslators: $e");
       if (mounted) setState(() => loading = false);
     }
   }
@@ -699,6 +893,7 @@ class _MarketplaceHomeScreenState extends State<MarketplaceHomeScreen> {
             isDestructiveAction: true,
             onPressed: () async {
               Navigator.pop(context);
+              await AdminAuthService.clearStepUpVerification();
               await supabase.auth.signOut();
               if (context.mounted) {
                 Navigator.pushNamedAndRemoveUntil(
@@ -830,7 +1025,7 @@ class _MarketplaceHomeScreenState extends State<MarketplaceHomeScreen> {
                 ),
               ),
 
-              const SizedBox(height: 32),
+               const SizedBox(height: 32),
               Text("Full Name",
                   style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
               const SizedBox(height: 8),
@@ -854,13 +1049,47 @@ class _MarketplaceHomeScreenState extends State<MarketplaceHomeScreen> {
                       ? null
                       : () async {
                           if (nameCtrl.text.isEmpty) return;
+
                           setModalState(() => uploading = true);
                           try {
                             final userId = supabase.auth.currentUser!.id;
-                            await supabase.from('customer_accounts').update(
-                                {'full_name': nameCtrl.text}).eq('id', userId);
-                            setState(() => _displayName = nameCtrl.text);
+                            
+                            // 1. Update Customer Accounts (Primary)
+                            // Note: We only update the role in customer_accounts if it is a customer role,
+                            // since customer_accounts violates only_customers check constraint for admin/translator.
+                            final Map<String, dynamic> customerUpdates = {
+                              'full_name': nameCtrl.text,
+                            };
+                            await supabase
+                                .from('customer_accounts')
+                                .update(customerUpdates)
+                                .eq('id', userId);
+
+                            try {
+                              await supabase.from('profiles').update({
+                                'full_name': nameCtrl.text,
+                              }).eq('id', userId);
+                            } catch (e) {
+                              debugPrint("Profiles sync skipped or failed: $e");
+                            }
+                            
+                            setState(() {
+                               _displayName = nameCtrl.text;
+                            });
+                            
+                            if (mounted) {
+                               ScaffoldMessenger.of(context).showSnackBar(
+                                 const SnackBar(content: Text("Profile updated successfully!"))
+                               );
+                            }
                             Navigator.pop(context);
+                          } catch (e) {
+                             debugPrint("PROFILE UPDATE ERROR: $e");
+                             if (mounted) {
+                               ScaffoldMessenger.of(context).showSnackBar(
+                                 SnackBar(content: Text("Update failed: $e. Please check if you have internet connection."), backgroundColor: Colors.red),
+                               );
+                             }
                           } finally {
                             setModalState(() => uploading = false);
                           }
@@ -947,6 +1176,34 @@ class _MarketplaceHomeScreenState extends State<MarketplaceHomeScreen> {
           onRefresh: _fetchActiveTrackerJob,
         );
         break;
+      case 3:
+        body = ProfileTab(
+          displayName: _displayName,
+          avatarUrl: _avatarUrl,
+          accountType: _accountType,
+          walletBalance: _walletBalance,
+          totalOrders: _totalOrders,
+          brandBrown: brandBrown,
+          textMainTheme: textMainTheme,
+          textSecTheme: textSecTheme,
+          surfaceTheme: surfaceTheme,
+          onEditProfile: _editProfileModal,
+          onSignOut: _showLogoutConfirm,
+        );
+        break;
+      case 4:
+        body = _canAccessAdminDashboard
+            ? AdminDashboardTab(
+                brandBrown: brandBrown,
+                textMainTheme: textMainTheme,
+                textSecTheme: textSecTheme,
+                surfaceTheme: surfaceTheme,
+              )
+            : _buildAdminAccessDenied();
+        break;
+      case 5:
+        body = const TranslatorDashboardTab();
+        break;
       default:
         body = ProfileTab(
           displayName: _displayName,
@@ -965,38 +1222,100 @@ class _MarketplaceHomeScreenState extends State<MarketplaceHomeScreen> {
 
     return Scaffold(
       backgroundColor: bgTheme,
-      body: SafeArea(child: body),
+      body: UpgradeAlert(
+        upgrader: Upgrader(),
+        child: SafeArea(child: body),
+      ),
       bottomNavigationBar: _buildFloatingNav(),
     );
   }
 
   Widget _buildFloatingNav() {
     final bool hasActiveJob = _activeTrackerJob != null;
+    final bool isAdmin = _isDesignatedAdmin;
+    final bool isTranslator = _accountType == 'translator';
+    final double padding = (isAdmin || isTranslator) ? 10.0 : 16.0;
     return SafeArea(
       top: false,
       child: Container(
         height: 64,
-        margin: const EdgeInsets.symmetric(horizontal: 24),
+        margin: EdgeInsets.symmetric(horizontal: (isAdmin || isTranslator) ? 12 : 24),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            _navItem(Icons.grid_view_rounded, "Home", 0),
-            _navItem(Icons.assignment_outlined, "History", 1),
-            _navItemWithBadge(Icons.track_changes_rounded, "Tracker", 2, hasActiveJob),
-            _navItem(Icons.person_outline_rounded, "Profile", 3),
+            _navItem(Icons.grid_view_rounded, "Home", 0, horizontalPadding: padding),
+            _navItem(Icons.assignment_outlined, "History", 1, horizontalPadding: padding),
+            _navItemWithBadge(Icons.track_changes_rounded, "Tracker", 2, hasActiveJob, horizontalPadding: padding),
+            if (isTranslator) _navItem(Icons.translate_rounded, "Translator", 5, horizontalPadding: padding),
+            if (isAdmin) _navItem(Icons.admin_panel_settings_rounded, "Admin", 4, horizontalPadding: padding),
+            _navItem(Icons.person_outline_rounded, "Profile", 3, horizontalPadding: padding),
           ],
         ),
       ),
     );
   }
 
-  Widget _navItem(IconData icon, String label, int index) {
+  Widget _buildAdminAccessDenied() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.lock_outline_rounded, size: 48, color: brandBrown.withValues(alpha: 0.8)),
+            const SizedBox(height: 16),
+            Text(
+              'Administrator access restricted',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.inter(
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+                color: textMainTheme,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Only the authorized administrator may open this dashboard after email verification.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: textSecTheme, height: 1.5),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openAdminTab() async {
+    if (!_isDesignatedAdmin) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Access denied. Administrator privileges are restricted.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+      return;
+    }
+    // Admin is verified at login (OTP step-up persists 30 days).
+    // Simply refresh access state and open the tab.
+    await _refreshAdminAccess();
+    if (mounted) setState(() => _currentIndex = 4);
+  }
+
+  Widget _navItem(IconData icon, String label, int index, {double horizontalPadding = 16}) {
     final bool active = _currentIndex == index;
     return GestureDetector(
-      onTap: () => setState(() => _currentIndex = index),
+      onTap: () {
+        if (index == 4) {
+          _openAdminTab();
+        } else {
+          setState(() => _currentIndex = index);
+        }
+      },
       behavior: HitTestBehavior.opaque,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: 8),
         child: Icon(
           icon,
           color: active ? brandBrown : textSecTheme.withValues(alpha: 0.4),
@@ -1006,7 +1325,7 @@ class _MarketplaceHomeScreenState extends State<MarketplaceHomeScreen> {
     );
   }
 
-  Widget _navItemWithBadge(IconData icon, String label, int index, bool showBadge) {
+  Widget _navItemWithBadge(IconData icon, String label, int index, bool showBadge, {double horizontalPadding = 16}) {
     final bool active = _currentIndex == index;
     return GestureDetector(
       onTap: () {
@@ -1018,7 +1337,7 @@ class _MarketplaceHomeScreenState extends State<MarketplaceHomeScreen> {
         clipBehavior: Clip.none,
         children: [
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: 8),
             child: Icon(
               icon,
               color: active ? brandBrown : textSecTheme.withValues(alpha: 0.4),

@@ -1,9 +1,9 @@
 import 'dart:async';
+import 'dart:io' as io;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:path/path.dart' as p;
 import 'services/notification_sound_service.dart';
 import 'l10n/app_localizations.dart';
 
@@ -32,9 +32,7 @@ class _UploadScreenState extends State<UploadScreen> {
   double urgencyFee = 0;
 
 
-  XFile? _pickedFile;
-  Uint8List? _webImage;
-  final picker = ImagePicker();
+  List<PlatformFile> _pickedFiles = [];
 
   // --- DYNAMIC LANGUAGES ---
   List<String> allLanguages = [
@@ -156,7 +154,7 @@ class _UploadScreenState extends State<UploadScreen> {
   // --- ACTIONS ---
 
   Future<void> _submitJob() async {
-    if (fromLang == null || toLang == null || _pickedFile == null) {
+    if (fromLang == null || toLang == null || _pickedFiles.isEmpty) {
       _showSnack("Please select languages and upload a document");
       return;
     }
@@ -171,21 +169,31 @@ class _UploadScreenState extends State<UploadScreen> {
         return;
       }
 
-      final fileExt = p.extension(_pickedFile!.name);
-      final fileName = "${DateTime.now().millisecondsSinceEpoch}$fileExt";
-      final filePath = "jobs/${user.id}/$fileName";
+      List<String> uploadedUrls = [];
+      for (var file in _pickedFiles) {
+        final fileName = "${DateTime.now().millisecondsSinceEpoch}_${file.name}";
+        final filePath = "jobs/${user.id}/$fileName";
 
-      final bytes = await _pickedFile!.readAsBytes();
-      await supabase.storage.from('translations').uploadBinary(filePath, bytes);
-
-      final String publicUrl = supabase.storage.from('translations').getPublicUrl(filePath);
+        final bytes = file.bytes;
+        if (bytes != null) {
+           await supabase.storage.from('translations').uploadBinary(filePath, bytes);
+        } else if (file.path != null) {
+           final f = io.File(file.path!);
+           await supabase.storage.from('translations').upload(filePath, f);
+        }
+        
+        final String publicUrl = supabase.storage.from('translations').getPublicUrl(filePath);
+        uploadedUrls.add(publicUrl);
+      }
+      
+      final String finalFileUrl = uploadedUrls.join(',');
 
       final data = await supabase.from('jobs').insert({
         'client_id': user.id,
         'translator_id': widget.company['id'],
         'from_lang': fromLang,
         'to_lang': toLang,
-        'file_url': publicUrl,
+        'file_url': finalFileUrl,
         'status': 'pending',
         'urgency': urgency,
         'urgency_fee': urgencyFee,
@@ -301,12 +309,15 @@ class _UploadScreenState extends State<UploadScreen> {
   Widget _documentPickerArea() {
     return GestureDetector(
       onTap: () async {
-        final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery, imageQuality: 80);
-        if (pickedFile != null) {
-          final bytes = await pickedFile.readAsBytes();
+        FilePickerResult? result = await FilePicker.platform.pickFiles(
+          allowMultiple: true,
+          type: FileType.custom,
+          allowedExtensions: ['jpg', 'png', 'jpeg', 'pdf', 'doc', 'docx'],
+          withData: true,
+        );
+        if (result != null) {
           setState(() {
-            _webImage = bytes;
-            _pickedFile = pickedFile;
+            _pickedFiles = result.files;
           });
         }
       },
@@ -318,20 +329,25 @@ class _UploadScreenState extends State<UploadScreen> {
           borderRadius: BorderRadius.circular(24),
           border: Border.all(color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05), width: 1.5),
         ),
-        child: _pickedFile == null
+        child: _pickedFiles.isEmpty
             ? Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                    Icon(Icons.cloud_upload_rounded, size: 40, color: textThemeHeader),
                    const SizedBox(height: 12),
-                   Text(AppLocalizations.of(context)!.translate('upload'),
+                   Text(AppLocalizations.of(context)?.translate('upload') ?? 'Upload Document',
                       style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: textThemeHeader)),
-                   Text("JPG, PNG or PDF supported", style: TextStyle(fontSize: 11, color: textThemeSec)),
+                   Text("Images, PDF, Word Docs supported", style: TextStyle(fontSize: 11, color: textThemeSec)),
                 ],
               )
-            : ClipRRect(
-                borderRadius: BorderRadius.circular(24),
-                child: Image.memory(_webImage!, fit: BoxFit.cover),
+            : Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                   Icon(Icons.library_books_rounded, size: 40, color: textThemeHeader),
+                   const SizedBox(height: 12),
+                   Text("${_pickedFiles.length} files selected",
+                      style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: textThemeHeader)),
+                ],
               ),
       ),
     );

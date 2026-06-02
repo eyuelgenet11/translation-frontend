@@ -93,18 +93,35 @@ class ProfileTab extends StatelessWidget {
                                 fontWeight: FontWeight.w900,
                                 color: textMainTheme)),
                         const SizedBox(height: 6),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-                          decoration: BoxDecoration(
-                            color: textSecTheme.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text("${accountType.toUpperCase()} ACCOUNT",
-                              style: TextStyle(
-                                  fontSize: 9,
-                                  fontWeight: FontWeight.w800,
-                                  color: textSecTheme.withValues(alpha: 0.8),
-                                  letterSpacing: 0.5)),
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: textSecTheme.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text("${accountType.toUpperCase()} ACCOUNT",
+                                  style: TextStyle(
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.w800,
+                                      color: textSecTheme.withValues(alpha: 0.8),
+                                      letterSpacing: 0.5)),
+                            ),
+                            const SizedBox(width: 8),
+                            // NEW: Prominent Edit Button
+                            GestureDetector(
+                              onTap: onEditProfile,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: brandBrown, width: 1),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text("EDIT", style: TextStyle(color: brandBrown, fontSize: 10, fontWeight: FontWeight.bold)),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),

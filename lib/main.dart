@@ -3,12 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'services/push_notification_service.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
-
-import 'login_screen.dart';
-import 'register_screen.dart';
-import 'otp_screen.dart';
 import 'home_screen.dart';
 import 'upload_screen.dart';
 import 'job_status_screen.dart';
@@ -20,11 +16,28 @@ import 'l10n/app_localizations.dart';
 import 'services/locale_controller.dart';
 import 'services/theme_controller.dart';
 import 'services/font_scale_controller.dart';
+import 'services/push_notification_service.dart';
 import 'screens/splash_screen.dart';
+import 'login_screen.dart';
+import 'screens/admin_otp_screen.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+
+/// Top-level background message handler — required for background/terminated state.
+/// Must be a top-level function (not a class method).
+@pragma('vm:entry-point')
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  // Firebase must be initialized before using any Firebase services in background
+  await Firebase.initializeApp();
+  debugPrint('Background FCM message received: ${message.notification?.title}');
+  // Local notification display is handled by the OS for data-only messages;
+  // for notification messages the system tray already shows them automatically.
+}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Register background message handler BEFORE Firebase.initializeApp()
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
   try {
     // 1. Initialize Firebase
@@ -114,7 +127,7 @@ class _TranslationAppState extends State<TranslationApp> {
               builder: (context, fontScale, child) {
                 return MaterialApp(
                   navigatorKey: rootNavigatorKey,
-                  title: "Geez Translation Marketplace",
+                  title: "Kelal Translation",
                   debugShowCheckedModeBanner: false,
                   locale: locale,
                   themeMode: themeMode,
@@ -135,7 +148,7 @@ class _TranslationAppState extends State<TranslationApp> {
                       brightness: Brightness.light,
                       primary: const Color(0xFF895129),
                       onPrimary: Colors.white,
-                    ),
+                     ),
                     scaffoldBackgroundColor: const Color(0xFFFFFFFF),
                     textTheme: GoogleFonts.interTextTheme(),
                     snackBarTheme: SnackBarThemeData(
@@ -186,9 +199,12 @@ class _TranslationAppState extends State<TranslationApp> {
                     '/': (context) => const SplashScreen(),
                     '/splash': (context) => const SplashScreen(),
                     '/login': (context) => const LoginScreen(),
-                    '/register': (context) => const RegisterScreen(),
-                    '/otp': (context) => const OtpScreen(),
-                    '/home': (context) => const MarketplaceHomeScreen(),
+                    '/admin-otp': (context) {
+                      final email = ModalRoute.of(context)?.settings.arguments as String?;
+                      return AdminOtpScreen(email: email);
+                    },
+                    '/translator-home': (context) => const MarketplaceHomeScreen(initialIndex: 5),
+                    '/home': (context) => const MarketplaceHomeScreen(initialIndex: 0),
                     '/upload': (context) => const UploadScreen(company: {}),
                     '/job_status': (context) => const JobStatusScreen(),
                     '/settings': (context) => const SettingsScreen(),

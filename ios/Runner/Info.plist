@@ -5,7 +5,7 @@
 		<key>CFBundleDevelopmentRegion</key>
 		<string>$(DEVELOPMENT_LANGUAGE)</string>
 		<key>CFBundleDisplayName</key>
-		<string>Geez Marketplace</string>
+		<string>ትርጉም ስራ</string>
 		<key>CFBundleExecutable</key>
 		<string>$(EXECUTABLE_NAME)</string>
 		<key>CFBundleIdentifier</key>
@@ -13,7 +13,7 @@
 		<key>CFBundleInfoDictionaryVersion</key>
 		<string>6.0</string>
 		<key>CFBundleName</key>
-		<string>Geez Marketplace</string>
+		<string>ትርጉም ስራ</string>
 		<key>CFBundlePackageType</key>
 		<string>APPL</string>
 		<key>CFBundleShortVersionString</key>
@@ -72,11 +72,11 @@
 		</array>
 		<!-- Privacy Usage Descriptions (REQUIRED by Apple) -->
 		<key>NSPhotoLibraryUsageDescription</key>
-		<string>Geez Marketplace needs access to your photo library to attach images to translation orders.</string>
+		<string>Tergum needs access to your photo library to attach images to translation orders.</string>
 		<key>NSCameraUsageDescription</key>
-		<string>Geez Marketplace needs camera access to capture document photos for translation.</string>
+		<string>Tergum needs camera access to capture document photos for translation.</string>
 		<key>NSPhotoLibraryAddUsageDescription</key>
-		<string>Geez Marketplace needs permission to save translated documents to your photo library.</string>
+		<string>Tergum needs permission to save translated documents to your photo library.</string>
 		<!-- Push Notifications -->
 		<key>UIBackgroundModes</key>
 		<array>

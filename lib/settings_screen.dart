@@ -7,6 +7,7 @@ import 'services/locale_controller.dart';
 import 'services/font_scale_controller.dart';
 import 'HelpCenterScreen.dart';
 import 'privacy_data_screen.dart';
+import 'services/push_notification_service.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -37,6 +38,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (user != null) {
       if (mounted) setState(() => _userEmail = user.email);
       try {
+        // First check the profiles table for role (translator/admin status)
+        final profileData = await Supabase.instance.client
+            .from('profiles')
+            .select('full_name, role, status')
+            .eq('id', user.id)
+            .maybeSingle();
+
+        if (profileData != null && mounted) {
+          final role = profileData['role'] as String?;
+          if (role == 'translator' || role == 'admin') {
+            setState(() {
+              _userName = profileData['full_name'];
+              _accountType = role!;
+            });
+            return; // Don't need to check customer_accounts
+          }
+          if (profileData['full_name'] != null) {
+            setState(() => _userName = profileData['full_name']);
+          }
+        }
+
+        // Fallback: check customer_accounts for personal/business type
         final data = await Supabase.instance.client
             .from('customer_accounts')
             .select('full_name, account_type')
@@ -44,7 +67,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             .maybeSingle();
         if (data != null && mounted) {
           setState(() {
-            _userName = data['full_name'];
+            _userName = _userName ?? data['full_name'];
             _accountType = data['account_type'] ?? 'personal';
           });
         }
@@ -77,10 +100,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
               Navigator.pop(context); // Close dialog
               setState(() => _isLoading = true);
               try {
+                // Clear the push token from Supabase BEFORE signing out
+                // If done after signing out, RLS will block the delete query because session is cleared.
+                await PushNotificationService().clearTokenOnLogout();
+              } catch (e) {
+                debugPrint("Error clearing FCM token during logout: $e");
+              }
+              try {
                 await Supabase.instance.client.auth.signOut();
                 if (mounted) {
                   // Navigate to resolver which routes back to login screen
-                  Navigator.of(context).pushNamedAndRemoveUntil('/start', (route) => false);
+                  Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
                 }
               } catch (e) {
                 if (mounted) {
@@ -460,6 +490,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
             onPressed: () => _updateAccountType('business'),
             child: const Text("Business Account"),
           ),
+          CupertinoActionSheetAction(
+            onPressed: () => _updateAccountType('translator'),
+            child: const Text("Translator Account"),
+          ),
         ],
         cancelButton: CupertinoActionSheetAction(
           onPressed: () => Navigator.pop(context),
@@ -471,24 +505,39 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _updateAccountType(String type) async {
     Navigator.pop(context); // Close picker
-    final userId = Supabase.instance.client.auth.currentUser?.id;
-    if (userId == null) return;
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user == null) return;
 
     setState(() => _isLoading = true);
     try {
-      await Supabase.instance.client
-          .from('customer_accounts')
-          .update({'account_type': type})
-          .eq('id', userId);
-      
+      if (type == 'translator') {
+        // Upsert the profiles row so it is created if it didn't previously exist
+        // (customers who signed up via the mobile app may not have a profiles row yet).
+        await Supabase.instance.client
+            .from('profiles')
+            .upsert({
+              'id': user.id,
+              'email': user.email,
+              'full_name': _userName ?? user.userMetadata?['full_name'] ?? user.email,
+              'role': 'translator',
+              'status': 'Approved',
+            }, onConflict: 'id');
+      } else {
+        await Supabase.instance.client
+            .from('customer_accounts')
+            .update({'account_type': type})
+            .eq('id', user.id);
+      }
+
       setState(() {
         _accountType = type;
         _isLoading = false;
       });
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text("Account switched to ${type.toUpperCase()} successfully!"),
+          backgroundColor: const Color(0xFF895129),
         ));
       }
     } catch (e) {

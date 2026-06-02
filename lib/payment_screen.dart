@@ -178,7 +178,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 ),
               ] else if (status == 'Completed') ...[
               _buildSuccessState(),
-              const Spacer(),
+              const SizedBox(height: 40),
               _buildActionButton(
                 label: 'Download Translation',
                 onPressed: _downloadFinalFile,

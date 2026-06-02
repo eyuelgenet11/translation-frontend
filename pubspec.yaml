@@ -1,7 +1,7 @@
 name: geez_translation_marketplace
 description: A Flutter project for document translation marketplace.
 publish_to: "none"
-version: 1.0.0+7
+version: 1.0.1+8
 
 environment:
   sdk: ">=3.0.0 <4.0.0"
@@ -16,7 +16,7 @@ dependencies:
   google_sign_in: ^6.2.1
   dio: ^5.4.0
   http: ^1.2.2
-  url_launcher: ^6.2.0
+  url_launcher: ^6.3.2
   file_picker: ^8.0.0
   path: ^1.9.0
   open_filex: ^4.5.0
@@ -35,25 +35,31 @@ dependencies:
   audioplayers: ^6.1.0
   flutter_native_splash: ^2.4.0
   crypto: ^3.0.7
+  upgrader: ^13.3.0
+  package_info_plus: ^9.0.1
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^4.0.0
   flutter_launcher_icons: ^0.13.1
+  image: ^4.8.0
 
 # This section MUST be at the top level (no spaces before it)
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/icon/ffinal icon.PNG"
-  adaptive_icon_background: "#B07D45"
-  adaptive_icon_foreground: "assets/icon/ffinal_icon_foreground.png"
+  remove_alpha_ios: true
+  image_path: "assets/icon/TERGUM_padded.png"
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "assets/icon/TERGUM_padded.png"
 
 flutter_native_splash:
-  color: "#0D0A08"
+  color: "#0F0D0C"
+  image: "assets/icon/TERGUM_splash.png"
   android_12:
-    color: "#0D0A08"
+    color: "#0F0D0C"
+    image: "assets/icon/TERGUM_splash.png"
   ios: true
   android: true
 

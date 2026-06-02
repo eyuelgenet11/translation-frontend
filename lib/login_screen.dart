@@ -3,13 +3,15 @@ import 'dart:math';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:google_sign_in/google_sign_in.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
 
-import 'services/locale_controller.dart';
+import 'services/role_security_service.dart';
+import 'services/admin_auth_service.dart';
+import 'config/security_config.dart';
+import 'services/push_notification_service.dart';
+import 'package:upgrader/upgrader.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -24,7 +26,6 @@ class _LoginScreenState extends State<LoginScreen>
   static const _brown = Color(0xFF895129);
   static const _darkBg = Color(0xFF0D0A08);
 
-
   late AnimationController _bgCtrl;
   late AnimationController _entryCtrl;
   late Animation<double> _fadeIn;
@@ -36,7 +37,6 @@ class _LoginScreenState extends State<LoginScreen>
   @override
   void initState() {
     super.initState();
-    _loadSaved();
 
     _bgCtrl = AnimationController(
       vsync: this,
@@ -69,72 +69,109 @@ class _LoginScreenState extends State<LoginScreen>
     super.dispose();
   }
 
-  void _onAuth(AuthState data) {
-    if (data.event == AuthChangeEvent.signedIn && data.session != null) {
-      final user = data.session!.user;
-      
-      // Check if profile exists
-      supabase
-          .from('profiles')
-          .select('id')
-          .eq('id', user.id)
-          .maybeSingle()
-          .then((profile) async {
-        
-        if (profile == null) {
-          // New user! Create records in both tables
-          final name = user.userMetadata?['full_name'] ??
-              user.userMetadata?['name'] ??
-              'User';
-          final email = user.email;
-          final avatar = user.userMetadata?['avatar_url'] ?? user.userMetadata?['picture'];
+  /// Called whenever Supabase fires an auth state change (e.g. Google OAuth completes).
+  void _onAuth(AuthState data) async {
+    if (data.event != AuthChangeEvent.signedIn || data.session == null) return;
+    final user = data.session!.user;
 
-          try {
-            // 1. Insert into profiles (Master table for auth/chat)
-            await supabase.from('profiles').insert({
-              'id': user.id,
-              'full_name': name,
-              'email': email,
-              'avatar_url': avatar,
-              'role': 'customer',
-            });
+    // Ensure profile exists and role is enforced correctly
+    await _ensureProfile(user);
+    await RoleSecurityService.enforceProfileRoles(user);
 
-            // 2. Insert into customer_accounts (App logic table)
-            await supabase.from('customer_accounts').insert({
-              'id': user.id,
-              'full_name': name,
-              'email': email,
-              'avatar_url': avatar,
-              'account_type': 'personal',
-            });
-          } catch (e) {
-            debugPrint("Error creating user profiles: $e");
-          }
-        }
-        
-        if (mounted) Navigator.pushReplacementNamed(context, '/home');
-      }).catchError((err) {
-        debugPrint("Auth verification error: $err");
-        if (mounted) Navigator.pushReplacementNamed(context, '/home');
-      });
+    // Save FCM token immediately on successful login
+    try {
+      await PushNotificationService().saveTokenToSupabase();
+    } catch (e) {
+      debugPrint("Error saving FCM token on login: $e");
     }
+
+    // Re-fetch the final profile to get authoritative role & status
+    final profile = await supabase
+        .from('profiles')
+        .select('role, status')
+        .eq('id', user.id)
+        .maybeSingle();
+
+    final role = profile?['role'] as String?;
+    final status = (profile?['status'] as String?)?.toLowerCase();
+
+    if (!mounted) return;
+
+    // ── Admin ────────────────────────────────────────────────────────────
+    // Admin must complete a one-time email OTP the first time.
+    // After that the verification flag persists for 30 days.
+    if (role == 'admin') {
+      final alreadyVerified = await AdminAuthService.isStepUpVerified();
+      if (!mounted) return;
+      if (alreadyVerified) {
+        Navigator.pushReplacementNamed(context, '/home');
+      } else {
+        Navigator.pushNamed(context, '/admin-otp', arguments: user.email);
+      }
+      return;
+    }
+
+    // ── Approved translator ───────────────────────────────────────────────
+    if (role == 'translator' && SecurityConfig.isApprovedTranslatorStatus(status)) {
+      Navigator.pushReplacementNamed(context, '/translator-home');
+      return;
+    }
+
+    // ── Regular customer (or pending translator) ──────────────────────────
+    Navigator.pushReplacementNamed(context, '/home');
   }
 
-  Future<void> _loadSaved() async {
-    // No saved credentials needed without email login
+  /// Creates a profile row for brand-new users who just signed in for the first time.
+  Future<void> _ensureProfile(User user) async {
+    final existing = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', user.id)
+        .maybeSingle();
+
+    if (existing != null) return; // Profile already exists
+
+    final name = user.userMetadata?['full_name'] ??
+        user.userMetadata?['name'] ??
+        'User';
+    final email = user.email ?? '';
+    final avatar =
+        user.userMetadata?['avatar_url'] ?? user.userMetadata?['picture'];
+    final role = SecurityConfig.isSuperAdminEmail(email) ? 'admin' : 'customer';
+
+    try {
+      await supabase.from('profiles').insert({
+        'id': user.id,
+        'full_name': name,
+        'email': email,
+        'avatar_url': avatar,
+        'role': role,
+        'status': 'Active',
+      });
+      if (role == 'customer') {
+        await supabase.from('customer_accounts').insert({
+          'id': user.id,
+          'full_name': name,
+          'email': email,
+          'avatar_url': avatar,
+          'account_type': 'personal',
+        });
+      }
+    } catch (e) {
+      debugPrint('LoginScreen: error creating user profile: $e');
+    }
   }
 
   Future<void> _googleSignIn() async {
     setState(() => _loading = true);
     try {
-      debugPrint('Starting Google OAuth sign-in...');
       await supabase.auth.signInWithOAuth(
         OAuthProvider.google,
         redirectTo: kIsWeb ? null : 'io.supabase.geezapp://login-callback/',
       );
     } catch (e) {
       debugPrint('Google Sign-In Error: $e');
-      _snack('Google Sign-In failed: $e');
+      _snack('Google Sign-In failed. Please try again.');
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -159,38 +196,40 @@ class _LoginScreenState extends State<LoginScreen>
   Widget build(BuildContext context) {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
-      child: Scaffold(
-        backgroundColor: _darkBg,
-        body: Stack(
-          children: [
-            _AnimatedBg(controller: _bgCtrl),
-            SafeArea(
-              child: FadeTransition(
-                opacity: _fadeIn,
-                child: SlideTransition(
-                  position: _slideUp,
-                  child: Center(
-                    child: SingleChildScrollView(
-                      physics: const BouncingScrollPhysics(),
-                      padding: const EdgeInsets.symmetric(horizontal: 28),
-                      child: Column(
-                        children: [
-                          const SizedBox(height: 24),
-                          _buildHeader(),
-                          const SizedBox(height: 40),
-                          _buildGlassCard(),
-                          const SizedBox(height: 28),
-                          _buildFooter(),
-                          const SizedBox(height: 24),
-                        ],
+      child: UpgradeAlert(
+        upgrader: Upgrader(),
+        child: Scaffold(
+          backgroundColor: _darkBg,
+          body: Stack(
+            children: [
+              _AnimatedBg(controller: _bgCtrl),
+              SafeArea(
+                child: FadeTransition(
+                  opacity: _fadeIn,
+                  child: SlideTransition(
+                    position: _slideUp,
+                    child: Center(
+                      child: SingleChildScrollView(
+                        physics: const BouncingScrollPhysics(),
+                        padding: const EdgeInsets.symmetric(horizontal: 28),
+                        child: Column(
+                          children: [
+                            const SizedBox(height: 24),
+                            _buildHeader(),
+                            const SizedBox(height: 40),
+                            _buildGlassCard(),
+                            const SizedBox(height: 24),
+                            _buildFooter(),
+                            const SizedBox(height: 24),
+                          ],
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
-            ),
-            _buildLangToggle(),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -202,7 +241,7 @@ class _LoginScreenState extends State<LoginScreen>
         Container(
           padding: const EdgeInsets.all(3),
           decoration: BoxDecoration(
-            shape: BoxShape.circle,
+            borderRadius: BorderRadius.circular(24),
             gradient: const LinearGradient(
               colors: [_brown, Color(0xFFD4874A)],
               begin: Alignment.topLeft,
@@ -216,20 +255,21 @@ class _LoginScreenState extends State<LoginScreen>
               ),
             ],
           ),
-          child: ClipOval(
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(21),
             child: SizedBox(
               width: 92,
               height: 92,
               child: Image.asset(
-                'assets/icon/fffinal logo.png',
-                fit: BoxFit.cover,
+                'assets/icon/TERGUM_padded.png',
+                fit: BoxFit.contain,
               ),
             ),
           ),
         ),
         const SizedBox(height: 20),
         Text(
-          'Geez Translation',
+          'Kelal Translation',
           style: GoogleFonts.inter(
             fontSize: 38,
             fontWeight: FontWeight.w900,
@@ -257,7 +297,7 @@ class _LoginScreenState extends State<LoginScreen>
             color: _brown.withValues(alpha: 0.07),
           ),
           child: Text(
-            "Ethiopia's Premier translation marketplace",
+            "Ethiopia's Premier Translation Marketplace",
             style: TextStyle(
               fontSize: 11,
               color: Colors.white.withValues(alpha: 0.6),
@@ -422,46 +462,6 @@ class _LoginScreenState extends State<LoginScreen>
       ),
     );
   }
-
-  Widget _buildLangToggle() {
-    return Positioned(
-      top: MediaQuery.of(context).padding.top + 12,
-      right: 20,
-      child: GestureDetector(
-        onTap: LocaleController.toggleLocale,
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(20),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
-                color: Colors.white.withValues(alpha: 0.08),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.language, size: 14, color: Colors.white70),
-                  const SizedBox(width: 6),
-                  Text(
-                    Localizations.localeOf(context).languageCode == 'en'
-                        ? 'AM'
-                        : 'EN',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w800,
-                      fontSize: 12,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 }
 
 // ─────────────────────────────────────────────
@@ -501,13 +501,13 @@ class _AnimatedBg extends StatelessWidget {
               right: -80 + (cos(t * pi) * 25),
               child: _orb(300, const Color(0xFF6B3E1E), 0.14),
             ),
-            // Center subtle glow
+            // Centre subtle glow
             Positioned(
               top: MediaQuery.of(context).size.height * 0.35,
               left: MediaQuery.of(context).size.width * 0.1,
               child: _orb(180, const Color(0xFFD4874A), 0.06),
             ),
-            // Noise/grain overlay simulation via opacity
+            // Noise/grain overlay simulation
             Positioned.fill(
               child: Opacity(
                 opacity: 0.03,

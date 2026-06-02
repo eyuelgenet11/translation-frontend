@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart'; // For kIsWeb
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
@@ -29,11 +31,165 @@ class _CustomerJobDetailState extends State<CustomerJobDetail> {
   late Color textThemeHeader;
   late Color textThemeSec;
 
+  Timer? _supportTimer;
+  bool _showSupportContact = false;
+
   @override
   void initState() {
     super.initState();
     currentJobData = widget.job;
     _listenToJobChanges();
+    _startSupportTimer();
+  }
+
+  void _startSupportTimer() {
+    _supportTimer?.cancel();
+    final status = (currentJobData['status'] ?? '').toString().toLowerCase().trim();
+    if (status == 'pending' || 
+        status == 'new' ||
+        status == 'awaiting verification' || 
+        status == 'down payment verification') {
+      setState(() {
+        _showSupportContact = false;
+      });
+      _supportTimer = Timer(const Duration(seconds: 30), () {
+        if (mounted) {
+          setState(() {
+            _showSupportContact = true;
+          });
+        }
+      });
+    } else {
+      setState(() {
+        _showSupportContact = false;
+      });
+    }
+  }
+
+  Future<void> _callSupport() async {
+    final Uri url = Uri.parse('tel:+251911373034');
+    try {
+      if (await canLaunchUrl(url)) {
+        await launchUrl(url);
+      } else {
+        await Clipboard.setData(const ClipboardData(text: "+251911373034"));
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text("Could not launch phone app. Support number copied!"),
+          backgroundColor: Colors.orange,
+        ));
+      }
+    } catch (e) {
+      await Clipboard.setData(const ClipboardData(text: "+251911373034"));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text("Support number copied: +251911373034"),
+      ));
+    }
+  }
+
+  Widget _buildSupportContactWidget() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return AnimatedCrossFade(
+      firstChild: const SizedBox.shrink(),
+      secondChild: Container(
+        margin: const EdgeInsets.only(top: 24),
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: isDark
+                ? [const Color(0xFF3F2D20), const Color(0xFF2B1E15)]
+                : [const Color(0xFFFFF7ED), const Color(0xFFFFEDD5)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isDark ? const Color(0xFF634129) : const Color(0xFFFFD8A8),
+            width: 1.5,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: brandColor.withValues(alpha: 0.15),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.support_agent_rounded,
+                    color: brandColor,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    "Need Urgent Help?",
+                    style: GoogleFonts.inter(
+                      fontWeight: FontWeight.w900,
+                      fontSize: 16,
+                      color: textThemeHeader,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Text(
+              "If the quote or payment verification is not replied to in 30 seconds, please contact us immediately.",
+              style: GoogleFonts.inter(
+                fontSize: 13,
+                height: 1.5,
+                color: textThemeSec,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: _callSupport,
+                    icon: const Icon(Icons.phone_in_talk_rounded, size: 18, color: Colors.white),
+                    label: const Text(
+                      "CALL +251911373034",
+                      style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13, color: Colors.white),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: brandColor,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 0,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+      crossFadeState: _showSupportContact ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+      duration: const Duration(milliseconds: 500),
+    );
+  }
+
+  @override
+  void dispose() {
+    _supportTimer?.cancel();
+    _feedbackController.dispose();
+    super.dispose();
   }
 
   void _listenToJobChanges() {
@@ -57,6 +213,10 @@ class _CustomerJobDetailState extends State<CustomerJobDetail> {
               }
               currentJobData = newJobMap;
             });
+
+            if (newStatus != oldStatus) {
+              _startSupportTimer();
+            }
 
             if (newStatus == 'completed' && oldStatus != 'completed') {
               ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
@@ -168,6 +328,7 @@ class _CustomerJobDetailState extends State<CustomerJobDetail> {
                   _buildSectionLabel("ACTION CENTER"),
                   const SizedBox(height: 12),
                   _buildDynamicActionUI(status),
+                  _buildSupportContactWidget(),
                   if (status.contains('completed') || 
                       status.contains('finish') || 
                       status.contains('ready') ||

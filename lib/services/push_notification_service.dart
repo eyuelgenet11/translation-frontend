@@ -1,22 +1,45 @@
 import 'dart:io';
+import 'package:flutter/material.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import '../main.dart'; // Import to access global rootNavigatorKey for SnackBar feedback
 
 class PushNotificationService {
   final FirebaseMessaging _fcm = FirebaseMessaging.instance;
   final SupabaseClient _supabase = Supabase.instance.client;
   final FlutterLocalNotificationsPlugin _notificationsPlugin = FlutterLocalNotificationsPlugin();
 
-  // Create a High Importance channel for Android
   static const AndroidNotificationChannel _channel = AndroidNotificationChannel(
-    'high_importance_channel', // id
+    'high_importance_channel_v2', // id
     'High Importance Notifications', // title
     description: 'This channel is used for important notifications.',
-    importance: Importance.high,
+    importance: Importance.max,
     playSound: true,
   );
+
+  void _showVisualFeedback(String message, {bool isError = false}) {
+    try {
+      final context = rootNavigatorKey.currentState?.overlay?.context;
+      if (context != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              message,
+              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            ),
+            backgroundColor: isError ? Colors.red.shade800 : Colors.green.shade800,
+            duration: const Duration(seconds: 5),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          )
+        );
+      }
+    } catch (e) {
+      debugPrint("Error showing feedback SnackBar: $e");
+    }
+  }
 
   Future<void> initialize() async {
     // 1. Request permission
@@ -24,28 +47,51 @@ class PushNotificationService {
       alert: true,
       badge: true,
       sound: true,
+      provisional: false,
     );
 
-    if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-      debugPrint('User granted permission');
+    if (settings.authorizationStatus == AuthorizationStatus.authorized ||
+        settings.authorizationStatus == AuthorizationStatus.provisional) {
+      debugPrint('User granted permission: ${settings.authorizationStatus}');
+      _showVisualFeedback("Notification Permission Granted!");
       await saveTokenToSupabase();
+    } else {
+      debugPrint('User declined/has not accepted permission: ${settings.authorizationStatus}');
+      _showVisualFeedback("Notification Permission DENIED!", isError: true);
     }
+// ... remaining lines will be matched by the tool ...
 
-    // 2. Initialize Local Notifications (Required for Foreground pop-ups on Android)
+    // 2. Initialize Local Notifications (Required for Foreground pop-ups on Android + iOS)
     if (!kIsWeb) {
       const AndroidInitializationSettings initializationSettingsAndroid =
           AndroidInitializationSettings('@mipmap/ic_launcher');
+
+      // iOS-specific initialization (required for local notifications on iOS)
+      const DarwinInitializationSettings initializationSettingsIOS =
+          DarwinInitializationSettings(
+        requestAlertPermission: true,
+        requestBadgePermission: true,
+        requestSoundPermission: true,
+      );
+
       const InitializationSettings initializationSettings = InitializationSettings(
         android: initializationSettingsAndroid,
+        iOS: initializationSettingsIOS,
       );
-      await _notificationsPlugin.initialize(initializationSettings);
+      await _notificationsPlugin.initialize(
+        initializationSettings,
+        onDidReceiveNotificationResponse: (NotificationResponse response) {
+          debugPrint('Notification tapped (foreground): ${response.payload}');
+        },
+      );
 
-      // Create the High Importance channel
+      // Create the High Importance channel (Android only)
       await _notificationsPlugin
           .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
           ?.createNotificationChannel(_channel);
     }
-    // 3. Handle messages when the app is in the foreground
+
+    // 3. Handle messages when the app is in the FOREGROUND
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       RemoteNotification? notification = message.notification;
       if (notification != null) {
@@ -57,7 +103,19 @@ class PushNotificationService {
       debugPrint('Foreground Message: ${notification?.title}');
     });
 
-    // 4. Handle token refresh
+    // 4. Handle when app is opened from a BACKGROUND notification tap
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      debugPrint('App opened from background notification: ${message.notification?.title}');
+      // Navigation is handled by the root navigator if needed
+    });
+
+    // 5. Handle when app is opened from TERMINATED state via notification tap
+    final RemoteMessage? initialMessage = await _fcm.getInitialMessage();
+    if (initialMessage != null) {
+      debugPrint('App launched from terminated notification: ${initialMessage.notification?.title}');
+    }
+
+    // 6. Handle token refresh
     _fcm.onTokenRefresh.listen((newToken) {
       _updateTokenInSupabase(newToken);
     });
@@ -105,10 +163,14 @@ class PushNotificationService {
       // Get the token
       String? token = await _fcm.getToken();
       if (token != null) {
+        _showVisualFeedback("FCM Token Acquired Successfully!");
         await _updateTokenInSupabase(token);
+      } else {
+        _showVisualFeedback("FCM Token is NULL! Check Google Play Services.", isError: true);
       }
     } catch (e) {
       debugPrint("Error getting FCM token: $e");
+      _showVisualFeedback("Error acquiring FCM token: $e", isError: true);
     }
   }
 
@@ -117,6 +179,7 @@ class PushNotificationService {
       final user = _supabase.auth.currentUser;
       if (user == null) {
         debugPrint("Cannot save FCM token: User not logged in.");
+        _showVisualFeedback("FCM Token: Cannot save (User not logged in).", isError: true);
         return;
       }
 
@@ -139,9 +202,11 @@ class PushNotificationService {
       });
       
       debugPrint("Successfully saved FCM token to Supabase via RPC.");
+      _showVisualFeedback("FCM Token saved to Supabase successfully!");
 
     } catch (e) {
       debugPrint("Error saving FCM token to Supabase: $e");
+      _showVisualFeedback("Error saving FCM token to DB: $e", isError: true);
     }
   }
 

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shimmer/shimmer.dart';
 import '../widgets/hero_carousel.dart';
-import '../widgets/how_to_guide.dart';
 import '../widgets/empty_state.dart';
 
 class MarketplaceTab extends StatelessWidget {
@@ -92,7 +91,7 @@ class MarketplaceTab extends StatelessWidget {
             margin: const EdgeInsets.only(right: 16),
             decoration: BoxDecoration(
               color: Colors.white,
-              shape: BoxShape.circle,
+              borderRadius: BorderRadius.circular(12),
               border: Border.all(color: brandBrown, width: 2),
               boxShadow: [
                 BoxShadow(
@@ -102,12 +101,13 @@ class MarketplaceTab extends StatelessWidget {
                 )
               ],
             ),
-            child: ClipOval(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(10),
               child: Image.asset(
-                'assets/icon/fffinal logo.png',
+                'assets/icon/TERGUM_padded.png',
                 width: 52,
                 height: 52,
-                fit: BoxFit.cover,
+                fit: BoxFit.contain,
               ),
             ),
           ),

@@ -92,7 +92,7 @@ class _JobChatScreenState extends State<JobChatScreen> {
           'full_name': user.userMetadata?['full_name'] ?? user.userMetadata?['name'] ?? 'User',
           'email': user.email,
           'avatar_url': user.userMetadata?['avatar_url'] ?? user.userMetadata?['picture'],
-          'role': 'customer',
+          'role': user.userMetadata?['role'] ?? 'customer',
         });
       }
 
@@ -157,7 +157,7 @@ class _JobChatScreenState extends State<JobChatScreen> {
                         Icon(Icons.chat_bubble_outline, size: 64, color: Colors.grey.withValues(alpha: 0.5)),
                         const SizedBox(height: 16),
                         const Text("No messages yet.", style: TextStyle(color: Colors.grey)),
-                        const Text("Send a message to your translator.", style: TextStyle(color: Colors.grey, fontSize: 12)),
+                        const Text("Start the conversation with your client.", style: TextStyle(color: Colors.grey, fontSize: 12)),
                       ],
                     ),
                   )

@@ -29,6 +29,14 @@ import 'services/notification_sound_service.dart';
 import 'config/security_config.dart';
 import 'services/admin_auth_service.dart';
 import 'services/role_security_service.dart';
+import 'notifications_screen.dart' show NotificationsScreen;
+
+// Thin wrapper so the notification bell can push this route
+class NotificationsScreenWrapper extends StatelessWidget {
+  const NotificationsScreenWrapper({super.key});
+  @override
+  Widget build(BuildContext context) => const NotificationsScreen();
+}
 
 class MarketplaceHomeScreen extends StatefulWidget {
   final int initialIndex;
@@ -909,206 +917,498 @@ class _MarketplaceHomeScreenState extends State<MarketplaceHomeScreen> {
 
   void _editProfileModal() {
     final nameCtrl = TextEditingController(text: _displayName);
+    final phoneCtrl = TextEditingController();
+    final bioCtrl = TextEditingController();
     bool uploading = false;
+    String selectedLang = 'English';
+
+    // Pre-load extra profile fields
+    _prefillProfileExtras(phoneCtrl, bioCtrl).then((_) {});
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: surfaceTheme,
-      shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(30))),
+      backgroundColor: Colors.transparent,
       builder: (context) => StatefulBuilder(
-        builder: (context, setModalState) => Padding(
-          padding: EdgeInsets.only(
-              left: 24,
-              right: 24,
-              top: 32,
-              bottom: MediaQuery.of(context).viewInsets.bottom + 32),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text("Edit Profile",
-                  style: GoogleFonts.philosopher(
-                      fontSize: 24, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 24),
-
-              // Avatar Change
-              Center(
-                child: GestureDetector(
-                  onTap: () async {
-                    final picker = ImagePicker();
-                    final image =
-                        await picker.pickImage(source: ImageSource.gallery);
-                    if (image != null) {
-                      setModalState(() => uploading = true);
-                      try {
-                        final userId = supabase.auth.currentUser!.id;
-                        final fileExt = p.extension(image.name);
-                        final fileName =
-                            "avatar_${DateTime.now().millisecondsSinceEpoch}$fileExt";
-                        final filePath = "avatars/$userId/$fileName";
-
-                        // Upload to 'translations' bucket (assuming it allows avatars) or similar
-                        if (kIsWeb) {
-                          final bytes = await image.readAsBytes();
-                          await supabase.storage
-                              .from('translations')
-                              .uploadBinary(
-                                filePath,
-                                bytes,
-                                fileOptions: const FileOptions(
-                                    contentType: 'image/jpeg'),
-                              );
-                        } else {
-                          // For mobile, we could use File if we imported dart:io conditionally,
-                          // but bytes works everywhere.
-                          final bytes = await image.readAsBytes();
-                          await supabase.storage
-                              .from('translations')
-                              .uploadBinary(
-                                filePath,
-                                bytes,
-                              );
-                        }
-
-                        final publicUrl = supabase.storage
-                            .from('translations')
-                            .getPublicUrl(filePath);
-
-                        // Update profile
-                        await supabase
-                            .from('customer_accounts')
-                            .update({'avatar_url': publicUrl}).eq('id', userId);
-
-                        // Update local state
-                        setState(() => _avatarUrl = publicUrl);
-                        if (mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                  content: Text("Profile photo updated!")));
-                        }
-                      } finally {
-                        setModalState(() => uploading = false);
-                      }
-                    }
-                  },
-                  child: Stack(
-                    children: [
-                      CircleAvatar(
-                        radius: 40,
-                        backgroundImage:
-                            (_avatarUrl != null && _avatarUrl!.isNotEmpty)
-                                ? NetworkImage(_avatarUrl!)
-                                : null,
-                        child: uploading
-                            ? const CircularProgressIndicator(
-                                color: Colors.white)
-                            : ((_avatarUrl == null || _avatarUrl!.isEmpty)
-                                ? const Icon(Icons.person)
-                                : null),
+        builder: (context, setModalState) {
+          return Container(
+            decoration: BoxDecoration(
+              color: surfaceTheme,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+            ),
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+            ),
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(24, 12, 24, 0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Handle bar
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: Colors.grey.withValues(alpha: 0.3),
+                          borderRadius: BorderRadius.circular(2),
+                        ),
                       ),
-                      if (!uploading)
-                        Positioned(
-                          right: 0,
-                          bottom: 0,
-                          child: Container(
-                            padding: const EdgeInsets.all(4),
-                            decoration: const BoxDecoration(
-                                color: brandBrown, shape: BoxShape.circle),
-                            child: const Icon(Icons.camera_alt,
-                                size: 14, color: Colors.white),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Header
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: brandBrown.withValues(alpha: 0.10),
+                            borderRadius: BorderRadius.circular(12),
                           ),
-                        )
-                    ],
-                  ),
-                ),
-              ),
+                          child: Icon(Icons.edit_rounded, color: brandBrown, size: 20),
+                        ),
+                        const SizedBox(width: 12),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "Edit Profile",
+                              style: GoogleFonts.inter(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w900,
+                                  color: textMainTheme),
+                            ),
+                            Text(
+                              "Customize your public identity",
+                              style: TextStyle(
+                                  fontSize: 12, color: textSecTheme),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
 
-               const SizedBox(height: 32),
-              Text("Full Name",
-                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
-              const SizedBox(height: 8),
-              TextField(
-                controller: nameCtrl,
-                decoration: InputDecoration(
-                  filled: true,
-                  fillColor: bgTheme,
-                  border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: BorderSide.none),
-                  hintText: "Enter your name",
-                ),
-              ),
+                    const SizedBox(height: 28),
 
-              const SizedBox(height: 32),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: uploading
-                      ? null
-                      : () async {
-                          if (nameCtrl.text.isEmpty) return;
-
-                          setModalState(() => uploading = true);
-                          try {
-                            final userId = supabase.auth.currentUser!.id;
-                            
-                            // 1. Update Customer Accounts (Primary)
-                            // Note: We only update the role in customer_accounts if it is a customer role,
-                            // since customer_accounts violates only_customers check constraint for admin/translator.
-                            final Map<String, dynamic> customerUpdates = {
-                              'full_name': nameCtrl.text,
-                            };
-                            await supabase
-                                .from('customer_accounts')
-                                .update(customerUpdates)
-                                .eq('id', userId);
-
+                    // Avatar section
+                    Center(
+                      child: GestureDetector(
+                        onTap: () async {
+                          final picker = ImagePicker();
+                          final image = await picker.pickImage(
+                              source: ImageSource.gallery, imageQuality: 85);
+                          if (image != null) {
+                            setModalState(() => uploading = true);
                             try {
-                              await supabase.from('profiles').update({
-                                'full_name': nameCtrl.text,
-                              }).eq('id', userId);
-                            } catch (e) {
-                              debugPrint("Profiles sync skipped or failed: $e");
+                              final userId = supabase.auth.currentUser!.id;
+                              final fileExt = p.extension(image.name);
+                              final fileName =
+                                  "avatar_${DateTime.now().millisecondsSinceEpoch}$fileExt";
+                              final filePath = "avatars/$userId/$fileName";
+                              final bytes = await image.readAsBytes();
+                              await supabase.storage
+                                  .from('translations')
+                                  .uploadBinary(filePath, bytes,
+                                      fileOptions: const FileOptions(
+                                          contentType: 'image/jpeg'));
+                              final publicUrl = supabase.storage
+                                  .from('translations')
+                                  .getPublicUrl(filePath);
+                              await supabase
+                                  .from('customer_accounts')
+                                  .update({'avatar_url': publicUrl})
+                                  .eq('id', userId);
+                              try {
+                                await supabase
+                                    .from('profiles')
+                                    .update({'avatar_url': publicUrl})
+                                    .eq('id', userId);
+                              } catch (_) {}
+                              setState(() => _avatarUrl = publicUrl);
+                              if (mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                        content:
+                                            Text("Profile photo updated! ✅")));
+                              }
+                            } finally {
+                              setModalState(() => uploading = false);
                             }
-                            
-                            setState(() {
-                               _displayName = nameCtrl.text;
-                            });
-                            
-                            if (mounted) {
-                               ScaffoldMessenger.of(context).showSnackBar(
-                                 const SnackBar(content: Text("Profile updated successfully!"))
-                               );
-                            }
-                            Navigator.pop(context);
-                          } catch (e) {
-                             debugPrint("PROFILE UPDATE ERROR: $e");
-                             if (mounted) {
-                               ScaffoldMessenger.of(context).showSnackBar(
-                                 SnackBar(content: Text("Update failed: $e. Please check if you have internet connection."), backgroundColor: Colors.red),
-                               );
-                             }
-                          } finally {
-                            setModalState(() => uploading = false);
                           }
                         },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: brandBrown,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.all(18),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16)),
-                  ),
-                  child: Text(uploading ? "SAVING..." : "SAVE CHANGES",
-                      style: TextStyle(fontWeight: FontWeight.w800)),
+                        child: Stack(
+                          children: [
+                            Container(
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                    color: brandBrown, width: 3),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: brandBrown.withValues(alpha: 0.2),
+                                    blurRadius: 16,
+                                    offset: const Offset(0, 6),
+                                  )
+                                ],
+                              ),
+                              child: CircleAvatar(
+                                radius: 46,
+                                backgroundColor:
+                                    brandBrown.withValues(alpha: 0.08),
+                                backgroundImage: (_avatarUrl != null &&
+                                        _avatarUrl!.isNotEmpty)
+                                    ? NetworkImage(_avatarUrl!)
+                                    : null,
+                                child: uploading
+                                    ? CircularProgressIndicator(
+                                        color: brandBrown, strokeWidth: 2)
+                                    : ((_avatarUrl == null ||
+                                            _avatarUrl!.isEmpty)
+                                        ? Icon(Icons.person,
+                                            size: 40, color: brandBrown)
+                                        : null),
+                              ),
+                            ),
+                            if (!uploading)
+                              Positioned(
+                                right: 2,
+                                bottom: 2,
+                                child: Container(
+                                  padding: const EdgeInsets.all(7),
+                                  decoration: BoxDecoration(
+                                      color: brandBrown,
+                                      shape: BoxShape.circle,
+                                      boxShadow: [
+                                        BoxShadow(
+                                            color: brandBrown
+                                                .withValues(alpha: 0.4),
+                                            blurRadius: 8)
+                                      ]),
+                                  child: const Icon(Icons.camera_alt_rounded,
+                                      size: 14, color: Colors.white),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 8),
+                    Center(
+                      child: Text(
+                        "Tap to change photo",
+                        style: TextStyle(
+                            fontSize: 12,
+                            color: brandBrown,
+                            fontWeight: FontWeight.w600),
+                      ),
+                    ),
+
+                    const SizedBox(height: 28),
+
+                    // Divider label
+                    _modalSectionLabel("PERSONAL INFO"),
+                    const SizedBox(height: 12),
+
+                    // Full Name field
+                    _modalField(
+                      label: "Full Name",
+                      icon: Icons.person_outline_rounded,
+                      controller: nameCtrl,
+                      hint: "Enter your full name",
+                    ),
+                    const SizedBox(height: 14),
+
+                    // Phone field
+                    _modalField(
+                      label: "Phone Number",
+                      icon: Icons.phone_outlined,
+                      controller: phoneCtrl,
+                      hint: "e.g. +251 9XX XXX XXX",
+                      keyboardType: TextInputType.phone,
+                    ),
+                    const SizedBox(height: 14),
+
+                    // Bio field
+                    _modalField(
+                      label: "Short Bio",
+                      icon: Icons.info_outline_rounded,
+                      controller: bioCtrl,
+                      hint: "Tell translators a bit about yourself...",
+                      maxLines: 3,
+                    ),
+
+                    const SizedBox(height: 24),
+                    _modalSectionLabel("PREFERENCES"),
+                    const SizedBox(height: 12),
+
+                    // Preferred Language Selector
+                    Container(
+                      decoration: BoxDecoration(
+                        color: bgTheme,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                            color: brandBrown.withValues(alpha: 0.2), width: 1),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 4),
+                      child: Row(
+                        children: [
+                          Icon(Icons.language_rounded,
+                              color: brandBrown, size: 20),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: DropdownButtonHideUnderline(
+                              child: DropdownButton<String>(
+                                value: selectedLang,
+                                style: TextStyle(
+                                    color: textMainTheme,
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w500),
+                                dropdownColor: surfaceTheme,
+                                icon: Icon(Icons.expand_more_rounded,
+                                    color: brandBrown),
+                                items: const [
+                                  DropdownMenuItem(
+                                      value: 'English',
+                                      child: Text('English')),
+                                  DropdownMenuItem(
+                                      value: 'Amharic',
+                                      child: Text('አማርኛ')),
+                                  DropdownMenuItem(
+                                      value: 'Tigrinya',
+                                      child: Text('ትግርኛ')),
+                                  DropdownMenuItem(
+                                      value: 'Oromia',
+                                      child: Text('Oromia')),
+                                ],
+                                onChanged: (v) {
+                                  if (v != null) {
+                                    setModalState(() => selectedLang = v);
+                                  }
+                                },
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 32),
+
+                    // Save button
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: uploading
+                            ? null
+                            : () async {
+                                if (nameCtrl.text.trim().isEmpty) return;
+                                setModalState(() => uploading = true);
+                                try {
+                                  final userId =
+                                      supabase.auth.currentUser!.id;
+                                  final updates = {
+                                    'full_name': nameCtrl.text.trim(),
+                                    if (phoneCtrl.text.trim().isNotEmpty)
+                                      'phone': phoneCtrl.text.trim(),
+                                    if (bioCtrl.text.trim().isNotEmpty)
+                                      'bio': bioCtrl.text.trim(),
+                                  };
+                                  await supabase
+                                      .from('customer_accounts')
+                                      .update(updates)
+                                      .eq('id', userId);
+                                  try {
+                                    await supabase
+                                        .from('profiles')
+                                        .update({'full_name': nameCtrl.text.trim()})
+                                        .eq('id', userId);
+                                  } catch (_) {}
+                                  setState(() {
+                                    _displayName = nameCtrl.text.trim();
+                                  });
+                                  if (mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                          content: Text(
+                                              "Profile updated successfully! ✅"),
+                                          backgroundColor:
+                                              Color(0xFF895129)),
+                                    );
+                                  }
+                                  Navigator.pop(context);
+                                } catch (e) {
+                                  debugPrint("PROFILE UPDATE ERROR: $e");
+                                  if (mounted) {
+                                    ScaffoldMessenger.of(context)
+                                        .showSnackBar(SnackBar(
+                                      content: Text("Update failed: $e"),
+                                      backgroundColor: Colors.red,
+                                    ));
+                                  }
+                                } finally {
+                                  setModalState(() => uploading = false);
+                                }
+                              },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: brandBrown,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.all(18),
+                          elevation: 4,
+                          shadowColor: brandBrown.withValues(alpha: 0.4),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(18)),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            if (uploading)
+                              const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(
+                                    strokeWidth: 2, color: Colors.white),
+                              )
+                            else
+                              const Icon(Icons.check_circle_outline_rounded,
+                                  size: 18),
+                            const SizedBox(width: 10),
+                            Text(
+                              uploading ? "SAVING..." : "SAVE CHANGES",
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 15,
+                                  letterSpacing: 0.5),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+
+                    // Cancel button
+                    SizedBox(
+                      width: double.infinity,
+                      child: TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.all(14),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16)),
+                        ),
+                        child: Text(
+                          "CANCEL",
+                          style: TextStyle(
+                              color: textSecTheme,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.5),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                  ],
                 ),
-              )
-            ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  // Prefill extra profile fields from DB
+  Future<void> _prefillProfileExtras(
+      TextEditingController phone, TextEditingController bio) async {
+    try {
+      final userId = supabase.auth.currentUser?.id;
+      if (userId == null) return;
+      final data = await supabase
+          .from('customer_accounts')
+          .select('phone, bio')
+          .eq('id', userId)
+          .maybeSingle();
+      if (data != null) {
+        if (data['phone'] != null && phone.text.isEmpty) {
+          phone.text = data['phone'];
+        }
+        if (data['bio'] != null && bio.text.isEmpty) {
+          bio.text = data['bio'];
+        }
+      }
+    } catch (e) {
+      debugPrint('Prefill extras error: $e');
+    }
+  }
+
+  // Modal section label helper
+  Widget _modalSectionLabel(String text) {
+    return Text(
+      text,
+      style: TextStyle(
+        fontSize: 10,
+        fontWeight: FontWeight.w900,
+        color: brandBrown.withValues(alpha: 0.7),
+        letterSpacing: 1.4,
+      ),
+    );
+  }
+
+  // Branded input field helper
+  Widget _modalField({
+    required String label,
+    required IconData icon,
+    required TextEditingController controller,
+    required String hint,
+    TextInputType keyboardType = TextInputType.text,
+    int maxLines = 1,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 6),
+          child: Text(
+            label,
+            style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: textMainTheme),
           ),
         ),
-      ),
+        TextField(
+          controller: controller,
+          keyboardType: keyboardType,
+          maxLines: maxLines,
+          style: TextStyle(color: textMainTheme, fontSize: 15),
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: bgTheme,
+            hintText: hint,
+            hintStyle:
+                TextStyle(color: textSecTheme.withValues(alpha: 0.5), fontSize: 14),
+            prefixIcon: Icon(icon, color: brandBrown, size: 20),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide.none,
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide:
+                  BorderSide(color: brandBrown.withValues(alpha: 0.15), width: 1),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(color: brandBrown, width: 1.5),
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16, vertical: 14),
+          ),
+        ),
+      ],
     );
   }
 
@@ -1126,7 +1426,23 @@ class _MarketplaceHomeScreenState extends State<MarketplaceHomeScreen> {
       case 0:
         body = MarketplaceTab(
           filteredTranslators: filteredTranslators,
-          recommendedTranslators: allTranslators.take(5).toList(),
+          recommendedTranslators: () {
+            // Show only translators with at least 1 real review, sorted by rating
+            final reviewed = allTranslators
+                .where((t) => (t['review_count'] ?? 0) > 0)
+                .toList()
+              ..sort((a, b) {
+                final aR = (a['avg_rating'] ?? 0.0).toDouble();
+                final bR = (b['avg_rating'] ?? 0.0).toDouble();
+                final cmp = bR.compareTo(aR);
+                if (cmp != 0) return cmp;
+                // Tie-break: more reviews wins
+                return (b['review_count'] ?? 0).compareTo(a['review_count'] ?? 0);
+              });
+            return reviewed.isNotEmpty
+                ? reviewed.take(5).toList()
+                : allTranslators.take(5).toList();
+          }(),
           loading: loading,
           selectedCategory: selectedCategory,
           searchController: _searchController,
@@ -1152,6 +1468,12 @@ class _MarketplaceHomeScreenState extends State<MarketplaceHomeScreen> {
           },
           onProfileTapped: () => setState(() => _currentIndex = 3),
           onLanguageToggle: () => LocaleController.toggleLocale(),
+          onNotificationTapped: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const NotificationsScreenWrapper()),
+            );
+          },
         );
         break;
       case 1:

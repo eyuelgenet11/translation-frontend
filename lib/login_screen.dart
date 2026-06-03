@@ -269,7 +269,7 @@ class _LoginScreenState extends State<LoginScreen>
         ),
         const SizedBox(height: 20),
         Text(
-          'Kelal Translation',
+          'ትርጉም ስራ',
           style: GoogleFonts.inter(
             fontSize: 38,
             fontWeight: FontWeight.w900,

@@ -23,6 +23,7 @@ class MarketplaceTab extends StatelessWidget {
   final Function(Map<String, dynamic>) onTranslatorTapped;
   final VoidCallback onProfileTapped;
   final VoidCallback onLanguageToggle;
+  final VoidCallback onNotificationTapped;
 
   const MarketplaceTab({
     super.key,
@@ -43,6 +44,7 @@ class MarketplaceTab extends StatelessWidget {
     required this.onTranslatorTapped,
     required this.onProfileTapped,
     required this.onLanguageToggle,
+    required this.onNotificationTapped,
   });
 
   @override
@@ -133,6 +135,25 @@ class MarketplaceTab extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
               ],
+            ),
+          ),
+          // Notification Bell
+          GestureDetector(
+            onTap: onNotificationTapped,
+            child: Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: brandBrown.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                    color: brandBrown.withValues(alpha: 0.15), width: 1),
+              ),
+              child: Icon(
+                Icons.notifications_none_rounded,
+                color: brandBrown,
+                size: 22,
+              ),
             ),
           ),
         ],
@@ -467,23 +488,64 @@ class MarketplaceTab extends StatelessWidget {
                       fontWeight: FontWeight.w800,
                       fontSize: 17,
                       color: textMainTheme)),
-              const Icon(Icons.star_rounded, color: Color(0xFFF59E0B), size: 20),
+              Row(
+                children: [
+                  const Icon(Icons.star_rounded, color: Color(0xFFF59E0B), size: 16),
+                  const SizedBox(width: 4),
+                  Text(
+                    "By Real Reviews",
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: textSecTheme,
+                    ),
+                  ),
+                ],
+              ),
             ],
           ),
         ),
         const SizedBox(height: 16),
         SizedBox(
-          height: 190,
+          height: 200,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.only(left: 20),
             itemCount: recommendedTranslators.length,
             itemBuilder: (context, i) {
               final t = recommendedTranslators[i];
+
+              // Real data
+              final double avgRating = (t['avg_rating'] ?? 0.0).toDouble();
+              final int reviewCount = (t['review_count'] ?? 0) as int;
+              final List? cats = t['category'] as List?;
+              final String primaryCategory = (cats != null && cats.isNotEmpty)
+                  ? cats.first.toString().toUpperCase()
+                  : 'GENERALIST';
+
+              // Display rating: real value with 1 decimal, or "New" if no reviews
+              final String ratingDisplay = reviewCount > 0
+                  ? avgRating.toStringAsFixed(1)
+                  : 'New';
+              final String reviewLabel = reviewCount == 1
+                  ? '1 review'
+                  : reviewCount > 1
+                      ? '$reviewCount reviews'
+                      : 'No reviews yet';
+
+              // Rank badge
+              final String rankLabel = i == 0
+                  ? '🥇 #1 TOP RATED'
+                  : i == 1
+                      ? '🥈 #2 TOP RATED'
+                      : i == 2
+                          ? '🥉 #3 TOP RATED'
+                          : 'TOP $primaryCategory';
+
               return GestureDetector(
                 onTap: () => onTranslatorTapped(t),
                 child: Container(
-                  width: 260,
+                  width: 270,
                   margin: const EdgeInsets.only(right: 16),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
@@ -494,8 +556,8 @@ class MarketplaceTab extends StatelessWidget {
                     borderRadius: BorderRadius.circular(24),
                     boxShadow: [
                       BoxShadow(
-                        color: brandBrown.withValues(alpha: 0.2),
-                        blurRadius: 15,
+                        color: brandBrown.withValues(alpha: 0.25),
+                        blurRadius: 18,
                         offset: const Offset(0, 8),
                       )
                     ],
@@ -506,7 +568,7 @@ class MarketplaceTab extends StatelessWidget {
                         right: -20,
                         top: -20,
                         child: Icon(Icons.verified_user_rounded,
-                            size: 100, color: Colors.white.withValues(alpha: 0.1)),
+                            size: 100, color: Colors.white.withValues(alpha: 0.08)),
                       ),
                       Padding(
                         padding: const EdgeInsets.all(20),
@@ -524,7 +586,14 @@ class MarketplaceTab extends StatelessWidget {
                                         ? NetworkImage(t['avatar_url'])
                                         : null,
                                     child: (t['avatar_url'] == null)
-                                        ? const Icon(Icons.person, color: Colors.white)
+                                        ? Text(
+                                            (t['full_name'] ?? "?")[0].toUpperCase(),
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 18,
+                                            ),
+                                          )
                                         : null,
                                   ),
                                 ),
@@ -542,17 +611,22 @@ class MarketplaceTab extends StatelessWidget {
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                       ),
-                                      const SizedBox(height: 2),
+                                      const SizedBox(height: 4),
                                       Row(
                                         children: [
-                                          const Icon(Icons.star_rounded,
-                                              color: Color(0xFFFCD34D), size: 14),
+                                          Icon(
+                                            Icons.star_rounded,
+                                            color: reviewCount > 0
+                                                ? const Color(0xFFFCD34D)
+                                                : Colors.white38,
+                                            size: 14,
+                                          ),
                                           const SizedBox(width: 4),
                                           Text(
-                                            "${t['rating'] ?? '4.9'} • (40+ reviews)",
+                                            "$ratingDisplay  •  $reviewLabel",
                                             style: TextStyle(
-                                                color: Colors.white.withValues(alpha: 0.8),
-                                                fontSize: 10,
+                                                color: Colors.white.withValues(alpha: 0.85),
+                                                fontSize: 11,
                                                 fontWeight: FontWeight.w600),
                                           ),
                                         ],
@@ -563,28 +637,33 @@ class MarketplaceTab extends StatelessWidget {
                               ],
                             ),
                             const Spacer(),
+                            // Category badge
                             Container(
                               padding: const EdgeInsets.symmetric(
-                                  horizontal: 12, vertical: 6),
+                                  horizontal: 12, vertical: 5),
                               decoration: BoxDecoration(
-                                  color: Colors.white.withValues(alpha: 0.2),
+                                  color: Colors.white.withValues(alpha: 0.18),
                                   borderRadius: BorderRadius.circular(12)),
-                              child: const Text(
-                                "BEST FOR LEGAL DOCS",
-                                style: TextStyle(
+                              child: Text(
+                                rankLabel,
+                                style: const TextStyle(
                                     color: Colors.white,
                                     fontSize: 9,
                                     fontWeight: FontWeight.w900,
                                     letterSpacing: 0.5),
                               ),
                             ),
-                            const SizedBox(height: 12),
-                            const Text(
-                              "Click to view office details and availability.",
-                              style: TextStyle(
+                            const SizedBox(height: 10),
+                            Text(
+                              reviewCount > 0
+                                  ? "Rated $ratingDisplay/5 by $reviewCount verified client${reviewCount == 1 ? '' : 's'}."
+                                  : "Newly joined expert. Be the first to review!",
+                              style: const TextStyle(
                                   color: Colors.white70,
                                   fontSize: 11,
-                                  height: 1.3),
+                                  height: 1.35),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ],
                         ),

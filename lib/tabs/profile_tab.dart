@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../notifications_screen.dart';
 import '../privacy_data_screen.dart';
 import '../HelpCenterScreen.dart';
 import '../widgets/how_to_guide.dart';
@@ -151,10 +150,6 @@ class ProfileTab extends StatelessWidget {
           _profileTile(context, Icons.settings_outlined, "App Settings",
               "Theme, language, and font scaling", () {
                 Navigator.pushNamed(context, '/settings');
-              }),
-          _profileTile(context, Icons.notifications_none_rounded, "Notifications",
-              "Manage alerts and updates", () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => NotificationsScreen()));
               }),
           const SizedBox(height: 24),
           _sectionLabel("ACCOUNT & SECURITY"),

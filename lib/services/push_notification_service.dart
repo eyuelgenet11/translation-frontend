@@ -53,11 +53,9 @@ class PushNotificationService {
     if (settings.authorizationStatus == AuthorizationStatus.authorized ||
         settings.authorizationStatus == AuthorizationStatus.provisional) {
       debugPrint('User granted permission: ${settings.authorizationStatus}');
-      _showVisualFeedback("Notification Permission Granted!");
       await saveTokenToSupabase();
     } else {
       debugPrint('User declined/has not accepted permission: ${settings.authorizationStatus}');
-      _showVisualFeedback("Notification Permission DENIED!", isError: true);
     }
 // ... remaining lines will be matched by the tool ...
 
@@ -163,14 +161,13 @@ class PushNotificationService {
       // Get the token
       String? token = await _fcm.getToken();
       if (token != null) {
-        _showVisualFeedback("FCM Token Acquired Successfully!");
+        debugPrint('FCM Token acquired successfully.');
         await _updateTokenInSupabase(token);
       } else {
-        _showVisualFeedback("FCM Token is NULL! Check Google Play Services.", isError: true);
+        debugPrint('FCM Token is NULL. Check Google Play Services.');
       }
     } catch (e) {
       debugPrint("Error getting FCM token: $e");
-      _showVisualFeedback("Error acquiring FCM token: $e", isError: true);
     }
   }
 
@@ -179,7 +176,6 @@ class PushNotificationService {
       final user = _supabase.auth.currentUser;
       if (user == null) {
         debugPrint("Cannot save FCM token: User not logged in.");
-        _showVisualFeedback("FCM Token: Cannot save (User not logged in).", isError: true);
         return;
       }
 
@@ -202,11 +198,9 @@ class PushNotificationService {
       });
       
       debugPrint("Successfully saved FCM token to Supabase via RPC.");
-      _showVisualFeedback("FCM Token saved to Supabase successfully!");
 
     } catch (e) {
       debugPrint("Error saving FCM token to Supabase: $e");
-      _showVisualFeedback("Error saving FCM token to DB: $e", isError: true);
     }
   }
 

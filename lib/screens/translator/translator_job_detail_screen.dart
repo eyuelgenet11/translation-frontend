@@ -97,7 +97,10 @@ class _TranslatorJobDetailScreenState extends State<TranslatorJobDetailScreen> {
   }
 
   Future<void> _pickFile() async {
-    final result = await FilePicker.platform.pickFiles();
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['pdf', 'doc', 'docx'],
+    );
     if (result != null && result.files.isNotEmpty) {
       setState(() => _selectedFile = result.files.first);
     }

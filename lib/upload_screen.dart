@@ -312,7 +312,9 @@ class _UploadScreenState extends State<UploadScreen> {
         FilePickerResult? result = await FilePicker.platform.pickFiles(
           allowMultiple: true,
           type: FileType.custom,
-          allowedExtensions: ['jpg', 'png', 'jpeg', 'pdf', 'doc', 'docx'],
+          // Images removed: use document formats only to comply with
+          // Google Play Photo & Video Permissions policy (no READ_MEDIA_IMAGES needed).
+          allowedExtensions: ['pdf', 'doc', 'docx'],
           withData: true,
         );
         if (result != null) {

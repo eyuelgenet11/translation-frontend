@@ -10,6 +10,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:image_picker/image_picker.dart';
 import 'services/notification_sound_service.dart';
 import 'services/push_notification_service.dart';
 import 'widgets/rating_dialog.dart';
@@ -41,7 +42,10 @@ class _LiveOrderTrackerScreenState extends State<LiveOrderTrackerScreen> {
 
   // Payment State
   final TextEditingController _refController = TextEditingController();
-  PlatformFile? _receiptFile;
+  // Image picker state (uses native Android Photo Picker — no broad media permission needed)
+  String? _receiptFilePath;
+  String? _receiptFileName;
+  String? _receiptExtension;
   Uint8List? _webReceipt;
   bool _uploadingReceipt = false;
   bool _ratingDialogShown = false;
@@ -260,7 +264,8 @@ class _LiveOrderTrackerScreenState extends State<LiveOrderTrackerScreen> {
 
   Future<void> _handlePaymentSubmission() async {
     final ref = _refController.text.trim();
-    if (ref.isEmpty && _receiptFile == null) {
+    final hasReceipt = _webReceipt != null || _receiptFilePath != null;
+    if (ref.isEmpty && !hasReceipt) {
       _showSnack("Please provide a Transaction ID or a photo of your receipt.", isError: true);
       return;
     }
@@ -269,12 +274,13 @@ class _LiveOrderTrackerScreenState extends State<LiveOrderTrackerScreen> {
 
     try {
       String? receiptUrl;
-      if (_receiptFile != null) {
-        final fileName = 'receipts/${_job['id']}_${DateTime.now().millisecondsSinceEpoch}.${_receiptFile!.extension}';
-        if (kIsWeb) {
+      if (hasReceipt) {
+        final ext = _receiptExtension ?? 'jpg';
+        final fileName = 'receipts/${_job['id']}_${DateTime.now().millisecondsSinceEpoch}.$ext';
+        if (kIsWeb || _webReceipt != null) {
           await supabase.storage.from('translations').uploadBinary(fileName, _webReceipt!);
-        } else {
-          await supabase.storage.from('translations').upload(fileName, File(_receiptFile!.path!));
+        } else if (_receiptFilePath != null) {
+          await supabase.storage.from('translations').upload(fileName, File(_receiptFilePath!));
         }
         receiptUrl = supabase.storage.from('translations').getPublicUrl(fileName);
       }
@@ -515,11 +521,18 @@ class _LiveOrderTrackerScreenState extends State<LiveOrderTrackerScreen> {
   }
 
   Future<void> getReceiptImage() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.image);
-    if (result != null) {
+    // Use image_picker (native Android Photo Picker) — compliant with
+    // Google Play Photo & Video Permissions policy (no READ_MEDIA_IMAGES needed).
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+    if (image != null) {
+      final bytes = await image.readAsBytes();
+      // Wrap as a PlatformFile-compatible structure for upload
       setState(() {
-        _receiptFile = result.files.first;
-        _webReceipt = _receiptFile!.bytes;
+        _webReceipt = bytes;
+        _receiptFilePath = image.path;
+        _receiptFileName = image.name;
+        _receiptExtension = image.name.split('.').last;
       });
     }
   }
@@ -1047,9 +1060,9 @@ class _LiveOrderTrackerScreenState extends State<LiveOrderTrackerScreen> {
             decoration: BoxDecoration(
               color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white,
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: _receiptFile != null ? Colors.green : (isDark ? Colors.white12 : Colors.black12)),
+              border: Border.all(color: (_receiptFilePath != null || _webReceipt != null) ? Colors.green : (isDark ? Colors.white12 : Colors.black12)),
             ),
-            child: _receiptFile == null
+            child: (_receiptFilePath == null && _webReceipt == null)
                 ? Icon(Icons.camera_alt_outlined, color: textThemeSec)
                 : const Icon(Icons.check_circle, color: Colors.green),
           ),

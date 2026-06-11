@@ -3,16 +3,16 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission
-        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
-        android:maxSdkVersion="28" />
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
-
-    <!-- Remove media permissions to comply with Google Play Photo & Video policy -->
+    <!-- Remove broad storage/media permissions to comply with Google Play Photo & Video Permissions policy.
+         The app uses the system file picker (file_picker) for one-time/infrequent file access,
+         which does not require these permissions. -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" tools:node="remove" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" tools:node="remove" />
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" tools:node="remove" />
     <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" tools:node="remove" />
+    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" tools:node="remove" />
 
     <application
         android:label="ትርጉም ስራ"
@@ -55,6 +55,15 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="io.supabase.geezapp" android:host="reset-callback" />
                 <data android:scheme="io.supabase.geezapp" android:host="login-callback" />
+            </intent-filter>
+
+            <!-- App Links Intent Filter for Custom Domain -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="tirgumsra.et" />
+                <data android:scheme="https" android:host="www.tirgumsra.et" />
             </intent-filter>
         </activity>
 

@@ -1,0 +1,10 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "com.geez.script",
+    "sha256_cert_fingerprints": [
+      "C6:9B:69:9E:C6:E4:54:C7:B0:5C:11:BD:CC:CF:CE:3E:90:A1:6F:A9:87:84:86:5A:E4:15:2E:F4:CB:00:0B:0C"
+    ]
+  }
+}]

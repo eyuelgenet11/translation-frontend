@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart'; // For kIsWeb
 import 'package:flutter/material.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'services/api_service.dart';
@@ -68,17 +70,17 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
   // 2. Legacy: Handle Uploading the Payment Receipt
   Future<void> _uploadReceipt() async {
-    // ... preserved for fallback or physical receipts if needed
-    final picker = ImagePicker();
-    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+    // Uses native photo picker (no READ_MEDIA_IMAGES permission required)
+    final ImagePicker picker = ImagePicker();
+    final XFile? pickedFile = await picker.pickImage(source: ImageSource.gallery);
 
-    if (image == null) return;
+    if (pickedFile == null) return;
 
     setState(() => isUploading = true);
 
     try {
-      final bytes = await image.readAsBytes();
-      final fileExt = image.name.split('.').last;
+      final bytes = await pickedFile.readAsBytes();
+      final fileExt = pickedFile.name.split('.').last;
       final fileName = '${DateTime.now().millisecondsSinceEpoch}.$fileExt';
       final path = 'receipts/$fileName';
 

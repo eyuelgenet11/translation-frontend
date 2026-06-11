@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tirgum Sra | Translation Marketplace</title>
+    <meta name="google-site-verification" content="tEUg0gnryUPiLIKu6sKxlbSkXtuBzKXsn76jy6Z0gjo">
+    <meta name="description" content="Tirgum Sra — Ethiopia's #1 marketplace for professional local and foreign language document translation. Fast, secure, expert linguists.">
+    <meta name="keywords" content="Tirgum Sra, ትርጉም ስራ, translation marketplace, Ethiopia, Amharic translation, document translation, local language translation, foreign language translation, professional translator Ethiopia">
+    <meta name="author" content="Tirgum Sra">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://tirgumsra.et/">
+
+    <!-- Open Graph (for sharing on WhatsApp, Facebook, Telegram) -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://tirgumsra.et/">
+    <meta property="og:title" content="Tirgum Sra | Translation Marketplace">
+    <meta property="og:description" content="Ethiopia's #1 marketplace for professional local and foreign language document translation. Download the app today.">
+    <meta property="og:image" content="https://tirgumsra.et/favicon.png">
+    <meta property="og:locale" content="en_US">
+    <meta property="og:locale:alternate" content="am_ET">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Tirgum Sra | Translation Marketplace">
+    <meta name="twitter:description" content="Ethiopia's #1 marketplace for professional local and foreign language document translation.">
+    <meta name="twitter:image" content="https://tirgumsra.et/favicon.png">
+
+    <!-- Structured Data for Google -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "MobileApplication",
+      "name": "Tirgum Sra",
+      "alternateName": "ትርጉም ስራ",
+      "description": "Ethiopia's marketplace for professional local and foreign language document translation.",
+      "url": "https://tirgumsra.et",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "Android, iOS",
+      "offers": { "@type": "Offer", "price": "0" },
+      "inLanguage": ["en", "am"]
+    }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" sizes="192x192" href="/favicon.png">
+    <link rel="shortcut icon" href="/favicon.png">
+    <link rel="apple-touch-icon" href="/favicon.png">
+    <style>
+        :root {
+            --primary:        #895129;
+            --primary-light:  #B87040;
+            --primary-dark:   #5C3318;
+            --primary-xlight: #D4935E;
+            /* Warm sepia-dark background — replaces the cold black */
+            --bg-dark:        #1C1208;
+            --bg-mid:         #251809;
+            --bg-card:        rgba(137, 81, 41, 0.06);
+            --text-main:      #F5EDE4;
+            --text-muted:     #B09882;
+            --glass-bg:       rgba(137, 81, 41, 0.07);
+            --glass-border:   rgba(137, 81, 41, 0.18);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* ── Background glows ── */
+        .bg-glow {
+            position: fixed; top: -15%; left: -10%;
+            width: 55vw; height: 55vw;
+            background: radial-gradient(circle, rgba(137,81,41,0.18) 0%, transparent 70%);
+            z-index: -1; border-radius: 50%; filter: blur(90px);
+        }
+        .bg-glow-2 {
+            position: fixed; bottom: -20%; right: -10%;
+            width: 45vw; height: 45vw;
+            background: radial-gradient(circle, rgba(180,110,50,0.12) 0%, transparent 70%);
+            z-index: -1; border-radius: 50%; filter: blur(90px);
+        }
+        .bg-glow-3 {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 60vw; height: 30vw;
+            background: radial-gradient(ellipse, rgba(90,45,15,0.25) 0%, transparent 70%);
+            z-index: -1; filter: blur(60px);
+        }
+
+        /* ── Navigation ── */
+        nav {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 1.8rem 5%; max-width: 1400px; margin: 0 auto;
+        }
+        .logo {
+            display: flex; align-items: center; gap: 12px;
+            font-family: 'Outfit', sans-serif; font-size: 1.8rem; font-weight: 800;
+            color: var(--text-main); text-decoration: none; letter-spacing: -0.5px;
+        }
+        .logo img { width: 40px; height: 40px; border-radius: 10px; }
+        .logo span { color: var(--primary-light); }
+
+        .nav-links { display: flex; gap: 2rem; align-items: center; }
+        .nav-links a { color: var(--text-muted); text-decoration: none; font-weight: 500; transition: color 0.3s; }
+        .nav-links a:hover { color: var(--text-main); }
+        .nav-links .btn-primary {
+            background: linear-gradient(135deg, var(--primary-light), var(--primary));
+            color: white; padding: 0.75rem 1.6rem; border-radius: 50px; font-weight: 600;
+            transition: all 0.3s; box-shadow: 0 4px 20px rgba(137,81,41,0.4);
+        }
+        .nav-links .btn-primary:hover {
+            transform: translateY(-2px); box-shadow: 0 8px 28px rgba(137,81,41,0.5);
+            background: linear-gradient(135deg, var(--primary-xlight), var(--primary-light));
+        }
+
+        /* ── Hero ── */
+        .hero {
+            display: flex; align-items: center; justify-content: space-between;
+            min-height: 88vh; padding: 2rem 5%; max-width: 1400px; margin: 0 auto; gap: 3rem;
+        }
+        .hero-content {
+            flex: 1; max-width: 580px;
+            animation: fadeUp 1s ease-out forwards; opacity: 0; transform: translateY(30px);
+        }
+        .hero-badge {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: rgba(137,81,41,0.15); border: 1px solid rgba(137,81,41,0.3);
+            color: var(--primary-light); padding: 0.45rem 1rem; border-radius: 50px;
+            font-size: 0.85rem; font-weight: 600; margin-bottom: 1.5rem; letter-spacing: 0.5px;
+        }
+        .hero-badge::before { content:'●'; font-size:0.5rem; opacity:0.8; }
+        .hero-title {
+            font-family: 'Outfit', sans-serif; font-size: 4.2rem;
+            font-weight: 800; line-height: 1.08; margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, #F5EDE4 0%, #D4B99A 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .hero-title span {
+            background: linear-gradient(135deg, var(--primary-xlight), var(--primary-light));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .hero-desc { font-size: 1.15rem; color: var(--text-muted); margin-bottom: 2.5rem; font-weight: 300; max-width: 480px; }
+
+        .hero-buttons { display: flex; gap: 1.25rem; flex-wrap: wrap; }
+        .btn-large {
+            display: inline-flex; align-items: center; gap: 10px;
+            background: linear-gradient(135deg, #F5EDE4, #E8D8C5);
+            color: #1C1208; padding: 1rem 2rem; border-radius: 50px;
+            font-weight: 700; font-size: 1rem; text-decoration: none; transition: all 0.3s;
+        }
+        .btn-large:hover { transform: translateY(-3px); box-shadow: 0 12px 30px rgba(0,0,0,0.3); }
+        .btn-large.secondary {
+            background: rgba(137,81,41,0.12); color: var(--text-main);
+            border: 1px solid rgba(137,81,41,0.3);
+        }
+        .btn-large.secondary:hover { background: rgba(137,81,41,0.22); box-shadow: 0 8px 20px rgba(137,81,41,0.2); }
+
+        /* ── iPhone 17 Pro Max 3D Mockup ── */
+        .hero-image {
+            flex: 1; display: flex; justify-content: center; align-items: center;
+            perspective: 1400px; padding: 3rem 0;
+            position: relative;
+        }
+
+        .phone-3d-wrap {
+            animation: float 7s ease-in-out infinite;
+            transform-style: preserve-3d;
+            filter: drop-shadow(0 40px 60px rgba(0,0,0,0.6)) drop-shadow(0 0 50px rgba(137,81,41,0.3));
+            position: relative; z-index: 2; margin-right: -120px;
+        }
+        
+        .phone-3d-wrap-secondary {
+            animation: float2 7s ease-in-out infinite;
+            transform-style: preserve-3d;
+            filter: drop-shadow(0 40px 60px rgba(0,0,0,0.5)) drop-shadow(0 0 30px rgba(137,81,41,0.2));
+            position: relative; z-index: 1; opacity: 0.85;
+            transform: scale(0.85); margin-top: 60px;
+            animation-delay: -3.5s;
+        }
+
+        /* Outer titanium frame — iPhone 17 Pro Max */
+        .iphone {
+            width: 295px;
+            height: 640px;
+            border-radius: 55px;
+            position: relative;
+            transform: rotateY(-28deg) rotateX(5deg);
+            transform-style: preserve-3d;
+
+            /* Titanium brushed gradient */
+            background: linear-gradient(
+                160deg,
+                #3a3530 0%,
+                #4a4540 8%,
+                #6b6158 20%,
+                #4a4540 35%,
+                #3a3530 50%,
+                #5a5248 65%,
+                #3a3530 100%
+            );
+
+            /* Outer border / rim */
+            box-shadow:
+                /* left-side highlight (light source) */
+                inset 3px 0 10px rgba(255,255,255,0.12),
+                /* right-side shadow */
+                inset -4px 0 12px rgba(0,0,0,0.5),
+                /* top edge */
+                inset 0 3px 8px rgba(255,255,255,0.08),
+                /* bottom edge */
+                inset 0 -3px 8px rgba(0,0,0,0.4),
+                /* outer glow */
+                0 0 0 1px rgba(0,0,0,0.6);
+        }
+
+        /* Visible right-side edge (depth) */
+        .iphone::after {
+            content: '';
+            position: absolute;
+            top: 10px; right: -18px;
+            width: 18px;
+            height: calc(100% - 20px);
+            background: linear-gradient(to right, #1a1714, #2c2822, #1a1714);
+            border-radius: 0 14px 14px 0;
+            border-right: 1px solid rgba(255,255,255,0.06);
+            box-shadow: inset -2px 0 6px rgba(0,0,0,0.6);
+        }
+
+        /* Action button + volume buttons on the left side */
+        .iphone-buttons {
+            position: absolute;
+            left: -10px; top: 120px;
+            display: flex; flex-direction: column; gap: 10px;
+        }
+        .iphone-btn {
+            width: 6px; height: 38px;
+            background: linear-gradient(to right, #2a2520, #4a4038);
+            border-radius: 3px 0 0 3px;
+            border: 1px solid rgba(255,255,255,0.06);
+            border-right: none;
+        }
+        .iphone-btn.action {
+            width: 6px; height: 30px;
+            background: linear-gradient(to right, #2a2520, #4a4038);
+            border-radius: 3px 0 0 3px;
+            margin-bottom: 6px;
+        }
+        .iphone-btn.power {
+            position: absolute;
+            left: auto; right: -10px; top: 150px;
+            width: 6px; height: 70px;
+            background: linear-gradient(to left, #2a2520, #4a4038);
+            border-radius: 0 3px 3px 0;
+            border: 1px solid rgba(255,255,255,0.06);
+            border-left: none;
+        }
+
+        /* Screen inside the frame */
+        .iphone-screen-wrap {
+            position: absolute;
+            top: 10px; left: 10px; right: 10px; bottom: 10px;
+            border-radius: 46px;
+            overflow: hidden;
+            background: #000;
+        }
+
+        /* Status bar */
+        .status-bar {
+            height: 50px;
+            background: linear-gradient(180deg, #f8f4f0 0%, #f8f4f0 100%);
+            display: flex; align-items: flex-end; justify-content: space-between;
+            padding: 0 20px 6px;
+            font-size: 0.6rem; font-weight: 600; color: #1a1a1a;
+            position: relative; flex-shrink: 0;
+        }
+        .status-time { font-size: 0.75rem; font-weight: 700; }
+        .status-icons { display: flex; gap: 5px; align-items: center; font-size: 0.7rem; }
+
+        /* Dynamic Island */
+        .dynamic-island {
+            position: absolute;
+            top: 10px; left: 50%; transform: translateX(-50%);
+            width: 108px; height: 32px;
+            background: #000;
+            border-radius: 20px;
+            z-index: 10;
+        }
+
+        /* Screen content */
+        .phone-screen {
+            flex: 1;
+            background: linear-gradient(180deg, #f8f4f0 0%, #f5ede4 100%);
+            display: flex; flex-direction: column; align-items: center;
+            justify-content: center; padding: 1.2rem 1.5rem 1rem;
+            text-align: center; position: relative; overflow: hidden;
+        }
+
+        /* Screen glass shimmer */
+        .phone-screen::before {
+            content: '';
+            position: absolute; top: 0; left: -30%; right: 0;
+            height: 45%; width: 160%;
+            background: linear-gradient(135deg, rgba(255,255,255,0.18) 0%, transparent 60%);
+            pointer-events: none;
+        }
+
+        .phone-screen .app-icon {
+            width: 76px; height: 76px;
+            border-radius: 20px;
+            margin-bottom: 1.1rem;
+            box-shadow: 0 10px 30px rgba(137,81,41,0.25), 0 2px 6px rgba(0,0,0,0.1);
+        }
+
+        .phone-screen h3 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.2rem; font-weight: 800;
+            color: #1C1208; margin-bottom: 0.6rem; line-height: 1.2;
+        }
+
+        .phone-screen .divider {
+            width: 36px; height: 2.5px;
+            background: linear-gradient(to right, var(--primary), var(--primary-light));
+            border-radius: 2px; margin-bottom: 0.65rem;
+        }
+
+        .phone-screen p.amharic {
+            font-family: 'Inter', sans-serif;
+            font-size: 0.88rem; color: #5c4030;
+            line-height: 1.75; font-weight: 500;
+        }
+
+        /* Home indicator */
+        .phone-home-bar {
+            height: 30px;
+            background: #f5ede4;
+            display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+        }
+        .phone-home-bar span {
+            width: 90px; height: 4.5px;
+            background: rgba(90,50,20,0.22); border-radius: 3px;
+        }
+
+        /* Screen wrapper flex */
+        .iphone-screen-content {
+            position: absolute;
+            top: 10px; left: 10px; right: 10px; bottom: 10px;
+            border-radius: 46px; overflow: hidden;
+            display: flex; flex-direction: column;
+        }
+
+        /* ── Features / How It Works ── */
+        .features {
+            padding: 6rem 5%; max-width: 1400px; margin: 0 auto;
+        }
+        .section-title {
+            text-align: center; font-family: 'Outfit', sans-serif;
+            font-size: 2.4rem; margin-bottom: 1rem;
+        }
+        .section-subtitle {
+            text-align: center; color: var(--text-muted);
+            font-size: 1rem; margin-bottom: 3.5rem; font-weight: 300;
+        }
+
+        /* How It Works layout */
+        .how-it-works {
+            display: flex; align-items: center; gap: 5rem;
+            flex-wrap: wrap; justify-content: center;
+        }
+
+        /* Step info panel */
+        .step-info {
+            flex: 1; min-width: 280px; max-width: 420px;
+        }
+        .step-badge {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: rgba(137,81,41,0.15); border: 1px solid rgba(137,81,41,0.3);
+            color: var(--primary-light); padding: 0.4rem 1rem; border-radius: 50px;
+            font-size: 0.82rem; font-weight: 700; margin-bottom: 1.2rem; letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        .step-title {
+            font-family: 'Outfit', sans-serif; font-size: 2rem; font-weight: 800;
+            line-height: 1.15; margin-bottom: 1rem;
+            background: linear-gradient(135deg, #F5EDE4 0%, #D4B99A 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            min-height: 2.5em;
+            transition: opacity 0.3s;
+        }
+        .step-desc {
+            color: var(--text-muted); font-size: 0.97rem; font-weight: 300;
+            margin-bottom: 2rem; min-height: 3em;
+            transition: opacity 0.3s;
+        }
+
+        /* Dots */
+        .step-dots {
+            display: flex; gap: 8px; align-items: center; margin-bottom: 2rem; flex-wrap: wrap;
+        }
+        .step-dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: rgba(137,81,41,0.25);
+            cursor: pointer; transition: all 0.3s;
+        }
+        .step-dot.active {
+            width: 24px; border-radius: 4px;
+            background: var(--primary-light);
+        }
+
+        /* Nav buttons */
+        .step-nav { display: flex; gap: 1rem; }
+        .step-btn {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 0.75rem 1.6rem; border-radius: 50px;
+            font-size: 0.9rem; font-weight: 600; cursor: pointer;
+            border: 1px solid rgba(137,81,41,0.35);
+            transition: all 0.3s; background: none; color: var(--text-main);
+        }
+        .step-btn:hover { background: rgba(137,81,41,0.15); }
+        .step-btn.primary {
+            background: linear-gradient(135deg, var(--primary-light), var(--primary));
+            border-color: transparent; color: white;
+            box-shadow: 0 4px 20px rgba(137,81,41,0.35);
+        }
+        .step-btn.primary:hover {
+            box-shadow: 0 8px 28px rgba(137,81,41,0.5);
+            transform: translateY(-2px);
+        }
+
+        /* How It Works phone */
+        .hiw-phone-wrap {
+            flex-shrink: 0;
+            animation: float 7s ease-in-out infinite;
+            filter: drop-shadow(0 40px 60px rgba(0,0,0,0.55)) drop-shadow(0 0 50px rgba(137,81,41,0.28));
+            cursor: pointer;
+        }
+        .hiw-phone {
+            width: 260px; height: 560px; border-radius: 50px; position: relative;
+            background: linear-gradient(160deg,#3a3530 0%,#4a4540 8%,#6b6158 20%,#4a4540 35%,#3a3530 50%,#5a5248 65%,#3a3530 100%);
+            box-shadow:
+                inset 3px 0 10px rgba(255,255,255,0.12),
+                inset -4px 0 12px rgba(0,0,0,0.5),
+                inset 0 3px 8px rgba(255,255,255,0.08),
+                inset 0 -3px 8px rgba(0,0,0,0.4),
+                0 0 0 1px rgba(0,0,0,0.6);
+        }
+        .hiw-phone::after {
+            content:''; position:absolute; top:10px; right:-16px;
+            width:16px; height:calc(100% - 20px);
+            background:linear-gradient(to right,#1a1714,#2c2822,#1a1714);
+            border-radius:0 12px 12px 0;
+            box-shadow:inset -2px 0 6px rgba(0,0,0,0.6);
+        }
+        .hiw-phone-screen {
+            position:absolute; top:10px; left:10px; right:10px; bottom:10px;
+            border-radius:40px; overflow:hidden; background:#000;
+        }
+        .hiw-screen-img {
+            width:100%; height:100%; object-fit:cover;
+            transition: opacity 0.35s ease-in-out;
+        }
+        .hiw-tap-hint {
+            position:absolute; bottom:18px; left:50%; transform:translateX(-50%);
+            background:rgba(0,0,0,0.55); backdrop-filter:blur(6px);
+            color:#fff; font-size:0.7rem; font-weight:600; padding:5px 14px;
+            border-radius:20px; white-space:nowrap; pointer-events:none;
+            opacity:1; transition: opacity 0.5s;
+        }
+
+        /* ── Footer ── */
+        footer { border-top: 1px solid var(--glass-border); padding: 3rem 5%; margin-top: 4rem; }
+        .footer-content {
+            max-width: 1400px; margin: 0 auto;
+            display: flex; justify-content: space-between; align-items: center;
+            flex-wrap: wrap; gap: 2rem;
+        }
+        .footer-logo {
+            font-family: 'Outfit', sans-serif; font-size: 1.5rem; font-weight: 800;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .footer-logo img { width: 30px; border-radius: 6px; }
+        .footer-links { display: flex; gap: 2rem; }
+        .footer-links a {
+            color: var(--text-muted); text-decoration: none;
+            transition: color 0.3s; font-size: 0.9rem;
+        }
+        .footer-links a:hover { color: var(--primary-light); }
+        .copyright {
+            color: var(--text-muted); font-size: 0.875rem; width: 100%;
+            text-align: center; margin-top: 2rem; padding-top: 2rem;
+            border-top: 1px solid rgba(137,81,41,0.1);
+        }
+
+        /* ── Animations ── */
+        @keyframes fadeUp {
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes float {
+            0%   { transform: translateY(0); }
+            50%  { transform: translateY(-14px); }
+            100% { transform: translateY(0); }
+        }
+        @keyframes float2 {
+            0%   { transform: scale(0.85) translateY(0); }
+            50%  { transform: scale(0.85) translateY(-14px); }
+            100% { transform: scale(0.85) translateY(0); }
+        }
+
+        svg { width: 22px; height: 22px; stroke-width: 2; }
+        .feature-icon svg { width: 26px; height: 26px; }
+
+        /* ── Responsive ── */
+        @media (max-width: 980px) {
+            .hero { flex-direction: column; text-align: center; padding-top: 3rem; }
+            .hero-content { margin: 0 auto; }
+            .hero-buttons { justify-content: center; }
+            .hero-title { font-size: 3.2rem; }
+            .hero-desc { margin: 0 auto 2.5rem; }
+            .nav-links { display: none; }
+        }
+        @media (max-width: 520px) {
+            .hero-title { font-size: 2.4rem; }
+            .hero-buttons { flex-direction: column; align-items: center; }
+            .phone-3d-wrap { transform: scale(0.82); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-glow"></div>
+    <div class="bg-glow-2"></div>
+    <div class="bg-glow-3"></div>
+
+    <nav>
+        <a href="/" class="logo">
+            <img src="images/logo.png" alt="Tirgum Sra Logo">
+            Tirgum <span>Sra</span>
+        </a>
+        <div class="nav-links">
+            <a href="#features">Features</a>
+            <a href="/privacy.html">Privacy Policy</a>
+            <a href="/deleteaccount.html">Support</a>
+            <a href="#download" class="btn-primary">Get the App</a>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <div class="hero-content">
+            <div class="hero-badge">Trusted Translation Marketplace</div>
+            <h1 class="hero-title">Your <span>Tirgum Sra</span> Translation Partner.</h1>
+            <p class="hero-desc">The ultimate marketplace for high-quality local and foreign language document translation. Fast, secure, and powered by expert linguists.</p>
+            <div id="download" class="hero-buttons">
+                <a href="#" class="btn-large">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.523 15.341c-.005-3.111 2.545-4.606 2.664-4.685-1.442-2.115-3.684-2.404-4.492-2.434-1.921-.193-3.751 1.134-4.735 1.134-.986 0-2.52-1.096-4.095-1.066-2.046.031-3.93 1.192-4.978 3.018-2.118 3.673-.541 9.102 1.523 12.091 1.008 1.458 2.19 3.094 3.766 3.033 1.516-.062 2.1-.983 3.931-.983 1.815 0 2.355.983 3.963.952 1.637-.031 2.658-1.488 3.637-2.923 1.133-1.654 1.6-3.257 1.621-3.342-.038-.016-3.136-1.205-3.142-4.795zM14.773 4.364c.833-1.008 1.396-2.41 1.242-3.805-1.196.048-2.655.795-3.518 1.834-.77.889-1.447 2.336-1.261 3.701 1.332.103 2.696-.698 3.537-1.73z"/></svg>
+                    App Store
+                </a>
+                <a href="https://play.google.com/store/apps/details?id=com.geez.script&pcampaignid=web_share" target="_blank" rel="noopener" class="btn-large secondary">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3.609 1.814L13.792 12 3.609 22.186c-.147-.132-.24-.316-.24-.523V2.337c0-.207.093-.391.24-.523zm11.168 11.169L20.25 18l-4.409-2.545-1.064-2.472zm1.064-2.472L20.25 6 14.777 9.017l1.064 2.472zM4.654 1.186L14.07 10.6l-9.416 5.438-2.825-4.894 2.825-4.894z"/></svg>
+                    Google Play
+                </a>
+            </div>
+        </div>
+
+        <div class="hero-image" style="cursor: pointer;" onclick="swapScreens()" title="Click to swap screenshots">
+            <div class="phone-3d-wrap">
+                <div class="iphone">
+                    <div class="iphone-buttons">
+                        <div class="iphone-btn action"></div>
+                        <div class="iphone-btn"></div>
+                        <div class="iphone-btn"></div>
+                    </div>
+                    <div class="iphone-btn power"></div>
+                    <img id="screenImage1" src="images/screenshot2.png" alt="App Screenshot 2" style="position: absolute; top: 10px; left: 10px; right: 10px; bottom: 10px; border-radius: 46px; width: calc(100% - 20px); height: calc(100% - 20px); object-fit: cover; z-index: 5; transition: opacity 0.3s ease-in-out;">
+                </div>
+            </div>
+
+            <div class="phone-3d-wrap-secondary">
+                <div class="iphone">
+                    <div class="iphone-buttons">
+                        <div class="iphone-btn action"></div>
+                        <div class="iphone-btn"></div>
+                        <div class="iphone-btn"></div>
+                    </div>
+                    <div class="iphone-btn power"></div>
+                    <img id="screenImage2" src="images/screenshot3.png" alt="App Screenshot 3" style="position: absolute; top: 10px; left: 10px; right: 10px; bottom: 10px; border-radius: 46px; width: calc(100% - 20px); height: calc(100% - 20px); object-fit: cover; z-index: 5; transition: opacity 0.3s ease-in-out;">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="features" class="features">
+        <h2 class="section-title">How It Works</h2>
+        <p class="section-subtitle">From upload to delivery — tap through your complete translation journey.</p>
+
+        <div class="how-it-works">
+            <!-- Step info -->
+            <div class="step-info">
+                <div class="step-badge" id="stepBadge">Step 1 of 9</div>
+                <div class="step-title" id="stepTitle">Browse Expert Translators</div>
+                <div class="step-desc" id="stepDesc">Open the app and explore our marketplace of verified, top-rated professional translators. Filter by category — Legal, Medical, Business, and more.</div>
+
+                <div class="step-dots" id="stepDots"></div>
+
+                <div class="step-nav">
+                    <button class="step-btn" id="prevBtn" onclick="changeStep(-1)">← Prev</button>
+                    <button class="step-btn primary" id="nextBtn" onclick="changeStep(1)">Next →</button>
+                </div>
+            </div>
+
+            <!-- Phone mockup -->
+            <div class="hiw-phone-wrap" onclick="changeStep(1)" title="Tap to go to next step">
+                <div class="hiw-phone">
+                    <div class="hiw-phone-screen">
+                        <img id="hiwScreenImg" src="images/screenshot2.png" alt="App step screenshot" class="hiw-screen-img">
+                    </div>
+                    <div class="hiw-tap-hint" id="tapHint">Tap to continue →</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-logo">
+                <img src="images/logo.png" alt="Logo">
+                Tirgum Sra <span style="color:var(--primary-light)">.</span>
+            </div>
+            <div class="footer-links">
+                <a href="/privacy.html">Privacy Policy</a>
+                <a href="/deleteaccount.html">Delete Account</a>
+                <a href="mailto:support@tirgumsra.et">Contact Support</a>
+            </div>
+            <div class="copyright">
+                &copy; 2026 Tirgum Sra Marketplace. All rights reserved.
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        /* ── Hero screen swap ── */
+        function swapScreens() {
+            const img1 = document.getElementById('screenImage1');
+            const img2 = document.getElementById('screenImage2');
+            if (img1 && img2) {
+                img1.style.opacity = 0;
+                img2.style.opacity = 0;
+                setTimeout(() => {
+                    const tempSrc = img1.src;
+                    img1.src = img2.src;
+                    img2.src = tempSrc;
+                    img1.style.opacity = 1;
+                    img2.style.opacity = 1;
+                }, 300);
+            }
+        }
+
+        /* ── How It Works step carousel ── */
+        const steps = [
+            { img: 'images/screenshot2.png', title: 'Browse Expert Translators',        desc: 'Open the app and explore our marketplace of verified, top-rated professional translators. Filter by category — Legal, Medical, Business, and more.' },
+            { img: 'images/screenshot3.png', title: 'Upload Your Document in Seconds',  desc: 'Select your translator, choose source and target language, set urgency, and securely upload your document (JPG, PNG or PDF supported).' },
+            { img: 'images/step3.png',        title: 'Wait for the Price Quote',         desc: 'Your translator analyses the document complexity and word count, then prepares an accurate price quote for you to review.' },
+            { img: 'images/step4.png',        title: 'Review the Price — Decide Wisely', desc: 'You will receive the official quote showing translation fee and service charge. Accept to proceed or reject. Note: this decision cannot be changed.' },
+            { img: 'images/step5.png',        title: 'Pay and Attach Your Screenshot',  desc: 'Send payment via TeleBirr or CBE to the provided account. Enter the verification code and optionally attach a payment screenshot, then submit.' },
+            { img: 'images/step6.png',        title: 'Wait for Payment Verification',   desc: 'Our finance team confirms your payment receipt. Verification typically takes 15–30 minutes during business hours.' },
+            { img: 'images/step7.png',        title: 'Work in Progress',                desc: 'Your project is now in the hands of a professional translator. You will be notified the moment the first draft is ready for review.' },
+            { img: 'images/step8.png',        title: 'Review Your Document & Accept',   desc: 'The translator has uploaded the completed document. Preview it carefully and either accept it or request a revision.' },
+            { img: 'images/step9.png',        title: 'Rate the Translator & Complete',  desc: 'Your translation is accepted and the order is complete! Rate your experience and leave an optional comment to help the community.' },
+        ];
+
+        let currentStep = 0;
+
+        function buildDots() {
+            const container = document.getElementById('stepDots');
+            container.innerHTML = '';
+            steps.forEach((_, i) => {
+                const dot = document.createElement('div');
+                dot.className = 'step-dot' + (i === currentStep ? ' active' : '');
+                dot.onclick = () => goToStep(i);
+                container.appendChild(dot);
+            });
+        }
+
+        function updateUI() {
+            const s = steps[currentStep];
+            const img  = document.getElementById('hiwScreenImg');
+            const title = document.getElementById('stepTitle');
+            const desc  = document.getElementById('stepDesc');
+            const badge = document.getElementById('stepBadge');
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+
+            img.style.opacity = 0;
+            title.style.opacity = 0;
+            desc.style.opacity = 0;
+
+            setTimeout(() => {
+                img.src = s.img;
+                title.textContent = s.title;
+                desc.textContent = s.desc;
+                badge.textContent = 'Step ' + (currentStep + 1) + ' of ' + steps.length;
+
+                img.style.opacity = 1;
+                title.style.opacity = 1;
+                desc.style.opacity = 1;
+            }, 320);
+
+            prevBtn.disabled = currentStep === 0;
+            prevBtn.style.opacity = currentStep === 0 ? '0.35' : '1';
+            nextBtn.textContent = currentStep === steps.length - 1 ? '✓ Done' : 'Next →';
+
+            // hide tap hint after first interaction
+            document.getElementById('tapHint').style.opacity = currentStep === 0 ? '1' : '0';
+
+            buildDots();
+        }
+
+        function goToStep(index) {
+            currentStep = Math.max(0, Math.min(steps.length - 1, index));
+            updateUI();
+        }
+
+        function changeStep(dir) {
+            const next = currentStep + dir;
+            if (next < 0 || next >= steps.length) return;
+            goToStep(next);
+        }
+
+        // Init
+        buildDots();
+        updateUI();
+    </script>
+</body>
+</html>

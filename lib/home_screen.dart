@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart'; // For kIsWeb
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:image_picker/image_picker.dart';
+
 import 'package:path/path.dart' as p;
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -12,6 +12,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:upgrader/upgrader.dart';
 
 import 'upload_screen.dart';
@@ -998,17 +999,17 @@ class _MarketplaceHomeScreenState extends State<MarketplaceHomeScreen> {
                       child: GestureDetector(
                         onTap: () async {
                           final picker = ImagePicker();
-                          final image = await picker.pickImage(
-                              source: ImageSource.gallery, imageQuality: 85);
-                          if (image != null) {
+                          final XFile? pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+                          if (pickedFile != null) {
                             setModalState(() => uploading = true);
                             try {
                               final userId = supabase.auth.currentUser!.id;
-                              final fileExt = p.extension(image.name);
+                              final fileExt = p.extension(pickedFile.name);
                               final fileName =
                                   "avatar_${DateTime.now().millisecondsSinceEpoch}$fileExt";
                               final filePath = "avatars/$userId/$fileName";
-                              final bytes = await image.readAsBytes();
+                              final bytes = await pickedFile.readAsBytes();
                               await supabase.storage
                                   .from('translations')
                                   .uploadBinary(filePath, bytes,

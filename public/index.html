@@ -358,7 +358,7 @@
 
         /* ── Features / How It Works ── */
         .features {
-            padding: 6rem 5%; max-width: 1400px; margin: 0 auto;
+            padding: 3rem 5%; max-width: 1400px; margin: 0 auto;
         }
         .section-title {
             text-align: center; font-family: 'Outfit', sans-serif;
@@ -371,7 +371,7 @@
 
         /* How It Works layout */
         .how-it-works {
-            display: flex; align-items: center; gap: 5rem;
+            display: flex; align-items: center; gap: 2.5rem;
             flex-wrap: wrap; justify-content: center;
         }
 
@@ -524,11 +524,19 @@
             .hero-title { font-size: 3.2rem; }
             .hero-desc { margin: 0 auto 2.5rem; }
             .nav-links { display: none; }
+            .how-it-works { gap: 2rem; }
+            .step-info { text-align: center; }
+            .step-dots { justify-content: center; }
+            .step-nav { justify-content: center; }
+            .hiw-phone-wrap { transform: scale(0.85); transform-origin: top center; margin-top: -1rem; }
         }
         @media (max-width: 520px) {
             .hero-title { font-size: 2.4rem; }
             .hero-buttons { flex-direction: column; align-items: center; }
             .phone-3d-wrap { transform: scale(0.82); }
+            .hiw-phone-wrap { transform: scale(0.70); margin-top: -3rem; margin-bottom: -5rem; }
+            .section-title { font-size: 2rem; }
+            .features { padding: 1rem 5%; }
         }
     </style>
 </head>
@@ -568,30 +576,6 @@
             </div>
         </div>
 
-        <div class="hero-image" style="cursor: pointer;" onclick="swapScreens()" title="Click to swap screenshots">
-            <div class="phone-3d-wrap">
-                <div class="iphone">
-                    <div class="iphone-buttons">
-                        <div class="iphone-btn action"></div>
-                        <div class="iphone-btn"></div>
-                        <div class="iphone-btn"></div>
-                    </div>
-                    <div class="iphone-btn power"></div>
-                    <img id="screenImage1" src="images/screenshot2.png" alt="App Screenshot 2" style="position: absolute; top: 10px; left: 10px; right: 10px; bottom: 10px; border-radius: 46px; width: calc(100% - 20px); height: calc(100% - 20px); object-fit: cover; z-index: 5; transition: opacity 0.3s ease-in-out;">
-                </div>
-            </div>
-
-            <div class="phone-3d-wrap-secondary">
-                <div class="iphone">
-                    <div class="iphone-buttons">
-                        <div class="iphone-btn action"></div>
-                        <div class="iphone-btn"></div>
-                        <div class="iphone-btn"></div>
-                    </div>
-                    <div class="iphone-btn power"></div>
-                    <img id="screenImage2" src="images/screenshot3.png" alt="App Screenshot 3" style="position: absolute; top: 10px; left: 10px; right: 10px; bottom: 10px; border-radius: 46px; width: calc(100% - 20px); height: calc(100% - 20px); object-fit: cover; z-index: 5; transition: opacity 0.3s ease-in-out;">
-                </div>
-            </div>
         </div>
     </section>
 
@@ -644,23 +628,6 @@
     </footer>
 
     <script>
-        /* ── Hero screen swap ── */
-        function swapScreens() {
-            const img1 = document.getElementById('screenImage1');
-            const img2 = document.getElementById('screenImage2');
-            if (img1 && img2) {
-                img1.style.opacity = 0;
-                img2.style.opacity = 0;
-                setTimeout(() => {
-                    const tempSrc = img1.src;
-                    img1.src = img2.src;
-                    img2.src = tempSrc;
-                    img1.style.opacity = 1;
-                    img2.style.opacity = 1;
-                }, 300);
-            }
-        }
-
         /* ── How It Works step carousel ── */
         const steps = [
             { img: 'images/screenshot2.png', title: 'Browse Expert Translators',        desc: 'Open the app and explore our marketplace of verified, top-rated professional translators. Filter by category — Legal, Medical, Business, and more.' },

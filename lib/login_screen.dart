@@ -1,11 +1,14 @@
 import 'dart:async';
 import 'dart:math';
 import 'dart:ui';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:crypto/crypto.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 import 'services/role_security_service.dart';
 import 'services/admin_auth_service.dart';
@@ -177,6 +180,48 @@ class _LoginScreenState extends State<LoginScreen>
     }
   }
 
+  Future<void> _appleSignIn() async {
+    setState(() => _loading = true);
+    try {
+      final isIOS = !kIsWeb && Theme.of(context).platform == TargetPlatform.iOS;
+      final isMac = !kIsWeb && Theme.of(context).platform == TargetPlatform.macOS;
+      
+      if (isIOS || isMac) {
+        final rawNonce = supabase.auth.generateRawNonce();
+        final hashedNonce = sha256.convert(utf8.encode(rawNonce)).toString();
+
+        final credential = await SignInWithApple.getAppleIDCredential(
+          scopes: [
+            AppleIDAuthorizationScopes.email,
+            AppleIDAuthorizationScopes.fullName,
+          ],
+          nonce: hashedNonce,
+        );
+
+        final idToken = credential.identityToken;
+        if (idToken == null) {
+          throw const AuthException('No ID Token found.');
+        }
+
+        await supabase.auth.signInWithIdToken(
+          provider: OAuthProvider.apple,
+          idToken: idToken,
+          nonce: rawNonce,
+        );
+      } else {
+        await supabase.auth.signInWithOAuth(
+          OAuthProvider.apple,
+          redirectTo: kIsWeb ? null : 'io.supabase.geezapp://login-callback/',
+        );
+      }
+    } catch (e) {
+      debugPrint('Apple Sign-In Error: $e');
+      _snack('Apple Sign-In failed. Please try again.');
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
   void _enterGuestMode() {
     HapticFeedback.lightImpact();
     if (mounted) Navigator.pushReplacementNamed(context, '/home');
@@ -325,6 +370,10 @@ class _LoginScreenState extends State<LoginScreen>
           child: Column(
             children: [
               _buildGoogleBtn(),
+              if (!kIsWeb && Theme.of(context).platform == TargetPlatform.iOS) ...[
+                const SizedBox(height: 16),
+                _buildAppleBtn(),
+              ],
               const SizedBox(height: 20),
               _buildDivider(),
               const SizedBox(height: 20),
@@ -380,6 +429,16 @@ class _LoginScreenState extends State<LoginScreen>
                   ],
                 ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildAppleBtn() {
+    return SizedBox(
+      height: 58,
+      child: SignInWithAppleButton(
+        onPressed: _loading ? () {} : () => _appleSignIn(),
+        borderRadius: const BorderRadius.all(Radius.circular(18)),
       ),
     );
   }

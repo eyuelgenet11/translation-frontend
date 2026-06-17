@@ -15,7 +15,7 @@
     <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" tools:node="remove" />
 
     <application
-        android:label="ትርጉም ስራ"
+        android:label="Tirgum Sra"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         android:roundIcon="@mipmap/launcher_icon">

@@ -49,19 +49,32 @@
     <link rel="apple-touch-icon" href="/favicon.png">
     <style>
         :root {
-            --primary:        #895129;
-            --primary-light:  #B87040;
-            --primary-dark:   #5C3318;
-            --primary-xlight: #D4935E;
-            /* Warm sepia-dark background — replaces the cold black */
-            --bg-dark:        #1C1208;
-            --bg-mid:         #251809;
-            --bg-card:        rgba(137, 81, 41, 0.06);
-            --text-main:      #F5EDE4;
-            --text-muted:     #B09882;
-            --glass-bg:       rgba(137, 81, 41, 0.07);
-            --glass-border:   rgba(137, 81, 41, 0.18);
+            --primary:        #A36437;
+            --primary-light:  #C77E4A;
+            --primary-dark:   #683E20;
+            --primary-xlight: #E2A676;
+            /* Deep, sophisticated dark mode with subtle warmth */
+            --bg-dark:        #0A0807;
+            --bg-mid:         #15120F;
+            --bg-card:        rgba(163, 100, 55, 0.04);
+            --text-main:      #FDFBF9;
+            --text-muted:     #A59C94;
+            --glass-bg:       rgba(10, 8, 7, 0.7);
+            --glass-border:   rgba(163, 100, 55, 0.15);
         }
+
+        /* ── Scroll Reveal Classes ── */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .reveal-delay-1 { transition-delay: 0.15s; }
+        .reveal-delay-2 { transition-delay: 0.3s; }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -96,15 +109,23 @@
         }
 
         /* ── Navigation ── */
+        .nav-wrapper {
+            position: fixed; top: 0; left: 0; width: 100%; z-index: 100;
+            background: var(--glass-bg); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--glass-border);
+            transition: all 0.3s ease;
+        }
         nav {
             display: flex; justify-content: space-between; align-items: center;
-            padding: 1.8rem 5%; max-width: 1400px; margin: 0 auto;
+            padding: 1.2rem 5%; max-width: 1400px; margin: 0 auto;
         }
         .logo {
             display: flex; align-items: center; gap: 12px;
             font-family: 'Outfit', sans-serif; font-size: 1.8rem; font-weight: 800;
             color: var(--text-main); text-decoration: none; letter-spacing: -0.5px;
+            transition: transform 0.3s ease;
         }
+        .logo:hover { transform: scale(1.02); }
         .logo img { width: 40px; height: 40px; border-radius: 10px; }
         .logo span { color: var(--primary-light); }
 
@@ -114,17 +135,17 @@
         .nav-links .btn-primary {
             background: linear-gradient(135deg, var(--primary-light), var(--primary));
             color: white; padding: 0.75rem 1.6rem; border-radius: 50px; font-weight: 600;
-            transition: all 0.3s; box-shadow: 0 4px 20px rgba(137,81,41,0.4);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 4px 20px rgba(163,100,55,0.4);
         }
         .nav-links .btn-primary:hover {
-            transform: translateY(-2px); box-shadow: 0 8px 28px rgba(137,81,41,0.5);
+            transform: translateY(-2px) scale(1.05); box-shadow: 0 8px 28px rgba(163,100,55,0.6);
             background: linear-gradient(135deg, var(--primary-xlight), var(--primary-light));
         }
 
         /* ── Hero ── */
         .hero {
             display: flex; align-items: center; justify-content: space-between;
-            min-height: 88vh; padding: 2rem 5%; max-width: 1400px; margin: 0 auto; gap: 3rem;
+            min-height: 100vh; padding: 7rem 5% 4rem; max-width: 1400px; margin: 0 auto; gap: 3rem;
         }
         .hero-content {
             flex: 1; max-width: 580px;
@@ -546,18 +567,20 @@
     <div class="bg-glow-2"></div>
     <div class="bg-glow-3"></div>
 
-    <nav>
-        <a href="/" class="logo">
-            <img src="images/logo.png" alt="Tirgum Sra Logo">
-            Tirgum <span>Sra</span>
-        </a>
-        <div class="nav-links">
-            <a href="#features">Features</a>
-            <a href="/privacy.html">Privacy Policy</a>
-            <a href="/deleteaccount.html">Support</a>
-            <a href="#download" class="btn-primary">Get the App</a>
-        </div>
-    </nav>
+    <div class="nav-wrapper">
+        <nav>
+            <a href="/" class="logo">
+                <img src="images/logo.png" alt="Tirgum Sra Logo">
+                Tirgum <span>Sra</span>
+            </a>
+            <div class="nav-links">
+                <a href="#features">Features</a>
+                <a href="/privacy.html">Privacy Policy</a>
+                <a href="/deleteaccount.html">Support</a>
+                <a href="#download" class="btn-primary">Get the App</a>
+            </div>
+        </nav>
+    </div>
 
     <section class="hero">
         <div class="hero-content">
@@ -565,7 +588,7 @@
             <h1 class="hero-title">Your <span>Translation</span> Partner.</h1>
             <p class="hero-desc">The ultimate marketplace for high-quality local and foreign language document translation. Fast, secure, and powered by expert linguists.</p>
             <div id="download" class="hero-buttons">
-                <a href="#" class="btn-large">
+                <a href="https://apps.apple.com/us/app/tirgum-sra/id6768405451" target="_blank" rel="noopener" class="btn-large">
                     <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.523 15.341c-.005-3.111 2.545-4.606 2.664-4.685-1.442-2.115-3.684-2.404-4.492-2.434-1.921-.193-3.751 1.134-4.735 1.134-.986 0-2.52-1.096-4.095-1.066-2.046.031-3.93 1.192-4.978 3.018-2.118 3.673-.541 9.102 1.523 12.091 1.008 1.458 2.19 3.094 3.766 3.033 1.516-.062 2.1-.983 3.931-.983 1.815 0 2.355.983 3.963.952 1.637-.031 2.658-1.488 3.637-2.923 1.133-1.654 1.6-3.257 1.621-3.342-.038-.016-3.136-1.205-3.142-4.795zM14.773 4.364c.833-1.008 1.396-2.41 1.242-3.805-1.196.048-2.655.795-3.518 1.834-.77.889-1.447 2.336-1.261 3.701 1.332.103 2.696-.698 3.537-1.73z"/></svg>
                     App Store
                 </a>
@@ -580,10 +603,10 @@
     </section>
 
     <section id="features" class="features">
-        <h2 class="section-title">How It Works</h2>
-        <p class="section-subtitle">From upload to delivery — tap through your complete translation journey.</p>
+        <h2 class="section-title reveal">How It Works</h2>
+        <p class="section-subtitle reveal reveal-delay-1">From upload to delivery — tap through your complete translation journey.</p>
 
-        <div class="how-it-works">
+        <div class="how-it-works reveal reveal-delay-2">
             <!-- Step info -->
             <div class="step-info">
                 <div class="step-badge" id="stepBadge">Step 1 of 9</div>
@@ -702,6 +725,27 @@
         // Init
         buildDots();
         updateUI();
+
+        /* ── Scroll Reveal Intersection Observer ── */
+        document.addEventListener('DOMContentLoaded', () => {
+            const reveals = document.querySelectorAll('.reveal');
+            const revealOptions = {
+                threshold: 0.15,
+                rootMargin: "0px 0px -50px 0px"
+            };
+            const revealOnScroll = new IntersectionObserver(function(entries, observer) {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('active');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, revealOptions);
+            
+            reveals.forEach(reveal => {
+                revealOnScroll.observe(reveal);
+            });
+        });
     </script>
 </body>
 </html>

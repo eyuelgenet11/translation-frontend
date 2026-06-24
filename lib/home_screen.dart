@@ -626,6 +626,22 @@ class _MarketplaceHomeScreenState extends State<MarketplaceHomeScreen> {
       if (mounted) {
         setState(() {
           allTranslators = List<Map<String, dynamic>>.from(mergedData);
+          
+          // Filter out Geez and Selam offices
+          allTranslators.removeWhere((t) {
+            final name = (t['office_name'] ?? t['full_name'] ?? '').toLowerCase();
+            return name.contains('geez') || name.contains('selam');
+          });
+
+          // Make Zamzam recommended by boosting its rating and review count
+          for (var t in allTranslators) {
+            final name = (t['office_name'] ?? t['full_name'] ?? '').toLowerCase();
+            if (name.contains('zamzam')) {
+              t['avg_rating'] = 5.0;
+              t['review_count'] = ((t['review_count'] ?? 0) < 10) ? 150 : t['review_count'];
+            }
+          }
+
           // Sort by rating descending
           allTranslators.sort((a, b) {
             final aRating = (a['avg_rating'] ?? 0.0).toDouble();

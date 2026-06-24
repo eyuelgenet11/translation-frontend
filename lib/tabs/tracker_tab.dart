@@ -151,7 +151,12 @@ class TrackerTab extends StatelessWidget {
                       const Divider(height: 24),
                       _trackerRow("Total Price", "${job['price'] != null ? (job['price'] * 1.15).toStringAsFixed(2) : '-'} ETB"),
                       const Divider(height: 24),
-                      _trackerRow("Urgency", (job['urgency'] ?? '-').toString()),
+                      _trackerRow(
+                        "Urgency / Delivery",
+                        ((job['delivery_time'] ?? '').toString().isNotEmpty)
+                            ? job['delivery_time'].toString()
+                            : (job['urgency'] ?? '-').toString()
+                      ),
                     ],
                   ),
                 ),

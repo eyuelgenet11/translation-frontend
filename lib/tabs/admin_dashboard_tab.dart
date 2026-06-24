@@ -31,6 +31,8 @@ class _AdminDashboardTabState extends State<AdminDashboardTab> with SingleTicker
   List<Map<String, dynamic>> _pendingPayments = [];
   List<Map<String, dynamic>> _unsettledJobs = [];
   List<Map<String, dynamic>> _escrowJobs = [];
+  List<Map<String, dynamic>> _pendingTranslators = [];
+  List<Map<String, dynamic>> _allRequests = [];
 
   // Summary statistics
   double _totalVolume = 0.0;
@@ -42,7 +44,7 @@ class _AdminDashboardTabState extends State<AdminDashboardTab> with SingleTicker
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 5, vsync: this);
     _fetchData();
     _subscribeToJobs();
   }
@@ -97,11 +99,27 @@ class _AdminDashboardTabState extends State<AdminDashboardTab> with SingleTicker
           .eq('status', 'In Progress')
           .order('created_at', ascending: false);
 
+      // 4. Fetch pending translators
+      final translatorsRes = await _supabase
+          .from('profiles')
+          .select('*')
+          .eq('role', 'translator')
+          .or('status.eq.pending,status.eq.new')
+          .order('created_at', ascending: false);
+
+      // 5. Fetch all requests
+      final requestsRes = await _supabase
+          .from('jobs')
+          .select('*, profiles!jobs_client_id_fkey(full_name)')
+          .order('created_at', ascending: false);
+
       if (mounted) {
         setState(() {
           _pendingPayments = List<Map<String, dynamic>>.from(pendingRes);
           _unsettledJobs = List<Map<String, dynamic>>.from(unsettledRes);
           _escrowJobs = List<Map<String, dynamic>>.from(escrowRes);
+          _pendingTranslators = List<Map<String, dynamic>>.from(translatorsRes);
+          _allRequests = List<Map<String, dynamic>>.from(requestsRes);
 
           // Calculate metrics
           _heldEscrow = _escrowJobs.fold(0.0, (sum, item) {
@@ -123,6 +141,24 @@ class _AdminDashboardTabState extends State<AdminDashboardTab> with SingleTicker
       if (mounted) {
         setState(() => _loading = false);
       }
+    }
+  }
+
+  Future<void> _approveTranslator(String translatorId) async {
+    try {
+      await _supabase.from('profiles').update({
+        'status': 'active',
+      }).eq('id', translatorId);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text("Translator approved successfully."),
+          backgroundColor: Colors.green,
+        ));
+      }
+      _fetchData();
+    } catch (e) {
+      _showErrorDialog("Failed to approve translator: $e");
     }
   }
 
@@ -453,6 +489,26 @@ class _AdminDashboardTabState extends State<AdminDashboardTab> with SingleTicker
                 ],
               ),
             ),
+            Tab(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.group_add_outlined, size: 16),
+                  const SizedBox(width: 6),
+                  Text("Translators (${_pendingTranslators.length})"),
+                ],
+              ),
+            ),
+            Tab(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.list_alt_rounded, size: 16),
+                  const SizedBox(width: 6),
+                  Text("Requests (${_allRequests.length})"),
+                ],
+              ),
+            ),
           ],
         ),
 
@@ -466,6 +522,8 @@ class _AdminDashboardTabState extends State<AdminDashboardTab> with SingleTicker
                     _buildPaymentsTab(),
                     _buildSettleTab(),
                     _buildEscrowTab(),
+                    _buildTranslatorsTab(),
+                    _buildRequestsTab(),
                   ],
                 ),
         ),
@@ -895,6 +953,171 @@ class _AdminDashboardTabState extends State<AdminDashboardTab> with SingleTicker
                     ],
                   ),
                   const Icon(Icons.security_rounded, color: Colors.blueAccent, size: 28),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildTranslatorsTab() {
+    if (_pendingTranslators.isEmpty) {
+      return PremiumEmptyState(
+        title: "No Pending Translators",
+        subtitle: "There are no new translator registrations waiting for approval.",
+        icon: Icons.group_off_outlined,
+        brandBrown: widget.brandBrown,
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.all(20),
+      itemCount: _pendingTranslators.length,
+      itemBuilder: (context, index) {
+        final translator = _pendingTranslators[index];
+        final name = translator['full_name'] ?? "Unknown";
+        final office = translator['office_name'] ?? "N/A";
+        final email = translator['email'] ?? "No email provided";
+
+        return Container(
+          margin: const EdgeInsets.only(bottom: 16),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: widget.surfaceTheme,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: Colors.grey.shade200),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    name,
+                    style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 16, color: widget.brandBrown),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      "PENDING",
+                      style: GoogleFonts.inter(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.orange.shade800),
+                    ),
+                  )
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text("Office: $office", style: const TextStyle(fontWeight: FontWeight.w500)),
+              Text("Email: $email", style: TextStyle(fontSize: 12, color: widget.textSecTheme)),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () => _approveTranslator(translator['id']),
+                  icon: const Icon(Icons.check_circle_outline_rounded, size: 16),
+                  label: const Text("APPROVE TRANSLATOR"),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: widget.brandBrown,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildRequestsTab() {
+    if (_allRequests.isEmpty) {
+      return PremiumEmptyState(
+        title: "No Translation Requests",
+        subtitle: "There are no translation requests in the system yet.",
+        icon: Icons.list_alt_rounded,
+        brandBrown: widget.brandBrown,
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.all(20),
+      itemCount: _allRequests.length,
+      itemBuilder: (context, index) {
+        final job = _allRequests[index];
+        final clientName = job['profiles']?['full_name'] ?? "Unknown Client";
+        final status = job['status']?.toString().toUpperCase() ?? 'UNKNOWN';
+        final price = job['price'] != null ? "${job['price']} ETB" : "Not quoted yet";
+        final deliveryTime = job['delivery_time'] != null ? "Time needed: ${job['delivery_time']}" : '';
+
+        return Container(
+          margin: const EdgeInsets.only(bottom: 16),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: widget.surfaceTheme,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: Colors.grey.shade200),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "${job['from_lang']} → ${job['to_lang']}",
+                    style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 16, color: widget.brandBrown),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.blueGrey.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      status,
+                      style: GoogleFonts.inter(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.blueGrey.shade800),
+                    ),
+                  )
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text("Client: $clientName", style: const TextStyle(fontWeight: FontWeight.w500)),
+              Text("Job ID: #${job['id'].toString().substring(0, 8).toUpperCase()}", style: TextStyle(fontSize: 12, color: widget.textSecTheme)),
+              const Divider(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text("Quoted Price", style: TextStyle(fontSize: 11, color: widget.textSecTheme)),
+                      Text(
+                        price,
+                        style: GoogleFonts.inter(fontWeight: FontWeight.w900, fontSize: 14, color: widget.brandBrown),
+                      ),
+                    ],
+                  ),
+                  if (deliveryTime.isNotEmpty)
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.only(left: 16.0),
+                        child: Text(
+                          deliveryTime,
+                          style: TextStyle(fontSize: 12, color: Colors.grey.shade700, fontStyle: FontStyle.italic),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.right,
+                        ),
+                      ),
+                    )
                 ],
               ),
             ],

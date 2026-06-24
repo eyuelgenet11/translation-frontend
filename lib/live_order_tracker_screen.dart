@@ -788,8 +788,42 @@ class _LiveOrderTrackerScreenState extends State<LiveOrderTrackerScreen> {
   }
 
   Widget _buildQuotedState() {
+    final deliveryTime = _job['delivery_time']?.toString() ?? '';
     return Column(
       children: [
+        if (deliveryTime.isNotEmpty)
+          Container(
+            width: double.infinity,
+            margin: const EdgeInsets.only(bottom: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: brandColor.withValues(alpha: 0.07),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: brandColor.withValues(alpha: 0.2)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.timer_outlined, color: brandColor, size: 18),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "ESTIMATED COMPLETION TIME",
+                        style: TextStyle(fontSize: 9, fontWeight: FontWeight.w900, color: brandColor, letterSpacing: 0.8),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        deliveryTime,
+                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: textThemeHeader),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
         _buildPriceBreakdown(),
         const SizedBox(height: 24),
         _buildQuoteActions(),
@@ -855,6 +889,7 @@ class _LiveOrderTrackerScreenState extends State<LiveOrderTrackerScreen> {
   }
 
   Widget _buildProgressAnimation() {
+    final deliveryTime = _job['delivery_time']?.toString() ?? '';
     return Column(
       children: [
         LinearProgressIndicator(
@@ -868,7 +903,10 @@ class _LiveOrderTrackerScreenState extends State<LiveOrderTrackerScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text("Translator at work", style: TextStyle(fontSize: 11, color: textThemeSec, fontWeight: FontWeight.w600)),
-            Text("Est. Delivery: Today", style: TextStyle(fontSize: 11, color: brandColor, fontWeight: FontWeight.w800)),
+            Text(
+              deliveryTime.isNotEmpty ? "Est. Delivery: $deliveryTime" : "In progress...",
+              style: TextStyle(fontSize: 11, color: brandColor, fontWeight: FontWeight.w800),
+            ),
           ],
         ),
       ],
@@ -1225,7 +1263,12 @@ class _LiveOrderTrackerScreenState extends State<LiveOrderTrackerScreen> {
         _summaryRow("Job ID", _job['id'].toString().substring(0, 8).toUpperCase()),
         _summaryRow("Languages", "${_job['from_lang']} → ${_job['to_lang']}"),
         _summaryRow("Base Price", "${(_job['price'] ?? 0).toStringAsFixed(2)} ETB"),
-        _summaryRow("Urgency", "${_job['urgency'] ?? 'Normal'} (+${(_job['urgency_fee'] ?? 0).toStringAsFixed(2)} ETB)"),
+        _summaryRow(
+          "Urgency / Delivery", 
+          ((_job['delivery_time'] ?? '').toString().isNotEmpty) 
+              ? _job['delivery_time'].toString() 
+              : "${_job['urgency'] ?? 'Normal'} (+${(_job['urgency_fee'] ?? 0).toStringAsFixed(2)} ETB)"
+        ),
         _summaryRow("Total (with Tax)", "${(((_job['price'] ?? 0) + (_job['urgency_fee'] ?? 0)) * 1.15).toStringAsFixed(2)} ETB"),
       ],
     );

@@ -23,6 +23,7 @@ class _TranslatorJobDetailScreenState extends State<TranslatorJobDetailScreen> {
   final _supabase = Supabase.instance.client;
   late Map<String, dynamic> _job;
   final _priceController = TextEditingController();
+  final _timeController = TextEditingController();
   bool _loading = false;
   PlatformFile? _selectedFile;
   RealtimeChannel? _jobChannel;
@@ -63,6 +64,7 @@ class _TranslatorJobDetailScreenState extends State<TranslatorJobDetailScreen> {
   void dispose() {
     _jobChannel?.unsubscribe();
     _priceController.dispose();
+    _timeController.dispose();
     super.dispose();
   }
 
@@ -76,8 +78,13 @@ class _TranslatorJobDetailScreenState extends State<TranslatorJobDetailScreen> {
 
   Future<void> _sendQuote() async {
     final price = double.tryParse(_priceController.text.trim());
+    final timeNeeded = _timeController.text.trim();
     if (price == null || price <= 0) {
       _snack('Enter a valid price in ETB.', isError: true);
+      return;
+    }
+    if (timeNeeded.isEmpty) {
+      _snack('Enter the time needed (e.g., 2 days).', isError: true);
       return;
     }
     setState(() => _loading = true);
@@ -86,6 +93,7 @@ class _TranslatorJobDetailScreenState extends State<TranslatorJobDetailScreen> {
       final newStatus = delivery ? 'pending' : 'quoted';
       await _supabase.from('jobs').update({
         'price': price,
+        'delivery_time': timeNeeded,
         'status': newStatus,
       }).eq('id', _job['id']);
       _snack(delivery ? 'Quote saved.' : 'Quote sent to customer.');
@@ -306,6 +314,17 @@ class _TranslatorJobDetailScreenState extends State<TranslatorJobDetailScreen> {
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           decoration: InputDecoration(
             hintText: '0.00',
+            filled: true,
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+        ),
+        const SizedBox(height: 12),
+        const Text('Time needed', style: TextStyle(fontWeight: FontWeight.w700)),
+        const SizedBox(height: 8),
+        TextField(
+          controller: _timeController,
+          decoration: InputDecoration(
+            hintText: 'e.g., 2 days',
             filled: true,
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
           ),

@@ -37,7 +37,7 @@ class _UploadScreenState extends State<UploadScreen> {
   // --- DYNAMIC LANGUAGES ---
   List<String> allLanguages = [
     'English', 'Amharic', 'Tigrinya', 'Oromiffa', 'French', 'Arabic', 
-    'Sidama', 'Wolayta', 'Somali'
+    'Sidama', 'Wolayta', 'Somali', 'Afar', 'Spanish', 'Chinese', 'German', 'Italian'
   ];
   bool loadingLanguages = false;
 
@@ -98,8 +98,24 @@ class _UploadScreenState extends State<UploadScreen> {
           icon: Icon(Icons.arrow_back_ios_new, color: textThemeHeader, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text("TRANSLATION REQUEST",
-            style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: 1.2, color: brandBrown)),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: brandBrown.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Text(
+                "TIRGUMSRA",
+                style: TextStyle(fontWeight: FontWeight.w900, fontSize: 9, letterSpacing: 1.5, color: brandBrown),
+              ),
+            ),
+            const SizedBox(width: 8),
+            const Text("New Request",
+                style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: Colors.black87)),
+          ],
+        ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
@@ -124,22 +140,7 @@ class _UploadScreenState extends State<UploadScreen> {
             _buildSectionLabelWithIcon(Icons.attach_file_rounded, "DOCUMENT ATTACHMENT"),
             const SizedBox(height: 16),
             _documentPickerArea(),
-            const SizedBox(height: 32),
-            _buildSectionLabelWithIcon(Icons.speed_rounded, "SERVICE URGENCY"),
-            const SizedBox(height: 16),
-            Container(
-              decoration: BoxDecoration(
-                color: isDark ? Colors.white.withValues(alpha: 0.05) : const Color(0xFFF1F5F9),
-                borderRadius: BorderRadius.circular(18),
-              ),
-              child: Column(
-                children: [
-                  _buildUrgencyRadio("Normal", "Today", 0),
-                  _buildUrgencyRadio("Express", "Less than 2hr", 150),
-                  _buildUrgencyRadio("Rush", "Less than 1hr", 300),
-                ],
-              ),
-            ),
+            // Service urgency has been removed per user request
             const SizedBox(height: 32),
 
             const SizedBox(height: 48),
@@ -195,8 +196,6 @@ class _UploadScreenState extends State<UploadScreen> {
         'to_lang': toLang,
         'file_url': finalFileUrl,
         'status': 'pending',
-        'urgency': urgency,
-        'urgency_fee': urgencyFee,
         'created_at': DateTime.now().toIso8601String(),
       }).select().single();
 

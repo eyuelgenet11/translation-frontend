@@ -81,6 +81,9 @@ class _MarketplaceHomeScreenState extends State<MarketplaceHomeScreen> {
   // Active job for tracker tab
   Map<String, dynamic>? _activeTrackerJob;
   RealtimeChannel? _globalJobsSubscription;
+  RealtimeChannel? _notificationsSubscription;
+  
+  int _unreadNotificationCount = 0;
 
   @override
   void initState() {
@@ -96,6 +99,46 @@ class _MarketplaceHomeScreenState extends State<MarketplaceHomeScreen> {
     PushNotificationService().saveTokenToSupabase();
     _enforceRolesOnLaunch();
     _redirectTranslatorsToPortal();
+    _fetchUnreadNotificationCount();
+    _subscribeToNotifications();
+  }
+
+  Future<void> _fetchUnreadNotificationCount() async {
+    final user = supabase.auth.currentUser;
+    if (user == null) return;
+    try {
+      final res = await supabase
+          .from('notifications')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('is_read', false);
+      if (mounted) {
+        setState(() => _unreadNotificationCount = (res as List).length);
+      }
+    } catch (e) {
+      debugPrint("Error fetching unread notification count: $e");
+    }
+  }
+
+  void _subscribeToNotifications() {
+    final user = supabase.auth.currentUser;
+    if (user == null) return;
+    _notificationsSubscription = supabase
+        .channel('public:notifications:${user.id}')
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: 'notifications',
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: 'user_id',
+            value: user.id,
+          ),
+          callback: (payload) {
+            _fetchUnreadNotificationCount(); // Re-fetch on any insert/update
+          },
+        )
+        .subscribe();
   }
 
   Future<void> _redirectTranslatorsToPortal() async {
@@ -361,31 +404,7 @@ class _MarketplaceHomeScreenState extends State<MarketplaceHomeScreen> {
                 body: "Order #${payload.newRecord['id'].toString().substring(0,8)} is now ${newStatus.toUpperCase()}",
               );
 
-              ScaffoldMessenger.of(context).removeCurrentSnackBar();
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Row(
-                    children: [
-                      const Icon(Icons.track_changes_rounded, color: Colors.white, size: 18),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text("Live Tracking: Order #${payload.newRecord['id'].toString().substring(0,8)} is now ${newStatus.toUpperCase()}",
-                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                      ),
-                    ],
-                  ),
-                  backgroundColor: brandBrown,
-                  duration: const Duration(seconds: 3),
-                  behavior: SnackBarBehavior.floating,
-                  action: SnackBarAction(
-                    label: "VIEW",
-                    textColor: Colors.white,
-                    onPressed: () {
-                      Navigator.pushNamed(context, '/live_tracker', arguments: payload.newRecord);
-                    },
-                  ),
-                ),
-              );
+              // The SnackBar for 'Live Tracking' has been removed to reduce repetition
               _fetchActiveTrackerJob();
             }
           },
@@ -419,21 +438,13 @@ class _MarketplaceHomeScreenState extends State<MarketplaceHomeScreen> {
           callback: (payload) {
             // Only trigger if I am an admin
             if (mounted && _isDesignatedAdmin) {
-               final eventType = payload.eventType.name.toUpperCase();
-               if (payload.newRecord == null || payload.newRecord.isEmpty) return;
+               if (payload.newRecord.isEmpty) return;
 
                final status = (payload.newRecord['status'] ?? 'NEW').toString().toLowerCase();
                
                if (status == 'awaiting verification') {
                  NotificationSoundService.playNotificationSound();
                  _showAdminPaymentAlert(
-                   job: payload.newRecord,
-                 );
-               } else {
-                 NotificationSoundService.playNotificationSound();
-                 _showCriticalAlert(
-                   title: "Admin System Alert",
-                   message: "A database change occurred: $eventType\nThe current job status is now ${status.toUpperCase()}.",
                    job: payload.newRecord,
                  );
                }
@@ -590,6 +601,7 @@ class _MarketplaceHomeScreenState extends State<MarketplaceHomeScreen> {
     _profileSubscription?.cancel();
     _customerSubscription?.cancel();
     _globalJobsSubscription?.unsubscribe();
+    _notificationsSubscription?.unsubscribe();
     _searchController.dispose();
     super.dispose();
   }
@@ -627,11 +639,7 @@ class _MarketplaceHomeScreenState extends State<MarketplaceHomeScreen> {
         setState(() {
           allTranslators = List<Map<String, dynamic>>.from(mergedData);
           
-          // Filter out Geez and Selam offices
-          allTranslators.removeWhere((t) {
-            final name = (t['office_name'] ?? t['full_name'] ?? '').toLowerCase();
-            return name.contains('geez') || name.contains('selam');
-          });
+          // Removed hardcoded filter for Geez and Selam
 
           // Make Zamzam recommended by boosting its rating and review count
           for (var t in allTranslators) {
@@ -1485,11 +1493,14 @@ class _MarketplaceHomeScreenState extends State<MarketplaceHomeScreen> {
           },
           onProfileTapped: () => setState(() => _currentIndex = 3),
           onLanguageToggle: () => LocaleController.toggleLocale(),
-          onNotificationTapped: () {
-            Navigator.push(
+          unreadNotificationCount: _unreadNotificationCount,
+          onNotificationTapped: () async {
+            await Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const NotificationsScreenWrapper()),
             );
+            // Refresh count when returning
+            _fetchUnreadNotificationCount();
           },
         );
         break;

@@ -36,19 +36,71 @@ class TrackerTab extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(24, 40, 24, 10),
-            child: Text("Live Tracker",
-                style: GoogleFonts.inter(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: textMainTheme)),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.fromLTRB(24, 50, 24, 28),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [brandBrown, brandBrown.withValues(alpha: 0.75)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: const BorderRadius.only(
+                bottomLeft: Radius.circular(32),
+                bottomRight: Radius.circular(32),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: brandBrown.withValues(alpha: 0.3),
+                  blurRadius: 20,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: 7, height: 7,
+                            decoration: const BoxDecoration(color: Colors.redAccent, shape: BoxShape.circle),
+                          ),
+                          const SizedBox(width: 5),
+                          const Text("LIVE", style: TextStyle(fontSize: 9, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: 1)),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  "Live Tracker",
+                  style: GoogleFonts.inter(
+                    fontSize: 30,
+                    fontWeight: FontWeight.w900,
+                    color: Colors.white,
+                    height: 1.1,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  "Track your document in real-time.",
+                  style: TextStyle(fontSize: 13, color: Colors.white.withValues(alpha: 0.7)),
+                ),
+              ],
+            ),
           ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-            child: Text("Track your document in real-time",
-                style: TextStyle(fontSize: 14, color: textSecTheme)),
-          ),
+
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Column(

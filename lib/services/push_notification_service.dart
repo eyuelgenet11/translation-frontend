@@ -97,6 +97,7 @@ class PushNotificationService {
           title: notification.title ?? "New Notification",
           body: notification.body ?? "",
         );
+        _saveNotificationToDb(message);
       }
       debugPrint('Foreground Message: ${notification?.title}');
     });
@@ -104,6 +105,7 @@ class PushNotificationService {
     // 4. Handle when app is opened from a BACKGROUND notification tap
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
       debugPrint('App opened from background notification: ${message.notification?.title}');
+      _saveNotificationToDb(message);
       // Navigation is handled by the root navigator if needed
     });
 
@@ -111,12 +113,33 @@ class PushNotificationService {
     final RemoteMessage? initialMessage = await _fcm.getInitialMessage();
     if (initialMessage != null) {
       debugPrint('App launched from terminated notification: ${initialMessage.notification?.title}');
+      _saveNotificationToDb(initialMessage);
     }
 
     // 6. Handle token refresh
     _fcm.onTokenRefresh.listen((newToken) {
       _updateTokenInSupabase(newToken);
     });
+  }
+
+  Future<void> _saveNotificationToDb(RemoteMessage message) async {
+    final notification = message.notification;
+    if (notification == null) return;
+    
+    final userId = _supabase.auth.currentUser?.id;
+    if (userId == null) return;
+
+    try {
+      // Insert external push notification into our in-app Supabase history
+      await _supabase.from('notifications').insert({
+        'user_id': userId,
+        'title': notification.title ?? 'New Notification',
+        'message': notification.body ?? '',
+        'is_read': false,
+      });
+    } catch (e) {
+      debugPrint("Failed to save push notification to DB: $e");
+    }
   }
 
   Future<void> showLocalNotification({required String title, required String body}) async {

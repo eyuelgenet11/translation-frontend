@@ -1,5 +1,6 @@
 {
   "hosting": {
+    "site": "geez-script-market",
     "public": "public",
     "cleanUrls": true,
     "ignore": [

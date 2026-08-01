@@ -37,6 +37,7 @@ class _LoginScreenState extends State<LoginScreen>
   final supabase = Supabase.instance.client;
   late StreamSubscription<AuthState> _authSub;
 
+
   @override
   void initState() {
     super.initState();

@@ -80,22 +80,50 @@ class _AdminDashboardTabState extends State<AdminDashboardTab> with SingleTicker
     setState(() => _loading = true);
 
     try {
-      // Use SECURITY DEFINER RPC functions to bypass RLS
-      final pendingRes = await _supabase.rpc('admin_get_pending_payments');
-      final unsettledRes = await _supabase.rpc('admin_get_unsettled_jobs');
-      final escrowRes = await _supabase.rpc('admin_get_escrow_jobs');
-      final translatorsRes = await _supabase.rpc('admin_get_pending_translators');
-      final requestsRes = await _supabase.rpc('admin_get_all_requests');
-      final settledRes = await _supabase.rpc('admin_get_settled_history');
+      // Use SECURITY DEFINER RPC functions to bypass RLS, with direct query fallbacks
+      List pendingRes = [];
+      try {
+        pendingRes = await _supabase.rpc('admin_get_pending_payments') as List;
+      } catch (e) {
+        debugPrint("RPC admin_get_pending_payments error: $e");
+      }
+
+      if (pendingRes.isEmpty) {
+        final directData = await _supabase
+            .from('jobs')
+            .select('*')
+            .or('status.eq.awaiting_verification,status.eq.awaiting_payment,status.eq.pending')
+            .not('transaction_ref', 'is', null)
+            .order('created_at', ascending: false);
+        pendingRes = directData as List;
+      }
+
+      List unsettledRes = [];
+      try { unsettledRes = await _supabase.rpc('admin_get_unsettled_jobs') as List; } catch (_) {}
+      
+      List escrowRes = [];
+      try { escrowRes = await _supabase.rpc('admin_get_escrow_jobs') as List; } catch (_) {}
+      
+      List translatorsRes = [];
+      try { translatorsRes = await _supabase.rpc('admin_get_pending_translators') as List; } catch (_) {}
+      
+      List requestsRes = [];
+      try { requestsRes = await _supabase.rpc('admin_get_all_requests') as List; } catch (_) {
+        final directReq = await _supabase.from('jobs').select('*').order('created_at', ascending: false);
+        requestsRes = directReq as List;
+      }
+      
+      List settledRes = [];
+      try { settledRes = await _supabase.rpc('admin_get_settled_history') as List; } catch (_) {}
 
       if (mounted) {
         setState(() {
-          _pendingPayments = List<Map<String, dynamic>>.from(pendingRes as List);
-          _unsettledJobs = List<Map<String, dynamic>>.from(unsettledRes as List);
-          _escrowJobs = List<Map<String, dynamic>>.from(escrowRes as List);
-          _pendingTranslators = List<Map<String, dynamic>>.from(translatorsRes as List);
-          _allRequests = List<Map<String, dynamic>>.from(requestsRes as List);
-          _settledHistory = List<Map<String, dynamic>>.from(settledRes as List);
+          _pendingPayments = List<Map<String, dynamic>>.from(pendingRes);
+          _unsettledJobs = List<Map<String, dynamic>>.from(unsettledRes);
+          _escrowJobs = List<Map<String, dynamic>>.from(escrowRes);
+          _pendingTranslators = List<Map<String, dynamic>>.from(translatorsRes);
+          _allRequests = List<Map<String, dynamic>>.from(requestsRes);
+          _settledHistory = List<Map<String, dynamic>>.from(settledRes);
 
           debugPrint("Admin Dashboard Fetched Data:");
           debugPrint("- Pending Payments: ${_pendingPayments.length}");
@@ -159,9 +187,11 @@ class _AdminDashboardTabState extends State<AdminDashboardTab> with SingleTicker
 
   Future<void> _approvePayment(String jobId) async {
     try {
-      await _supabase.rpc('admin_approve_payment', params: {
-        'p_job_id': jobId,
-      });
+      try {
+        await _supabase.rpc('admin_approve_payment', params: {'p_job_id': jobId});
+      } catch (_) {
+        await _supabase.from('jobs').update({'status': 'In Progress'}).eq('id', jobId);
+      }
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
@@ -176,10 +206,17 @@ class _AdminDashboardTabState extends State<AdminDashboardTab> with SingleTicker
 
   Future<void> _rejectPayment(String jobId, String reason) async {
     try {
-      await _supabase.rpc('admin_reject_payment', params: {
-        'p_job_id': jobId,
-        'p_reason': reason,
-      });
+      try {
+        await _supabase.rpc('admin_reject_payment', params: {
+          'p_job_id': jobId,
+          'p_reason': reason,
+        });
+      } catch (_) {
+        await _supabase.from('jobs').update({
+          'status': 'awaiting_payment',
+          'rejection_reason': reason,
+        }).eq('id', jobId);
+      }
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(

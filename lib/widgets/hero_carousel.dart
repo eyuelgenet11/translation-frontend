@@ -12,7 +12,7 @@ class HeroCarousel extends StatelessWidget {
     final List<Map<String, String>> slides = [
       {
         'url': 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?q=80&w=1000',
-        'title': "Ge'ez Legal Experts",
+        'title': "Legal Experts",
         'subtitle': "Certified translations for court & official use"
       },
       {

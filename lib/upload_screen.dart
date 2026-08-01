@@ -1,10 +1,17 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io' as io;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:pdfx/pdfx.dart';
+import 'package:archive/archive.dart';
+import 'services/api_service.dart';
 import 'services/notification_sound_service.dart';
+import 'payment_screen.dart';
 import 'l10n/app_localizations.dart';
 
 class UploadScreen extends StatefulWidget {
@@ -29,10 +36,15 @@ class _UploadScreenState extends State<UploadScreen> {
   String? toLang;
   bool processing = false;
   String urgency = 'Normal';
-  double urgencyFee = 0;
+  bool isHandwritten = false; // admin gets Accept/Reject prompt when true
 
+  // Auto page count (calculated by system from uploaded document)
+  int _autoPageCount = 1;
+  // Customer phone — collected here, sent to admin via Telegram
+  final TextEditingController _phoneController = TextEditingController();
 
   List<PlatformFile> _pickedFiles = [];
+  List<XFile> _pickedImages = []; // Images picked from gallery/camera
 
   // --- DYNAMIC LANGUAGES ---
   List<String> allLanguages = [
@@ -75,9 +87,106 @@ class _UploadScreenState extends State<UploadScreen> {
     }
   }
 
+  Future<int> _countPagesFromBytes(Uint8List bytes, String filename) async {
+    final nameLower = filename.toLowerCase();
+
+    // --- A. PDF FILES (Using pdfx native PDFium rendering engine) ---
+    if (nameLower.endsWith('.pdf')) {
+      try {
+        final pdfDoc = await PdfDocument.openData(bytes);
+        final int count = pdfDoc.pagesCount;
+        await pdfDoc.close();
+        debugPrint("pdfx engine count for $filename: $count");
+        if (count > 0) return count;
+      } catch (e) {
+        debugPrint("pdfx engine notice for $filename: $e (using fallback)");
+      }
+      return _fallbackPdfCount(bytes);
+    }
+
+    // --- B. WORD DOCX FILES (Extracting docProps/app.xml from ZIP) ---
+    if (nameLower.endsWith('.docx')) {
+      try {
+        final archive = ZipDecoder().decodeBytes(bytes);
+        for (final file in archive) {
+          if (file.name == 'docProps/app.xml') {
+            final String xml = utf8.decode(file.content as List<int>, allowMalformed: true);
+            final match = RegExp(r'<Pages>(\d+)</Pages>').firstMatch(xml);
+            if (match != null && match.group(1) != null) {
+              final int count = int.tryParse(match.group(1)!) ?? 1;
+              debugPrint("DOCX XML page count for $filename: $count");
+              return count > 0 ? count : 1;
+            }
+          }
+        }
+      } catch (e) {
+        debugPrint("DOCX parse error for $filename: $e");
+      }
+      return 1;
+    }
+
+    return 1;
+  }
+
+  int _fallbackPdfCount(Uint8List bytes) {
+    try {
+      final String fullContent = latin1.decode(bytes, allowInvalid: true);
+      int maxFoundPages = 0;
+
+      final RegExp countRegex = RegExp(r'/Count\s*(\d+)');
+      final RegExp kidsRegex = RegExp(r'/Kids\s*\[\s*([^\]]+)\]');
+      final RegExp pageRegex = RegExp(r'/Type\s*/Page(?![a-zA-Z])');
+
+      for (final m in countRegex.allMatches(fullContent)) {
+        final int p = int.tryParse(m.group(1) ?? '') ?? 0;
+        if (p > maxFoundPages) maxFoundPages = p;
+      }
+      for (final m in kidsRegex.allMatches(fullContent)) {
+        final String kidsStr = m.group(1) ?? '';
+        final int rCount = RegExp(r'\b\d+\s+\d+\s+R\b').allMatches(kidsStr).length;
+        if (rCount > maxFoundPages) maxFoundPages = rCount;
+      }
+      final int directPageCount = pageRegex.allMatches(fullContent).length;
+      if (directPageCount > maxFoundPages) maxFoundPages = directPageCount;
+
+      if (maxFoundPages > 0) return maxFoundPages;
+    } catch (_) {}
+    return 1;
+  }
+
+  Future<void> _updateAutoPageCount(List<PlatformFile> files) async {
+    int total = 0;
+    for (var file in files) {
+      try {
+        Uint8List? bytes = file.bytes;
+        if ((bytes == null || bytes.isEmpty) && file.path != null && file.path!.isNotEmpty) {
+          final io.File f = io.File(file.path!);
+          if (await f.exists()) {
+            bytes = await f.readAsBytes();
+          }
+        }
+        if (bytes != null && bytes.isNotEmpty) {
+          final int count = await _countPagesFromBytes(bytes, file.name);
+          debugPrint("Total Page Count for ${file.name}: $count");
+          total += count;
+        } else {
+          total += 1;
+        }
+      } catch (e) {
+        debugPrint("Error in _updateAutoPageCount for ${file.name}: $e");
+        total += 1;
+      }
+    }
+    if (mounted) {
+      setState(() {
+        _autoPageCount = total > 0 ? total : 1;
+      });
+    }
+  }
+
   @override
   void dispose() {
-
+    _phoneController.dispose();
     super.dispose();
   }
 
@@ -134,15 +243,25 @@ class _UploadScreenState extends State<UploadScreen> {
             const SizedBox(height: 12),
             _infoTakingBox(
                 label: "Target Language",
-                child: _customDropdown(toLang, (v) => setState(() => toLang = v), 
+                child: _customDropdown(toLang, (v) => setState(() => toLang = v),
                     allLanguages.where((l) => l != fromLang).toList())),
+            const SizedBox(height: 24),
+            // Customer contact
+            _buildSectionLabelWithIcon(Icons.contact_phone_outlined, "YOUR CONTACT"),
+            const SizedBox(height: 12),
+            _phoneField(),
+            const SizedBox(height: 24),
+            // Urgency selector
+            _buildSectionLabelWithIcon(Icons.timer_outlined, "SERVICE URGENCY"),
+            const SizedBox(height: 12),
+            _urgencySelector(),
             const SizedBox(height: 32),
             _buildSectionLabelWithIcon(Icons.attach_file_rounded, "DOCUMENT ATTACHMENT"),
             const SizedBox(height: 16),
             _documentPickerArea(),
-            // Service urgency has been removed per user request
-            const SizedBox(height: 32),
-
+            const SizedBox(height: 20),
+            // Handwritten document toggle
+            _handwrittenToggle(),
             const SizedBox(height: 48),
             _actionButton(),
             const SizedBox(height: 40),
@@ -155,8 +274,14 @@ class _UploadScreenState extends State<UploadScreen> {
   // --- ACTIONS ---
 
   Future<void> _submitJob() async {
-    if (fromLang == null || toLang == null || _pickedFiles.isEmpty) {
-      _showSnack("Please select languages and upload a document");
+    final String phone = _phoneController.text.trim();
+
+    if (fromLang == null || toLang == null || (_pickedFiles.isEmpty && _pickedImages.isEmpty)) {
+      _showSnack("Please select languages and upload a document or image");
+      return;
+    }
+    if (phone.isEmpty) {
+      _showSnack("Please enter your phone number");
       return;
     }
 
@@ -170,39 +295,139 @@ class _UploadScreenState extends State<UploadScreen> {
         return;
       }
 
-      List<String> uploadedUrls = [];
-      for (var file in _pickedFiles) {
-        final fileName = "${DateTime.now().millisecondsSinceEpoch}_${file.name}";
-        final filePath = "jobs/${user.id}/$fileName";
+      // Determine file name and bytes - support both documents and images
+      String filename;
+      List<int> allBytes = [];
 
-        final bytes = file.bytes;
-        if (bytes != null) {
-           await supabase.storage.from('translations').uploadBinary(filePath, bytes);
-        } else if (file.path != null) {
-           final f = io.File(file.path!);
-           await supabase.storage.from('translations').upload(filePath, f);
+      if (_pickedFiles.isNotEmpty) {
+        // Document path
+        final PlatformFile firstFile = _pickedFiles.first;
+        filename = firstFile.name;
+        for (var f in _pickedFiles) {
+          if (f.bytes != null) {
+            allBytes.addAll(f.bytes!);
+          } else if (f.path != null) {
+            final raw = await io.File(f.path!).readAsBytes();
+            allBytes.addAll(raw);
+          }
         }
-        
-        final String publicUrl = supabase.storage.from('translations').getPublicUrl(filePath);
-        uploadedUrls.add(publicUrl);
+      } else {
+        // Image path — use first image name & bytes
+        final XFile firstImage = _pickedImages.first;
+        filename = firstImage.name.isNotEmpty ? firstImage.name : 'image_${DateTime.now().millisecondsSinceEpoch}.jpg';
+        for (var img in _pickedImages) {
+          final raw = await img.readAsBytes();
+          allBytes.addAll(raw);
+        }
       }
-      
-      final String finalFileUrl = uploadedUrls.join(',');
 
-      final data = await supabase.from('jobs').insert({
-        'client_id': user.id,
-        'translator_id': widget.company['id'],
-        'from_lang': fromLang,
-        'to_lang': toLang,
-        'file_url': finalFileUrl,
-        'status': 'pending',
-        'created_at': DateTime.now().toIso8601String(),
-      }).select().single();
+      final String merchantNameStr = widget.company['office_name'] ?? widget.company['full_name'] ?? 'General Marketplace';
 
-      if (mounted) {
+      Map<String, dynamic> result;
+      try {
+        result = await ApiService.submitJobWithNotify(
+          fileBytes:     Uint8List.fromList(allBytes),
+          filename:      filename,
+          userId:        user.id,
+          fromLang:      fromLang!,
+          toLang:        toLang!,
+          pageCount:     _autoPageCount,
+          urgency:       urgency,
+          translatorId:  widget.company['id']?.toString(),
+          merchantName:  merchantNameStr,
+          isHandwritten: isHandwritten,
+          customerPhone: phone,
+        );
+      } catch (e) {
+        result = {'success': false, 'message': e.toString()};
+      }
+
+      // Fallback: If backend server is unreachable, upload directly via Supabase client
+      if (result['success'] != true) {
+        debugPrint("Backend unreachable: ${result['message']}. Using direct Supabase fallback...");
+        
+        // Use same path format as backend: jobs/{userId}/{timestamp}_{filename}
+        final String storagePath = 'jobs/${user.id}/${DateTime.now().millisecondsSinceEpoch}_$filename';
+        
+        try {
+          await supabase.storage.from('translations').uploadBinary(
+            storagePath,
+            Uint8List.fromList(allBytes),
+            fileOptions: FileOptions(
+              contentType: filename.toLowerCase().endsWith('.pdf') ? 'application/pdf' : 'image/jpeg',
+            ),
+          );
+        } catch (storageErr) {
+          debugPrint("Storage upload note: $storageErr");
+        }
+
+        final String fileUrl = supabase.storage.from('translations').getPublicUrl(storagePath);
+
+        const int pricePerPage = 250;
+        final double basePrice = (_autoPageCount * pricePerPage).toDouble();
+        // Apply 15% service fee on base price
+        final double serviceFee = basePrice * 0.15;
+        final double urgencyFee = urgency == 'Super Urgent' ? 500.0 : (urgency == 'Urgent' ? 250.0 : 0.0);
+        final double totalPrice = basePrice + serviceFee + urgencyFee;
+
+        // Only use translator_id if it's a valid UUID (not a display-only string like 'wisdom-002')
+        final rawTranslatorId = widget.company['id']?.toString();
+        final uuidRegex = RegExp(r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$', caseSensitive: false);
+        final String? validTranslatorId = (rawTranslatorId != null && uuidRegex.hasMatch(rawTranslatorId)) ? rawTranslatorId : null;
+
+        final Map<String, dynamic> jobPayload = {
+          'client_id': user.id,
+          'from_lang': fromLang,
+          'to_lang': toLang,
+          'page_count': _autoPageCount,
+          'urgency': urgency,
+          'urgency_fee': urgencyFee,
+          'file_url': fileUrl,
+          'status': isHandwritten ? 'Awaiting Review' : 'pending',
+          'is_handwritten': isHandwritten,
+          'client_phone': phone,
+          'price': totalPrice,
+        };
+        if (validTranslatorId != null) jobPayload['translator_id'] = validTranslatorId;
+
+        final insertedJob = await supabase.from('jobs').insert(jobPayload).select().single();
+
+        // Send Telegram Notification to Admin containing Merchant Name & File URL
+        ApiService.notifyTelegram(
+          jobId: insertedJob['id']?.toString() ?? '',
+          merchantName: merchantNameStr,
+          fromLang: fromLang!,
+          toLang: toLang!,
+          pages: _autoPageCount,
+          urgency: urgency,
+          isHandwritten: isHandwritten,
+          customerPhone: phone,
+          fileUrl: fileUrl,
+          fileName: filename,
+        );
+
+        result = {'success': true, 'data': insertedJob};
+      }
+
+      if (!mounted) return;
+
+      if (result['success'] == true) {
         NotificationSoundService.playSuccessSound();
-        _showSnack("✅ Job submitted! Translator notified.");
-        Navigator.pushReplacementNamed(context, '/live_tracker', arguments: data);
+        final jobData = result['data'] as Map<String, dynamic>? ?? {};
+
+        if (isHandwritten) {
+          _showSnack('✅ Submitted! Admin will review your handwritten document.');
+          Navigator.pushReplacementNamed(context, '/live_tracker', arguments: jobData);
+        } else {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (_) => PaymentScreen(job: jobData),
+            ),
+          );
+        }
+      } else {
+        _showSnack("Submission failed: ${result['message']}");
       }
     } catch (e) {
       _showSnack("Upload failed: ${e.toString()}");
@@ -213,24 +438,182 @@ class _UploadScreenState extends State<UploadScreen> {
 
   // --- UI COMPONENTS ---
 
-  Widget _buildUrgencyRadio(String value, String subtitle, double fee) {
-    bool isSel = urgency == value;
-    return RadioListTile<String>(
-      value: value,
-      groupValue: urgency,
-      onChanged: (v) {
-        if (v != null) {
-          setState(() {
-            urgency = v;
-            urgencyFee = fee;
-          });
-        }
-      },
-      activeColor: brandBrown,
-      title: Text(value, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: isSel ? brandBrown : textThemeHeader)),
-      subtitle: Text(subtitle, style: TextStyle(fontSize: 12, color: textThemeSec)),
-      secondary: Text(fee == 0 ? "Free" : "+$fee ETB", style: TextStyle(fontWeight: FontWeight.bold, color: isSel ? brandBrown : textThemeSec, fontSize: 13)),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+  // Phone number field — collected at upload time, sent to admin via Telegram
+  Widget _phoneField() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+      decoration: BoxDecoration(
+        color: isDark ? Colors.white.withValues(alpha: 0.05) : const Color(0xFFF1F5F9),
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.phone_outlined, size: 18, color: brandBrown.withValues(alpha: 0.7)),
+          const SizedBox(width: 10),
+          Expanded(
+            child: TextField(
+              controller: _phoneController,
+              keyboardType: TextInputType.phone,
+              inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9+]'))],
+              style: TextStyle(
+                fontWeight: FontWeight.w700,
+                fontSize: 15,
+                color: textThemeHeader,
+              ),
+              decoration: InputDecoration(
+                hintText: '09XXXXXXXX  or  +2519...',
+                hintStyle: TextStyle(
+                  color: isDark ? Colors.white24 : Colors.black26,
+                  fontSize: 13,
+                ),
+                border: InputBorder.none,
+                contentPadding: const EdgeInsets.symmetric(vertical: 14),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Handwritten document toggle — flags order for admin manual accept/reject
+
+  Widget _handwrittenToggle() {
+    return GestureDetector(
+      onTap: () => setState(() => isHandwritten = !isHandwritten),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+        decoration: BoxDecoration(
+          color: isHandwritten
+              ? const Color(0xFF895129).withValues(alpha: 0.10)
+              : (isDark ? Colors.white.withValues(alpha: 0.04) : const Color(0xFFF1F5F9)),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: isHandwritten ? brandBrown : Colors.transparent,
+            width: 1.5,
+          ),
+        ),
+        child: Row(
+          children: [
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              width: 44,
+              height: 26,
+              padding: const EdgeInsets.all(3),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(13),
+                color: isHandwritten ? brandBrown : (isDark ? Colors.white24 : Colors.black26),
+              ),
+              child: AnimatedAlign(
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeInOut,
+                alignment: isHandwritten ? Alignment.centerRight : Alignment.centerLeft,
+                child: Container(
+                  width: 20,
+                  height: 20,
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Handwritten Document',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 14,
+                      color: isHandwritten ? brandBrown : textThemeHeader,
+                    ),
+                  ),
+                  Text(
+                    'Admin will review and confirm before processing',
+                    style: TextStyle(fontSize: 11, color: textThemeSec),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.draw_outlined,
+              color: isHandwritten ? brandBrown : textThemeSec,
+              size: 20,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+
+
+  // Urgency selector — labels only, no prices shown to user
+  Widget _urgencySelector() {
+    final options = [
+      const _UrgencyOption('Normal',      'Standard delivery',         Icons.access_time_rounded),
+      const _UrgencyOption('Urgent',      'Prioritized processing',    Icons.bolt_rounded),
+      const _UrgencyOption('Super Urgent','Immediate attention needed', Icons.local_fire_department_rounded),
+    ];
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: isDark ? Colors.white.withValues(alpha: 0.05) : const Color(0xFFF1F5F9),
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Column(
+        children: options.map((opt) {
+          final bool isSel = urgency == opt.label;
+          return GestureDetector(
+            onTap: () => setState(() => urgency = opt.label),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              margin: const EdgeInsets.symmetric(vertical: 3, horizontal: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: isSel
+                    ? brandBrown.withValues(alpha: 0.12)
+                    : Colors.transparent,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: isSel ? brandBrown : Colors.transparent,
+                  width: 1.5,
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(opt.icon,
+                      size: 20,
+                      color: isSel ? brandBrown : textThemeSec),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(opt.label,
+                            style: TextStyle(
+                                fontWeight: FontWeight.w800,
+                                fontSize: 14,
+                                color: isSel ? brandBrown : textThemeHeader)),
+                        Text(opt.subtitle,
+                            style: TextStyle(
+                                fontSize: 11,
+                                color: textThemeSec)),
+                      ],
+                    ),
+                  ),
+                  if (isSel)
+                    Icon(Icons.check_circle_rounded, color: brandBrown, size: 18),
+                ],
+              ),
+            ),
+          );
+        }).toList(),
+      ),
     );
   }
 
@@ -305,51 +688,176 @@ class _UploadScreenState extends State<UploadScreen> {
     );
   }
 
+  Future<void> _pickDocumentFiles() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      allowMultiple: true,
+      type: FileType.custom,
+      allowedExtensions: ['pdf', 'doc', 'docx'],
+      withData: true,
+    );
+    if (result != null) {
+      setState(() {
+        _pickedFiles = result.files;
+        _pickedImages = [];
+      });
+      await _updateAutoPageCount(result.files);
+    }
+  }
+
+  Future<void> _pickImageFrom(ImageSource source) async {
+    final ImagePicker picker = ImagePicker();
+    final List<XFile> images = source == ImageSource.gallery
+        ? await picker.pickMultiImage(imageQuality: 90)
+        : [await picker.pickImage(source: ImageSource.camera, imageQuality: 90)].whereType<XFile>().toList();
+
+    if (images.isEmpty) return;
+
+    setState(() {
+      _pickedImages = images;
+      _pickedFiles = [];
+      // Each image counts as 1 page
+      _autoPageCount = images.length;
+    });
+  }
+
   Widget _documentPickerArea() {
-    return GestureDetector(
-      onTap: () async {
-        FilePickerResult? result = await FilePicker.platform.pickFiles(
-          allowMultiple: true,
-          type: FileType.custom,
-          // Images removed: use document formats only to comply with
-          // Google Play Photo & Video Permissions policy (no READ_MEDIA_IMAGES needed).
-          allowedExtensions: ['pdf', 'doc', 'docx'],
-          withData: true,
-        );
-        if (result != null) {
-          setState(() {
-            _pickedFiles = result.files;
-          });
-        }
-      },
-      child: Container(
-        height: 180,
-        width: double.infinity,
-        decoration: BoxDecoration(
-          color: isDark ? Colors.white.withValues(alpha: 0.05) : brandBrown,
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05), width: 1.5),
+    final bool hasFiles = _pickedFiles.isNotEmpty;
+    final bool hasImages = _pickedImages.isNotEmpty;
+    final bool hasAny = hasFiles || hasImages;
+
+    return Column(
+      children: [
+        // --- Main drop zone ---
+        Container(
+          height: 160,
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: isDark ? Colors.white.withValues(alpha: 0.05) : brandBrown,
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(
+              color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05),
+              width: 1.5,
+            ),
+          ),
+          child: !hasAny
+              ? Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.cloud_upload_rounded, size: 40, color: textThemeHeader),
+                    const SizedBox(height: 10),
+                    Text(
+                      AppLocalizations.of(context)?.translate('upload') ?? 'Upload Document or Image',
+                      style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: textThemeHeader),
+                    ),
+                    Text(
+                      'PDF, Word Docs, or Images',
+                      style: TextStyle(fontSize: 11, color: textThemeHeader.withValues(alpha: 0.65)),
+                    ),
+                  ],
+                )
+              : Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      hasImages ? Icons.image_rounded : Icons.library_books_rounded,
+                      size: 36,
+                      color: textThemeHeader,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      hasImages
+                          ? '${_pickedImages.length} image${_pickedImages.length > 1 ? 's' : ''} selected'
+                          : '${_pickedFiles.length} file${_pickedFiles.length > 1 ? 's' : ''} selected',
+                      style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: textThemeHeader),
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: isDark ? brandBrown : Colors.white.withValues(alpha: 0.25),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.white.withValues(alpha: 0.4)),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.description_rounded, size: 13, color: Colors.white),
+                          const SizedBox(width: 6),
+                          Text(
+                            '$_autoPageCount page${_autoPageCount > 1 ? 's' : ''}',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w900,
+                              fontSize: 12,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
         ),
-        child: _pickedFiles.isEmpty
-            ? Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                   Icon(Icons.cloud_upload_rounded, size: 40, color: textThemeHeader),
-                   const SizedBox(height: 12),
-                   Text(AppLocalizations.of(context)?.translate('upload') ?? 'Upload Document',
-                      style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: textThemeHeader)),
-                   Text("Images, PDF, Word Docs supported", style: TextStyle(fontSize: 11, color: textThemeSec)),
-                ],
-              )
-            : Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                   Icon(Icons.library_books_rounded, size: 40, color: textThemeHeader),
-                   const SizedBox(height: 12),
-                   Text("${_pickedFiles.length} files selected",
-                      style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: textThemeHeader)),
-                ],
+        const SizedBox(height: 12),
+        // --- 3 Action Buttons: Document | Gallery | Camera ---
+        Row(
+          children: [
+            Expanded(
+              child: _attachButton(
+                icon: Icons.insert_drive_file_rounded,
+                label: 'Document',
+                onTap: _pickDocumentFiles,
               ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: _attachButton(
+                icon: Icons.photo_library_rounded,
+                label: 'Gallery',
+                onTap: () => _pickImageFrom(ImageSource.gallery),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: _attachButton(
+                icon: Icons.camera_alt_rounded,
+                label: 'Camera',
+                onTap: () => _pickImageFrom(ImageSource.camera),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _attachButton({required IconData icon, required String label, required VoidCallback onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          color: isDark ? Colors.white.withValues(alpha: 0.06) : brandBrown.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: brandBrown.withValues(alpha: 0.2),
+            width: 1,
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 22, color: brandBrown),
+            const SizedBox(height: 5),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                color: isDark ? Colors.white70 : brandBrown,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -438,4 +946,12 @@ class _UploadScreenState extends State<UploadScreen> {
       ),
     );
   }
+}
+
+// Helper data class for urgency options
+class _UrgencyOption {
+  final String label;
+  final String subtitle;
+  final IconData icon;
+  const _UrgencyOption(this.label, this.subtitle, this.icon);
 }

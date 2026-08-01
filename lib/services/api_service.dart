@@ -2,7 +2,9 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 import '/services/api_config.dart';
+
 
 class ApiService {
   // -------------------------------
@@ -203,6 +205,115 @@ class ApiService {
   }
 
   // -------------------------------
+  // SUBMIT JOB WITH TELEGRAM NOTIFY
+  // Replaces direct Supabase insert from upload_screen.dart
+  // Sends file + metadata to backend which:
+  //  - uploads to storage
+  //  - auto-calculates hidden price
+  //  - notifies admin via Telegram
+  // -------------------------------
+  static Future<Map<String, dynamic>> submitJobWithNotify({
+    required Uint8List fileBytes,
+    required String filename,
+    required String userId,
+    required String fromLang,
+    required String toLang,
+    required int pageCount,
+    required String urgency,
+    String? translatorId,
+    String merchantName = '',
+    bool isHandwritten = false,
+    String customerPhone = '',
+  }) async {
+    try {
+      final uri = Uri.parse(ApiConfig.submitJobWithNotify);
+      final request = http.MultipartRequest('POST', uri);
+
+      // Text fields
+      request.fields['userId']        = userId;
+      request.fields['fromLang']      = fromLang;
+      request.fields['toLang']        = toLang;
+      request.fields['pageCount']     = pageCount.toString();
+      request.fields['urgency']       = urgency;
+      request.fields['isHandwritten'] = isHandwritten.toString();
+      request.fields['customerPhone'] = customerPhone;
+      request.fields['merchantName']  = merchantName;
+      if (translatorId != null) {
+        request.fields['translatorId'] = translatorId;
+      }
+
+
+      // File
+      final ext = filename.split('.').last.toLowerCase();
+      final mimeType = ext == 'pdf'
+          ? 'application/pdf'
+          : (ext == 'docx'
+              ? 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+              : 'application/msword');
+
+      request.files.add(http.MultipartFile.fromBytes(
+        'document',
+        fileBytes,
+        filename: filename,
+        contentType: MediaType('application', mimeType.split('/').last),
+      ));
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
+      final data = jsonDecode(response.body);
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        return {'success': true, ...data};
+      } else {
+        return {
+          'success': false,
+          'message': data['message'] ?? 'Submission failed.',
+        };
+      }
+    } catch (e) {
+      return {'success': false, 'message': 'Upload error: $e'};
+    }
+  }
+
+  // -------------------------------
+  // NOTIFY TELEGRAM ADMIN (Fallback endpoint)
+  // -------------------------------
+  static Future<void> notifyTelegram({
+    required String jobId,
+    required String merchantName,
+    required String fromLang,
+    required String toLang,
+    required int pages,
+    required String urgency,
+    required bool isHandwritten,
+    required String customerPhone,
+    required String fileUrl,
+    required String fileName,
+  }) async {
+    try {
+      final uri = Uri.parse("${ApiConfig.baseUrl}/api/jobs/notify-telegram");
+      await http.post(
+        uri,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'jobId': jobId,
+          'merchantName': merchantName,
+          'fromLang': fromLang,
+          'toLang': toLang,
+          'pages': pages,
+          'urgency': urgency,
+          'isHandwritten': isHandwritten,
+          'customerPhone': customerPhone,
+          'fileUrl': fileUrl,
+          'fileName': fileName,
+        }),
+      );
+    } catch (e) {
+      print("Telegram notify fallback notice: $e");
+    }
+  }
+
+  // -------------------------------
   // DOWNLOAD TRANSLATED FILE
   // -------------------------------
   static Future<Map<String, dynamic>> downloadTranslatedFile(
@@ -232,20 +343,33 @@ class ApiService {
   // -------------------------------
   static Future<Map<String, dynamic>> verifyPayment({
     required String jobId,
-    required String transactionRef,
-    String? suffix,
+    String? transactionRef,
+    Uint8List? screenshotBytes,
+    String? screenshotFilename,
   }) async {
     try {
-      final response = await http.post(
-        Uri.parse(ApiConfig.verifyPayment),
-        headers: ApiConfig.authHeaders,
-        body: jsonEncode({
-          'jobId': jobId,
-          'transactionRef': transactionRef,
-          'suffix': suffix,
-        }),
-      );
+      final uri = Uri.parse(ApiConfig.verifyPayment);
+      final request = http.MultipartRequest('POST', uri);
 
+      request.fields['jobId'] = jobId;
+      if (transactionRef != null && transactionRef.isNotEmpty) {
+        request.fields['transactionRef'] = transactionRef;
+      }
+
+      if (screenshotBytes != null) {
+        final filename = screenshotFilename ?? 'receipt.png';
+        final ext = filename.split('.').last.toLowerCase();
+        final mimeType = (ext == 'jpg' || ext == 'jpeg') ? 'image/jpeg' : 'image/png';
+        request.files.add(http.MultipartFile.fromBytes(
+          'screenshot',
+          screenshotBytes,
+          filename: filename,
+          contentType: MediaType('image', mimeType.split('/').last),
+        ));
+      }
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
       return _handleResponse(response);
     } catch (e) {
       return {'success': false, 'message': 'Error verifying payment: $e'};

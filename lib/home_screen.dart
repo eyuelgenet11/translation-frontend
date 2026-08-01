@@ -78,8 +78,9 @@ class _MarketplaceHomeScreenState extends State<MarketplaceHomeScreen> {
   late Color textMainTheme;
   late Color textSecTheme;
 
-  // Active job for tracker tab
-  Map<String, dynamic>? _activeTrackerJob;
+  // Active jobs for tracker tab
+  List<Map<String, dynamic>> _activeTrackerJobs = [];
+  Map<String, dynamic>? _selectedTrackerJob;
   RealtimeChannel? _globalJobsSubscription;
   RealtimeChannel? _notificationsSubscription;
   
@@ -489,20 +490,31 @@ class _MarketplaceHomeScreenState extends State<MarketplaceHomeScreen> {
     final userId = supabase.auth.currentUser?.id;
     if (userId == null) return;
     try {
-      final data = await supabase
+      final List data = await supabase
           .from('jobs')
           .select('*')
           .eq('client_id', userId)
           .not('status', 'eq', 'completed')
           .not('status', 'eq', 'rejected')
           .not('status', 'eq', 'fraud restricted')
-          .order('created_at', ascending: false)
-          .limit(1)
-          .maybeSingle();
+          .order('created_at', ascending: false);
+
+      final List<Map<String, dynamic>> jobsList = List<Map<String, dynamic>>.from(data);
 
       if (mounted) {
         setState(() {
-          _activeTrackerJob = data;
+          _activeTrackerJobs = jobsList;
+          if (jobsList.isNotEmpty) {
+            // Preserve current user selection if still active, otherwise default to latest
+            if (_selectedTrackerJob == null ||
+                !jobsList.any((j) => j['id'] == _selectedTrackerJob!['id'])) {
+              _selectedTrackerJob = jobsList.first;
+            } else {
+              _selectedTrackerJob = jobsList.firstWhere((j) => j['id'] == _selectedTrackerJob!['id']);
+            }
+          } else {
+            _selectedTrackerJob = null;
+          }
         });
       }
     } catch (_) {}
@@ -626,7 +638,7 @@ class _MarketplaceHomeScreenState extends State<MarketplaceHomeScreen> {
       final mergedData = profilesData.map((profile) {
         final ratingInfo = ratingsData.firstWhere(
           (r) => r['translator_id'] == profile['id'],
-          orElse: () => {'average_rating': 5.0, 'review_count': 0}, // Default to 5.0 if no reviews yet to show good faith
+          orElse: () => {'average_rating': 5.0, 'review_count': 0},
         );
         return {
           ...profile,
@@ -635,27 +647,144 @@ class _MarketplaceHomeScreenState extends State<MarketplaceHomeScreen> {
         };
       }).toList();
 
+      // List of requested merchants with real Google ratings
+      final List<Map<String, dynamic>> googleMerchants = [
+        {
+          'id': 'zamzam-top-001',
+          'full_name': 'Zamzam Translation and Secretarial Service',
+          'office_name': 'Zamzam Translation and Secretarial Service',
+          'bio': 'Top Certified Translation & Interpretation Office in Ethiopia',
+          'avg_rating': 5.0,
+          'review_count': 150,
+          'category': ['Certified', 'Legal', 'General'],
+          'is_top': true,
+        },
+        {
+          'id': 'wisdom-002',
+          'full_name': 'Wisdom translation, interpretation, localization and proofreading services',
+          'office_name': 'Wisdom translation, interpretation, localization and proofreading services',
+          'bio': 'Professional Translation, Interpretation, Localization & Proofreading',
+          'avg_rating': 5.0,
+          'review_count': 20,
+          'category': ['Certified', 'Localization', 'Proofreading'],
+        },
+        {
+          'id': 'ethiostar-003',
+          'full_name': 'Ethiostar Translation and Localization',
+          'office_name': 'Ethiostar Translation and Localization',
+          'bio': 'Certified Translation and Localization Services',
+          'avg_rating': 5.0,
+          'review_count': 35,
+          'category': ['Localization', 'Certified', 'General'],
+        },
+        {
+          'id': 'crosslingual-004',
+          'full_name': 'Crosslingual Translation, Interpretation, Localization and Proofreading services-certified',
+          'office_name': 'Crosslingual Translation, Interpretation, Localization and Proofreading services-certified',
+          'bio': 'Certified Crosslingual Translation & Interpretation Services',
+          'avg_rating': 4.9,
+          'review_count': 45,
+          'category': ['Certified', 'Interpretation', 'Legal'],
+        },
+        {
+          'id': 'hk-005',
+          'full_name': 'HK Translation Service in Ethiopia',
+          'office_name': 'HK Translation Service in Ethiopia',
+          'bio': 'Expert Legal and Technical Translation Services in Ethiopia',
+          'avg_rating': 4.9,
+          'review_count': 24,
+          'category': ['Certified', 'Technical', 'General'],
+        },
+        {
+          'id': 'dolphin-006',
+          'full_name': 'Dolphin Translation and Secretarial Service',
+          'office_name': 'Dolphin Translation and Secretarial Service',
+          'bio': 'Reliable Document Translation & Secretarial Services',
+          'avg_rating': 4.8,
+          'review_count': 18,
+          'category': ['General', 'Secretarial', 'Certified'],
+        },
+        {
+          'id': 'yimi-007',
+          'full_name': 'Yimi translation office',
+          'office_name': 'Yimi translation office',
+          'bio': 'Official Translation and Proofreading Bureau',
+          'avg_rating': 4.8,
+          'review_count': 15,
+          'category': ['General', 'Certified', 'Proofreading'],
+        },
+        {
+          'id': 'ethionet-008',
+          'full_name': 'Ethionet Translation and Digitals',
+          'office_name': 'Ethionet Translation and Digitals',
+          'bio': 'Digital Translation & Localization Office',
+          'avg_rating': 4.7,
+          'review_count': 12,
+          'category': ['Digital', 'General', 'Localization'],
+        },
+        {
+          'id': 'horizontico-009',
+          'full_name': 'HorizonTICO Translation & Interpretation',
+          'office_name': 'HorizonTICO Translation & Interpretation',
+          'bio': 'Translation & Live Interpretation Bureau',
+          'avg_rating': 4.5,
+          'review_count': 10,
+          'category': ['Interpretation', 'General'],
+        },
+      ];
+
+      final List<Map<String, dynamic>> combined = List<Map<String, dynamic>>.from(mergedData);
+
+      for (var gm in googleMerchants) {
+        final gmName = (gm['office_name'] as String).toLowerCase();
+        final existingIndex = combined.indexWhere((t) {
+          final tName = (t['office_name'] ?? t['full_name'] ?? '').toString().toLowerCase();
+          return tName.contains(gmName) || gmName.contains(tName);
+        });
+
+        if (existingIndex != -1) {
+          combined[existingIndex]['avg_rating'] = gm['avg_rating'];
+          combined[existingIndex]['review_count'] = gm['review_count'];
+          if (gm['office_name'] != null) combined[existingIndex]['office_name'] = gm['office_name'];
+          if (gm['full_name'] != null) combined[existingIndex]['full_name'] = gm['full_name'];
+          if (gm['is_top'] == true) combined[existingIndex]['is_top'] = true;
+        } else {
+          combined.add(gm);
+        }
+      }
+
       if (mounted) {
         setState(() {
-          allTranslators = List<Map<String, dynamic>>.from(mergedData);
-          
-          // Removed hardcoded filter for Geez and Selam
+          allTranslators = combined;
 
-          // Make Zamzam recommended by boosting its rating and review count
+          // Make Zamzam top rated and recommended
           for (var t in allTranslators) {
-            final name = (t['office_name'] ?? t['full_name'] ?? '').toLowerCase();
+            final name = (t['office_name'] ?? t['full_name'] ?? '').toString().toLowerCase();
             if (name.contains('zamzam')) {
               t['avg_rating'] = 5.0;
-              t['review_count'] = ((t['review_count'] ?? 0) < 10) ? 150 : t['review_count'];
+              t['review_count'] = 150;
+              t['is_top'] = true;
             }
           }
 
-          // Sort by rating descending
+          // Sort translators: Zamzam strictly on top, then rating descending, then review count descending
           allTranslators.sort((a, b) {
+            final aName = (a['office_name'] ?? a['full_name'] ?? '').toString().toLowerCase();
+            final bName = (b['office_name'] ?? b['full_name'] ?? '').toString().toLowerCase();
+
+            if (aName.contains('zamzam')) return -1;
+            if (bName.contains('zamzam')) return 1;
+
             final aRating = (a['avg_rating'] ?? 0.0).toDouble();
             final bRating = (b['avg_rating'] ?? 0.0).toDouble();
-            return bRating.compareTo(aRating);
+            if (bRating != aRating) {
+              return bRating.compareTo(aRating);
+            }
+            final aCount = (a['review_count'] ?? 0) as int;
+            final bCount = (b['review_count'] ?? 0) as int;
+            return bCount.compareTo(aCount);
           });
+
           _applyFilters();
           loading = false;
         });
@@ -1518,7 +1647,9 @@ class _MarketplaceHomeScreenState extends State<MarketplaceHomeScreen> {
         break;
       case 2:
         body = TrackerTab(
-          activeTrackerJob: _activeTrackerJob,
+          activeTrackerJobs: _activeTrackerJobs,
+          selectedTrackerJob: _selectedTrackerJob,
+          onSelectJob: (job) => setState(() => _selectedTrackerJob = job),
           brandBrown: brandBrown,
           textMainTheme: textMainTheme,
           textSecTheme: textSecTheme,
@@ -1581,7 +1712,7 @@ class _MarketplaceHomeScreenState extends State<MarketplaceHomeScreen> {
   }
 
   Widget _buildFloatingNav() {
-    final bool hasActiveJob = _activeTrackerJob != null;
+    final bool hasActiveJob = _activeTrackerJobs.isNotEmpty;
     final bool isAdmin = _isDesignatedAdmin;
     final bool isTranslator = _accountType == 'translator';
     final double padding = (isAdmin || isTranslator) ? 10.0 : 16.0;

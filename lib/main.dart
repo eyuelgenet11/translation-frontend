@@ -11,6 +11,7 @@ import 'job_status_screen.dart';
 import 'settings_screen.dart';
 import 'document_view_screen.dart';
 import 'live_order_tracker_screen.dart';
+import 'payment_screen.dart';
 import 'reset_password_screen.dart';
 import 'l10n/app_localizations.dart';
 import 'services/locale_controller.dart';
@@ -82,25 +83,27 @@ class _TranslationAppState extends State<TranslationApp> {
   @override
   void initState() {
     super.initState();
-    _authSubscription = Supabase.instance.client.auth.onAuthStateChange.listen((data) {
+    _authSubscription =
+        Supabase.instance.client.auth.onAuthStateChange.listen((data) {
       final AuthChangeEvent event = data.event;
       debugPrint("Auth State Change: $event");
 
       if (event == AuthChangeEvent.passwordRecovery) {
         debugPrint("!!! PASSWORD RECOVERY EVENT DETECTED !!!");
         TranslationApp.isRecoveringPassword = true;
-        
+
         // Use a longer delay or a more robust navigation strategy
         WidgetsBinding.instance.addPostFrameCallback((_) {
           Future.delayed(const Duration(milliseconds: 500), () {
             if (rootNavigatorKey.currentState != null) {
-               debugPrint("Navigating to /reset-password...");
-               rootNavigatorKey.currentState?.pushNamedAndRemoveUntil(
+              debugPrint("Navigating to /reset-password...");
+              rootNavigatorKey.currentState?.pushNamedAndRemoveUntil(
                 '/reset-password',
                 (route) => false,
               );
             } else {
-              debugPrint("Navigator state is null, cannot push /reset-password");
+              debugPrint(
+                  "Navigator state is null, cannot push /reset-password");
             }
           });
         });
@@ -148,14 +151,16 @@ class _TranslationAppState extends State<TranslationApp> {
                       brightness: Brightness.light,
                       primary: const Color(0xFF895129),
                       onPrimary: Colors.white,
-                     ),
+                    ),
                     scaffoldBackgroundColor: const Color(0xFFFFFFFF),
                     textTheme: GoogleFonts.interTextTheme(),
                     snackBarTheme: SnackBarThemeData(
                       backgroundColor: const Color(0xFF1E293B),
-                      contentTextStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+                      contentTextStyle: const TextStyle(
+                          color: Colors.white, fontWeight: FontWeight.w600),
                       behavior: SnackBarBehavior.floating,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
                     ),
                   ),
                   darkTheme: ThemeData(
@@ -167,13 +172,17 @@ class _TranslationAppState extends State<TranslationApp> {
                       primary: const Color(0xFF895129),
                       onPrimary: Colors.white,
                     ),
-                    scaffoldBackgroundColor: const Color(0xFF000000), // Pure black
-                    textTheme: GoogleFonts.interTextTheme(ThemeData.dark().textTheme),
+                    scaffoldBackgroundColor:
+                        const Color(0xFF000000), // Pure black
+                    textTheme:
+                        GoogleFonts.interTextTheme(ThemeData.dark().textTheme),
                     snackBarTheme: SnackBarThemeData(
                       backgroundColor: const Color(0xFF222222), // Dark grey
-                      contentTextStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+                      contentTextStyle: const TextStyle(
+                          color: Colors.white, fontWeight: FontWeight.w600),
                       behavior: SnackBarBehavior.floating,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
                     ),
                   ),
                   supportedLocales: const [
@@ -188,7 +197,8 @@ class _TranslationAppState extends State<TranslationApp> {
                   ],
                   localeResolutionCallback: (locale, supportedLocales) {
                     for (var supportedLocale in supportedLocales) {
-                      if (supportedLocale.languageCode == locale?.languageCode) {
+                      if (supportedLocale.languageCode ==
+                          locale?.languageCode) {
                         return supportedLocale;
                       }
                     }
@@ -200,17 +210,25 @@ class _TranslationAppState extends State<TranslationApp> {
                     '/splash': (context) => const SplashScreen(),
                     '/login': (context) => const LoginScreen(),
                     '/admin-otp': (context) {
-                      final email = ModalRoute.of(context)?.settings.arguments as String?;
+                      final email =
+                          ModalRoute.of(context)?.settings.arguments as String?;
                       return AdminOtpScreen(email: email);
                     },
-                    '/translator-home': (context) => const MarketplaceHomeScreen(initialIndex: 5),
-                    '/home': (context) => const MarketplaceHomeScreen(initialIndex: 0),
+                    '/translator-home': (context) =>
+                        const MarketplaceHomeScreen(initialIndex: 5),
+                    '/home': (context) =>
+                        const MarketplaceHomeScreen(initialIndex: 0),
                     '/upload': (context) => const UploadScreen(company: {}),
                     '/job_status': (context) => const JobStatusScreen(),
                     '/settings': (context) => const SettingsScreen(),
                     '/document_view': (context) => const DocumentViewScreen(),
                     '/live_tracker': (context) {
-                      final job = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+                      final job = ModalRoute.of(context)!.settings.arguments
+                          as Map<String, dynamic>;
+                      final status = (job['status'] ?? '').toString().toLowerCase().trim();
+                      if (status == 'pending' || status == 'awaiting payment' || status == 'awaiting_payment') {
+                        return PaymentScreen(job: job);
+                      }
                       return LiveOrderTrackerScreen(job: job);
                     },
                     '/reset-password': (context) => const ResetPasswordScreen(),
@@ -224,4 +242,3 @@ class _TranslationAppState extends State<TranslationApp> {
     );
   }
 }
-

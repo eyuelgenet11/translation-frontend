@@ -601,7 +601,7 @@ class _CustomerJobDetailState extends State<CustomerJobDetail> {
             SizedBox(
               width: double.infinity,
               child: OutlinedButton.icon(
-                onPressed: () => _payWithPoints(currentJobData['id'], ((price ?? 0) * 1.15) * 0.5),
+                onPressed: () => _payWithPoints(currentJobData['id'], (double.tryParse((price ?? 0).toString()) ?? 0.0) * 0.5),
                 icon: Icon(Icons.stars_rounded, color: brandColor),
                 label: const Text("PAY WITH POINTS"),
                 style: OutlinedButton.styleFrom(

@@ -579,27 +579,30 @@ class _LiveOrderTrackerScreenState extends State<LiveOrderTrackerScreen> {
       backgroundColor: bgTheme,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: bgTheme,
+        backgroundColor: brandColor,
+        foregroundColor: Colors.white,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new, color: textThemeHeader, size: 20),
+          icon: const Icon(Icons.arrow_back, color: Colors.white, size: 22),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text("LIVE ORDER TRACKER",
-            overflow: TextOverflow.ellipsis,
-            style: GoogleFonts.inter(
-                fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: 1.2, color: brandColor)),
+        title: Text(
+          "Order Tracker",
+          style: GoogleFonts.inter(
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+            color: Colors.white,
+          ),
+        ),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildStatusHeader(),
-            const SizedBox(height: 32),
+            const SizedBox(height: 24),
             _buildTrackerCard(),
             _buildSupportContactWidget(),
-            const SizedBox(height: 32),
-            _buildJobSummary(),
           ],
         ),
       ),
@@ -612,6 +615,7 @@ class _LiveOrderTrackerScreenState extends State<LiveOrderTrackerScreen> {
     // Status Display Mapping
     Map<String, dynamic> statusUi = {
       'pending': {'label': 'WAITING FOR QUOTE', 'color': Colors.grey},
+      'awaiting review': {'label': 'AWAITING ADMIN REVIEW', 'color': Colors.indigo},
       'quoted': {'label': 'PRICE QUOTED', 'color': brandColor},
       'price quoted': {'label': 'PRICE QUOTED', 'color': brandColor},
       'awaiting payment': {'label': 'AWAITING PAYMENT', 'color': brandColor},
@@ -663,11 +667,47 @@ class _LiveOrderTrackerScreenState extends State<LiveOrderTrackerScreen> {
     Color statusColor = brandColor;
     Widget? actions;
 
-    if (status == 'pending') {
-      title = "Analyzing Document";
-      message = "An expert translator is currently evaluating your document's complexity and word count to provide an accurate quote.";
-      icon = Icons.hourglass_empty_rounded;
-      statusColor = Colors.orange;
+    if (status == 'awaiting review') {
+      title = "Reviewing Handwritten Document";
+      message = "Your handwritten document is being reviewed by our admin team to confirm legibility before processing. We'll update you shortly!";
+      icon = Icons.hourglass_top_rounded;
+      statusColor = Colors.indigo;
+      actions = Container(
+        padding: const EdgeInsets.all(12),
+        margin: const EdgeInsets.only(top: 16),
+        decoration: BoxDecoration(
+          color: Colors.indigo.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: const Text(
+          "⏳ Admin review in progress. You will receive a notification as soon as it's accepted.",
+          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.indigo),
+        ),
+      );
+    } else if (status == 'rejected') {
+      title = "Document Rejected";
+      message = _job['rejection_reason'] != null
+          ? "Rejection reason: ${_job['rejection_reason']}"
+          : "Unfortunately, your document submission was rejected by admin.";
+      icon = Icons.cancel_outlined;
+      statusColor = Colors.red;
+      actions = Container(
+        padding: const EdgeInsets.all(12),
+        margin: const EdgeInsets.only(top: 16),
+        decoration: BoxDecoration(
+          color: Colors.red.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Text(
+          _job['rejection_reason'] ?? "Please contact support for more details.",
+          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.redAccent),
+        ),
+      );
+    } else if (status == 'pending') {
+      title = "Order Received";
+      message = "Your translation request has been received. Please review your order details or complete payment to proceed.";
+      icon = Icons.assignment_turned_in_rounded;
+      statusColor = brandColor;
       actions = _buildPendingState();
     } else if (status == 'quoted' || status == 'price quoted') {
       title = "Official Quote Ready";
@@ -676,11 +716,12 @@ class _LiveOrderTrackerScreenState extends State<LiveOrderTrackerScreen> {
       statusColor = brandColor;
       actions = _buildQuotedState();
     } else if (status == 'accepted' || status == 'in progress' || status == 'in_progress') {
-      title = "Translation in Progress";
-      message = "Your project is in the hands of a professional. We'll notify you the moment the first draft is ready for review.";
-      icon = Icons.edit_note_rounded;
+      final urgency = _job['urgency'] ?? 'Normal';
+      title = "";
+      message = "";
+      icon = Icons.hourglass_bottom_rounded;
       statusColor = brandColor;
-      actions = _buildProgressAnimation();
+      actions = _buildWorkInProgressActions(urgency);
     } else if (status == 'awaiting payment') {
       title = "Payment Required";
       message = "To initiate the translation, please complete the initial payment as per the quote below.";
@@ -688,11 +729,11 @@ class _LiveOrderTrackerScreenState extends State<LiveOrderTrackerScreen> {
       statusColor = Colors.orange;
       actions = _buildAwaitingPaymentState();
     } else if (status == 'awaiting verification') {
-      title = "Verifying Transaction";
-      message = "Our finance team is confirming your payment receipt. This typically takes 15-30 minutes during business hours.";
+      title = "";
+      message = "";
       icon = Icons.verified_user_rounded;
-      statusColor = Colors.blue;
-      actions = _buildVerificationPulse();
+      statusColor = brandColor;
+      actions = _buildAwaitingVerificationCard();
     } else if (status == 'pending_review') {
       title = "Draft Ready for Review";
       message = "The translator has uploaded the document. Please review it carefully to ensure it meets your expectations.";
@@ -711,6 +752,10 @@ class _LiveOrderTrackerScreenState extends State<LiveOrderTrackerScreen> {
       icon = Icons.task_alt_rounded;
       statusColor = Colors.green;
       actions = _buildCompletionActions();
+    }
+
+    if (title.isEmpty && message.isEmpty && actions != null) {
+      return actions;
     }
 
     return Container(
@@ -888,28 +933,301 @@ class _LiveOrderTrackerScreenState extends State<LiveOrderTrackerScreen> {
     );
   }
 
-  Widget _buildProgressAnimation() {
-    final deliveryTime = _job['delivery_time']?.toString() ?? '';
-    return Column(
-      children: [
-        LinearProgressIndicator(
-          backgroundColor: brandColor.withValues(alpha: 0.1),
-          valueColor: const AlwaysStoppedAnimation<Color>(brandColor),
-          borderRadius: BorderRadius.circular(10),
-          minHeight: 8,
+  Widget _buildWorkInProgressActions(String urgency) {
+    final fromLang = _job['from_lang'] ?? '';
+    final toLang = _job['to_lang'] ?? '';
+    final pages = _job['page_count'];
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: cardTheme,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: brandColor.withValues(alpha: 0.3),
+          width: 1.5,
         ),
-        const SizedBox(height: 12),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text("Translator at work", style: TextStyle(fontSize: 11, color: textThemeSec, fontWeight: FontWeight.w600)),
-            Text(
-              deliveryTime.isNotEmpty ? "Est. Delivery: $deliveryTime" : "In progress...",
-              style: TextStyle(fontSize: 11, color: brandColor, fontWeight: FontWeight.w800),
+        boxShadow: [
+          BoxShadow(
+            color: brandColor.withValues(alpha: 0.10),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ── Clean Left-Aligned Header (No Symbol) ──────────────────────────
+          Text(
+            'Translation Underway',
+            style: GoogleFonts.inter(
+              fontSize: 22,
+              fontWeight: FontWeight.w900,
+              color: textThemeHeader,
             ),
-          ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            '$fromLang → $toLang ${pages != null ? ' • $pages pages' : ''}',
+            style: GoogleFonts.inter(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: brandColor,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+
+          const SizedBox(height: 18),
+          Divider(height: 1, color: isDark ? Colors.white12 : Colors.grey.shade200),
+          const SizedBox(height: 18),
+
+          // ── Processing & Delivery Level ──────────────────────────────────
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Row(
+                  children: [
+                    const Icon(Icons.timer_outlined, color: brandColor, size: 20),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        'Processing & Delivery',
+                        style: GoogleFonts.inter(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w800,
+                          color: textThemeHeader,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: brandColor.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  urgency.toUpperCase(),
+                  style: GoogleFonts.inter(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w900,
+                    color: brandColor,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 14),
+
+          Row(
+            children: [
+              const Icon(Icons.phone_in_talk_rounded, size: 16, color: Colors.green),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'We will call you on your phone as soon as complete.',
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: textThemeSec,
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 22),
+
+          // ── Taller & Bigger Proportional Call Admin Button ────────────────
+          SizedBox(
+            width: double.infinity,
+            height: 54,
+            child: ElevatedButton.icon(
+              onPressed: _callSupport,
+              icon: const Icon(Icons.phone_in_talk_rounded, size: 20, color: Colors.white),
+              label: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  "CALL ADMIN (+251911373034)",
+                  style: GoogleFonts.inter(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 15,
+                    color: Colors.white,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: brandColor,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAwaitingVerificationCard() {
+    final fromLang = _job['from_lang'] ?? '';
+    final toLang = _job['to_lang'] ?? '';
+    final pages = _job['page_count'];
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: cardTheme,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: brandColor.withValues(alpha: 0.3),
+          width: 1.5,
         ),
-      ],
+        boxShadow: [
+          BoxShadow(
+            color: brandColor.withValues(alpha: 0.10),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ── Clean Header ──────────────────────────────────────────────
+          Text(
+            'Payment Verification Underway',
+            style: GoogleFonts.inter(
+              fontSize: 22,
+              fontWeight: FontWeight.w900,
+              color: textThemeHeader,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            '$fromLang → $toLang ${pages != null ? ' • $pages pages' : ''}',
+            style: GoogleFonts.inter(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: brandColor,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+
+          const SizedBox(height: 18),
+          Divider(height: 1, color: isDark ? Colors.white12 : Colors.grey.shade200),
+          const SizedBox(height: 18),
+
+          // ── Status Info ───────────────────────────────────────────────
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Row(
+                  children: [
+                    const Icon(Icons.verified_user_outlined, color: brandColor, size: 20),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        'Confirming Receipt',
+                        style: GoogleFonts.inter(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w800,
+                          color: textThemeHeader,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: brandColor.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  'IN REVIEW',
+                  style: GoogleFonts.inter(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w900,
+                    color: brandColor,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 14),
+
+          Row(
+            children: [
+              const Icon(Icons.schedule_rounded, size: 16, color: Colors.orange),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Verification takes ~15–30 mins during business hours.',
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: textThemeSec,
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 22),
+
+          // ── Call Admin Button ─────────────────────────────────────────
+          SizedBox(
+            width: double.infinity,
+            height: 54,
+            child: ElevatedButton.icon(
+              onPressed: _callSupport,
+              icon: const Icon(Icons.phone_in_talk_rounded, size: 20, color: Colors.white),
+              label: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  "CALL ADMIN (+251911373034)",
+                  style: GoogleFonts.inter(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 15,
+                    color: Colors.white,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: brandColor,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -1262,14 +1580,13 @@ class _LiveOrderTrackerScreenState extends State<LiveOrderTrackerScreen> {
         const SizedBox(height: 16),
         _summaryRow("Job ID", _job['id'].toString().substring(0, 8).toUpperCase()),
         _summaryRow("Languages", "${_job['from_lang']} → ${_job['to_lang']}"),
-        _summaryRow("Base Price", "${(_job['price'] ?? 0).toStringAsFixed(2)} ETB"),
         _summaryRow(
           "Urgency / Delivery", 
           ((_job['delivery_time'] ?? '').toString().isNotEmpty) 
               ? _job['delivery_time'].toString() 
-              : "${_job['urgency'] ?? 'Normal'} (+${(_job['urgency_fee'] ?? 0).toStringAsFixed(2)} ETB)"
+              : "${_job['urgency'] ?? 'Normal'}"
         ),
-        _summaryRow("Total (with Tax)", "${(((_job['price'] ?? 0) + (_job['urgency_fee'] ?? 0)) * 1.15).toStringAsFixed(2)} ETB"),
+        _summaryRow("Total Price", "${(double.tryParse((_job['price'] ?? 0).toString()) ?? 0.0).toStringAsFixed(2)} ETB"),
       ],
     );
   }

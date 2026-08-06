@@ -180,7 +180,7 @@ class _LiveOrderTrackerScreenState extends State<LiveOrderTrackerScreen> {
                     onPressed: _callSupport,
                     icon: const Icon(Icons.phone_in_talk_rounded, size: 18, color: Colors.white),
                     label: const Text(
-                      "CALL +251911373034",
+                      "CALL US (+251911373034)",
                       style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13, color: Colors.white),
                     ),
                     style: ElevatedButton.styleFrom(
@@ -1029,21 +1029,29 @@ class _LiveOrderTrackerScreenState extends State<LiveOrderTrackerScreen> {
 
           const SizedBox(height: 14),
 
-          Row(
-            children: [
-              const Icon(Icons.phone_in_talk_rounded, size: 16, color: Colors.green),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  'We will call you on your phone as soon as complete.',
-                  style: GoogleFonts.inter(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: textThemeSec,
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: brandColor.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: brandColor.withValues(alpha: 0.15)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.check_circle_outline_rounded, size: 18, color: Colors.green),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'Now you can leave this page. We will call you on your phone as soon as complete.',
+                    style: GoogleFonts.inter(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: textThemeHeader,
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
 
           const SizedBox(height: 22),
@@ -1058,7 +1066,7 @@ class _LiveOrderTrackerScreenState extends State<LiveOrderTrackerScreen> {
               label: FittedBox(
                 fit: BoxFit.scaleDown,
                 child: Text(
-                  "CALL ADMIN (+251911373034)",
+                  "CALL US (+251911373034)",
                   style: GoogleFonts.inter(
                     fontWeight: FontWeight.w900,
                     fontSize: 15,
@@ -1178,21 +1186,29 @@ class _LiveOrderTrackerScreenState extends State<LiveOrderTrackerScreen> {
 
           const SizedBox(height: 14),
 
-          Row(
-            children: [
-              const Icon(Icons.schedule_rounded, size: 16, color: Colors.orange),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  'Verification takes ~15–30 mins during business hours.',
-                  style: GoogleFonts.inter(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: textThemeSec,
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: brandColor.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: brandColor.withValues(alpha: 0.15)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.check_circle_outline_rounded, size: 18, color: Colors.orange),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'Now you can leave this page. Verification takes ~15–30 mins during business hours.',
+                    style: GoogleFonts.inter(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: textThemeHeader,
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
 
           const SizedBox(height: 22),
@@ -1207,7 +1223,7 @@ class _LiveOrderTrackerScreenState extends State<LiveOrderTrackerScreen> {
               label: FittedBox(
                 fit: BoxFit.scaleDown,
                 child: Text(
-                  "CALL ADMIN (+251911373034)",
+                  "CALL US (+251911373034)",
                   style: GoogleFonts.inter(
                     fontWeight: FontWeight.w900,
                     fontSize: 15,
@@ -1234,26 +1250,22 @@ class _LiveOrderTrackerScreenState extends State<LiveOrderTrackerScreen> {
 
 
   Widget _buildPriceBreakdown() {
-    final num price = _job['price'] ?? 0;
-    final num urgencyFee = _job['urgency_fee'] ?? 0;
-    final num subtotal = price + urgencyFee;
-    final num serviceCharge = subtotal * 0.15;
-    final num total = subtotal + serviceCharge;
+    final num totalPrice = (double.tryParse((_job['price'] ?? 0).toString()) ?? 0.0);
+    final bool isMedical = _job['is_medical'] == true;
+    final String urgencyLabel = _job['urgency'] ?? 'Normal';
 
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white, borderRadius: BorderRadius.circular(16)),
       child: Column(
         children: [
-          _priceRow("Translation Fee", "${price.toStringAsFixed(2)} ETB"),
-          if (urgencyFee > 0)
-            _priceRow("Urgency Fee (${_job['urgency']})", "${urgencyFee.toStringAsFixed(2)} ETB"),
-          _priceRow("Service Charge (15%)", "${serviceCharge.toStringAsFixed(2)} ETB"),
+          _priceRow("Document Type", isMedical ? "Medical Document 🏥" : "General Document 📄"),
+          _priceRow("Service Urgency", "$urgencyLabel (Prioritized)"),
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 8),
             child: Divider(height: 1),
           ),
-          _priceRow("Total Amount", "${total.toStringAsFixed(2)} ETB", isBold: true),
+          _priceRow("Total Amount (incl. 20% fee)", "${totalPrice.toStringAsFixed(2)} ETB", isBold: true),
         ],
       ),
     );

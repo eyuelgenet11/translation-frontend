@@ -37,6 +37,7 @@ class _UploadScreenState extends State<UploadScreen> {
   bool processing = false;
   String urgency = 'Normal';
   bool isHandwritten = false; // admin gets Accept/Reject prompt when true
+  bool isMedical = false; // Medical document flag for price calculation
 
   // Auto page count (calculated by system from uploaded document)
   int _autoPageCount = 1;
@@ -250,6 +251,9 @@ class _UploadScreenState extends State<UploadScreen> {
             _buildSectionLabelWithIcon(Icons.contact_phone_outlined, "YOUR CONTACT"),
             const SizedBox(height: 12),
             _phoneField(),
+            const SizedBox(height: 16),
+            // Medical document checkbox prompt
+            _medicalPrompt(),
             const SizedBox(height: 24),
             // Urgency selector
             _buildSectionLabelWithIcon(Icons.timer_outlined, "SERVICE URGENCY"),
@@ -274,14 +278,24 @@ class _UploadScreenState extends State<UploadScreen> {
   // --- ACTIONS ---
 
   Future<void> _submitJob() async {
-    final String phone = _phoneController.text.trim();
+    final String rawPhone = _phoneController.text.trim();
+    String phone = rawPhone.replaceAll(RegExp(r'[\s\-\(\)]'), '');
+    if (phone.startsWith('+251')) {
+      phone = '0${phone.substring(4)}';
+    } else if (phone.startsWith('251')) {
+      phone = '0${phone.substring(3)}';
+    }
 
     if (fromLang == null || toLang == null || (_pickedFiles.isEmpty && _pickedImages.isEmpty)) {
       _showSnack("Please select languages and upload a document or image");
       return;
     }
-    if (phone.isEmpty) {
+    if (rawPhone.isEmpty) {
       _showSnack("Please enter your phone number");
+      return;
+    }
+    if (!RegExp(r'^0\d{9}$').hasMatch(phone)) {
+      _showSnack("Phone number must start with 0 (e.g., 0911373034)");
       return;
     }
 
@@ -321,6 +335,12 @@ class _UploadScreenState extends State<UploadScreen> {
         }
       }
 
+      if (allBytes.isEmpty) {
+        setState(() => processing = false);
+        _showSnack("Unable to read file content. Please re-select the document or image.");
+        return;
+      }
+
       final String merchantNameStr = widget.company['office_name'] ?? widget.company['full_name'] ?? 'General Marketplace';
 
       Map<String, dynamic> result;
@@ -336,6 +356,7 @@ class _UploadScreenState extends State<UploadScreen> {
           translatorId:  widget.company['id']?.toString(),
           merchantName:  merchantNameStr,
           isHandwritten: isHandwritten,
+          isMedical:     isMedical,
           customerPhone: phone,
         );
       } catch (e) {
@@ -363,12 +384,38 @@ class _UploadScreenState extends State<UploadScreen> {
 
         final String fileUrl = supabase.storage.from('translations').getPublicUrl(storagePath);
 
-        const int pricePerPage = 250;
+        bool isAfarOrSomali(String? lang) {
+          if (lang == null) return false;
+          final l = lang.trim().toLowerCase();
+          return l.contains('afar') || l.contains('somali') || l.contains('ሶማሊ') || l.contains('ዓፋር');
+        }
+
+        bool isLocalLang(String? lang) {
+          if (lang == null) return false;
+          final l = lang.trim().toLowerCase();
+          return l.contains('amharic') || l.contains('አማርኛ') ||
+                 l.contains('english') ||
+                 l.contains('orom') || l.contains('oromiffa') || l.contains('afaan') ||
+                 l.contains('tigr') || l.contains('tigray') ||
+                 l.contains('arabic') || l.contains('ዓረብኛ') ||
+                 l.contains('sidama') || l.contains('wolayta') || l.contains('wolaytta') ||
+                 isAfarOrSomali(l);
+        }
+
+        final bool hasAfarOrSomali = isAfarOrSomali(fromLang) || isAfarOrSomali(toLang);
+        final bool isLocalPair     = isLocalLang(fromLang) && isLocalLang(toLang);
+
+        final int pricePerPage = isMedical
+            ? (isLocalPair ? 400 : 550)
+            : (hasAfarOrSomali
+                ? (isLocalPair ? 400 : 500)
+                : (isLocalPair ? 250 : 500));
+
         final double basePrice = (_autoPageCount * pricePerPage).toDouble();
-        // Apply 15% service fee on base price
-        final double serviceFee = basePrice * 0.15;
-        final double urgencyFee = urgency == 'Super Urgent' ? 500.0 : (urgency == 'Urgent' ? 250.0 : 0.0);
-        final double totalPrice = basePrice + serviceFee + urgencyFee;
+        // Apply 20% service fee on base price
+        final double serviceFee = basePrice * 0.20;
+        const double urgencyFee = 0.0; // Urgency fee removed from price calculation
+        final double totalPrice = basePrice + serviceFee;
 
         // Only use translator_id if it's a valid UUID (not a display-only string like 'wisdom-002')
         final rawTranslatorId = widget.company['id']?.toString();
@@ -385,6 +432,7 @@ class _UploadScreenState extends State<UploadScreen> {
           'file_url': fileUrl,
           'status': isHandwritten ? 'Awaiting Review' : 'pending',
           'is_handwritten': isHandwritten,
+          'is_medical': isMedical,
           'client_phone': phone,
           'price': totalPrice,
         };
@@ -404,6 +452,20 @@ class _UploadScreenState extends State<UploadScreen> {
           customerPhone: phone,
           fileUrl: fileUrl,
           fileName: filename,
+        );
+
+        // Direct Telegram Bot HTTP call backup
+        ApiService.sendTelegramDirect(
+          text: '📝 <b>NEW TRANSLATION JOB UPLOADED</b>\n'
+                '━━━━━━━━━━━━━━━━━━━━\n'
+                '🆔 <b>Job ID:</b> #${insertedJob['id']}\n'
+                '🏪 <b>Merchant:</b> $merchantNameStr\n'
+                '📄 <b>Pages:</b> $_autoPageCount\n'
+                '🔤 <b>Language:</b> $fromLang → $toLang\n'
+                '📱 <b>Customer Phone:</b> $phone\n'
+                '⚡ <b>Urgency:</b> $urgency\n'
+                '💰 <b>Price:</b> ${totalPrice.toStringAsFixed(2)} ETB',
+          documentUrl: fileUrl,
         );
 
         result = {'success': true, 'data': insertedJob};
@@ -461,7 +523,7 @@ class _UploadScreenState extends State<UploadScreen> {
                 color: textThemeHeader,
               ),
               decoration: InputDecoration(
-                hintText: '09XXXXXXXX  or  +2519...',
+                hintText: '09XXXXXXXX  (e.g., 0911373034)',
                 hintStyle: TextStyle(
                   color: isDark ? Colors.white24 : Colors.black26,
                   fontSize: 13,
@@ -476,8 +538,58 @@ class _UploadScreenState extends State<UploadScreen> {
     );
   }
 
-  // Handwritten document toggle — flags order for admin manual accept/reject
+  // --- MEDICAL DOCUMENT CHECKBOX WIDGET ---
+  Widget _medicalPrompt() {
+    return GestureDetector(
+      onTap: () => setState(() => isMedical = !isMedical),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+        decoration: BoxDecoration(
+          color: isMedical
+              ? brandBrown.withValues(alpha: 0.10)
+              : (isDark ? Colors.white.withValues(alpha: 0.04) : const Color(0xFFF1F5F9)),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: isMedical ? brandBrown : Colors.transparent,
+            width: 1.5,
+          ),
+        ),
+        child: Row(
+          children: [
+            SizedBox(
+              height: 24,
+              width: 24,
+              child: Checkbox(
+                value: isMedical,
+                onChanged: (val) => setState(() => isMedical = val ?? false),
+                activeColor: brandBrown,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Text(
+                'Medical Document',
+                style: TextStyle(
+                  fontWeight: FontWeight.w800,
+                  fontSize: 14,
+                  color: isMedical ? brandBrown : textThemeHeader,
+                ),
+              ),
+            ),
+            Icon(
+              Icons.medical_services_outlined,
+              color: isMedical ? brandBrown : textThemeSec,
+              size: 20,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
+  // --- HANDWRITTEN DOCUMENT TOGGLE WIDGET ---
   Widget _handwrittenToggle() {
     return GestureDetector(
       onTap: () => setState(() => isHandwritten = !isHandwritten),

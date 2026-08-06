@@ -223,6 +223,7 @@ class ApiService {
     String? translatorId,
     String merchantName = '',
     bool isHandwritten = false,
+    bool isMedical = false,
     String customerPhone = '',
   }) async {
     try {
@@ -236,6 +237,7 @@ class ApiService {
       request.fields['pageCount']     = pageCount.toString();
       request.fields['urgency']       = urgency;
       request.fields['isHandwritten'] = isHandwritten.toString();
+      request.fields['isMedical']     = isMedical.toString();
       request.fields['customerPhone'] = customerPhone;
       request.fields['merchantName']  = merchantName;
       if (translatorId != null) {
@@ -407,6 +409,71 @@ class ApiService {
       }
     } catch (e) {
       return {'success': false, 'message': 'Error processing payment: $e'};
+    }
+  }
+
+  // -------------------------------
+  // DIRECT TELEGRAM BOT NOTIFICATIONS
+  // Direct HTTP call to Telegram Bot API
+  // -------------------------------
+  static Future<void> sendTelegramDirect({
+    required String text,
+    String? documentUrl,
+    List<List<Map<String, String>>>? inlineKeyboard,
+  }) async {
+    const String botToken = '8701206360:AAGAeK3UDViBskQlWCJlXx8ciloSNqUwcas';
+    const String chatId = '819178764';
+
+    try {
+      final Map<String, dynamic> body = {
+        'chat_id': chatId,
+        'text': text,
+        'parse_mode': 'HTML',
+        'disable_web_page_preview': false,
+      };
+
+      if (inlineKeyboard != null) {
+        body['reply_markup'] = {
+          'inline_keyboard': inlineKeyboard,
+        };
+      }
+
+      final response = await http.post(
+        Uri.parse('https://api.telegram.org/bot$botToken/sendMessage'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(body),
+      );
+
+      final resData = jsonDecode(response.body);
+      if (resData['ok'] != true && inlineKeyboard != null) {
+        print('HTML send with buttons failed: ${resData['description']}. Retrying plain text...');
+        final plainBody = <String, dynamic>{
+          'chat_id': chatId,
+          'text': text.replaceAll(RegExp(r'<[^>]*>'), ''),
+          'reply_markup': {
+            'inline_keyboard': inlineKeyboard,
+          },
+        };
+        await http.post(
+          Uri.parse('https://api.telegram.org/bot$botToken/sendMessage'),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode(plainBody),
+        );
+      }
+
+      if (documentUrl != null && documentUrl.isNotEmpty) {
+        await http.post(
+          Uri.parse('https://api.telegram.org/bot$botToken/sendDocument'),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            'chat_id': chatId,
+            'document': documentUrl,
+            'caption': '📎 Customer File Attachment',
+          }),
+        );
+      }
+    } catch (e) {
+      print('Direct Telegram Bot Notice: $e');
     }
   }
 

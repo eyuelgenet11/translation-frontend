@@ -40,14 +40,13 @@ class _PaymentScreenState extends State<PaymentScreen> {
           _screenshotBytes = file.bytes;
           _screenshotName = file.name;
         });
-        _showSnack('Receipt screenshot attached!');
       }
     } catch (e) {
       _showSnack('Failed to select image: $e', isError: true);
     }
   }
 
-  // ── Verify payment via backend ────────────────────────────────────────────
+  // ── Verify payment via backend with direct Supabase fallback ────────────────
   Future<void> _verifyPayment() async {
     final ref = _refController.text.trim();
     if (ref.isEmpty && _screenshotBytes == null) {
@@ -56,17 +55,94 @@ class _PaymentScreenState extends State<PaymentScreen> {
     }
     setState(() => _isVerifying = true);
     try {
-      final response = await ApiService.verifyPayment(
-        jobId: widget.job['id'],
-        transactionRef: ref.isNotEmpty ? ref : null,
-        screenshotBytes: _screenshotBytes,
-        screenshotFilename: _screenshotName,
+      final rawJobId = widget.job['id'];
+      final String jobIdStr = rawJobId.toString();
+      String? receiptPublicUrl;
+
+      Map<String, dynamic> response;
+      try {
+        response = await ApiService.verifyPayment(
+          jobId: jobIdStr,
+          transactionRef: ref.isNotEmpty ? ref : null,
+          screenshotBytes: _screenshotBytes,
+          screenshotFilename: _screenshotName,
+        );
+      } catch (err) {
+        response = {'success': false, 'message': err.toString()};
+      }
+
+      // Fallback: If backend server endpoint fails or is unreachable, update Supabase directly
+      if (response['success'] != true) {
+        debugPrint("Backend payment verification note: ${response['message']}. Using direct Supabase update...");
+        try {
+          if (_screenshotBytes != null) {
+            final String path = 'receipts/${jobIdStr}_${DateTime.now().millisecondsSinceEpoch}.png';
+            try {
+              await _supabase.storage.from('translations').uploadBinary(
+                path,
+                _screenshotBytes!,
+                fileOptions: const FileOptions(contentType: 'image/png'),
+              );
+              receiptPublicUrl = _supabase.storage.from('translations').getPublicUrl(path);
+            } catch (storageErr) {
+              debugPrint("Receipt storage note: $storageErr");
+            }
+          }
+
+          final Map<String, dynamic> updatePayload = {
+            'status': 'awaiting verification',
+          };
+          if (ref.isNotEmpty) updatePayload['transaction_ref'] = ref;
+          if (receiptPublicUrl != null) updatePayload['receipt_url'] = receiptPublicUrl;
+
+          dynamic targetId = rawJobId;
+          if (rawJobId is String && int.tryParse(rawJobId) != null) {
+            targetId = int.parse(rawJobId);
+          }
+
+          await _supabase.from('jobs').update(updatePayload).eq('id', targetId);
+          response = {'success': true};
+        } catch (dbErr) {
+          debugPrint("Direct Supabase update error: $dbErr");
+        }
+      }
+
+      // Trigger direct Telegram Bot notification with inline verification buttons
+      final shortJobId = jobIdStr.length > 8 ? jobIdStr.substring(0, 8).toUpperCase() : jobIdStr;
+      final String refText = ref.isNotEmpty ? ref : 'Receipt Screenshot Attached';
+      final String fromLang = widget.job['from_lang'] ?? '';
+      final String toLang = widget.job['to_lang'] ?? '';
+      final String priceText = widget.job['price'] != null ? '${widget.job['price']} ETB' : 'Quoted Price';
+
+      final List<List<Map<String, String>>> inlineKeyboard = [
+        [
+          {'text': '✅ Approve Payment', 'callback_data': 'approve_pay_$jobIdStr'},
+          {'text': '❌ Reject Payment', 'callback_data': 'reject_pay_$jobIdStr'},
+        ]
+      ];
+
+      ApiService.sendTelegramDirect(
+        text: '💳 <b>CUSTOMER PAYMENT SUBMITTED FOR VERIFICATION</b>\n'
+              '━━━━━━━━━━━━━━━━━━━━\n'
+              '🆔 <b>Job ID:</b> #$shortJobId\n'
+              '🔢 <b>Ref Number:</b> <code>$refText</code>\n'
+              '💰 <b>Quoted Price:</b> $priceText\n'
+              '🔤 <b>Languages:</b> $fromLang → $toLang\n'
+              '📱 <b>Customer Phone:</b> ${widget.job['client_phone'] ?? 'N/A'}\n'
+              '━━━━━━━━━━━━━━━━━━━━\n'
+              '⚠️ <i>Tap below to approve or reject this payment directly in Telegram:</i>',
+        documentUrl: receiptPublicUrl,
+        inlineKeyboard: inlineKeyboard,
       );
+
       if (!mounted) return;
       if (response['success'] == true) {
-        _showSnack('✅ Payment submitted! Verification in progress.');
         final updatedJob = Map<String, dynamic>.from(widget.job);
         updatedJob['status'] = 'awaiting verification';
+        if (ref.isNotEmpty) updatedJob['transaction_ref'] = ref;
+        if (receiptPublicUrl != null) updatedJob['receipt_url'] = receiptPublicUrl;
+        
+        // Direct immediately to Payment Verification Underway page
         Navigator.pushReplacementNamed(
           context,
           '/live_tracker',
@@ -197,18 +273,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
                       _statusBadge(status),
                     ],
                   ),
-                  const SizedBox(height: 16),
-                  const Divider(height: 1),
-                  const SizedBox(height: 14),
-                  _infoRow(Icons.file_copy_outlined, 'Pages',
-                      pages != null ? '$pages page${pages == 1 ? '' : 's'}' : '—',
-                      headerColor, subColor),
-                  const SizedBox(height: 8),
-                  _infoRow(Icons.speed_outlined, 'Urgency',
-                      widget.job['urgency'] ?? 'Normal', headerColor, subColor),
-                  const SizedBox(height: 8),
-                  _infoRow(Icons.calendar_today_outlined, 'Submitted',
-                      _formatDate(widget.job['created_at']), headerColor, subColor),
                 ],
               ),
             ),
@@ -308,7 +372,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                         style: GoogleFonts.inter(fontWeight: FontWeight.w600),
                       ),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green.shade700,
+                        backgroundColor: _brown,
                         foregroundColor: Colors.white,
                         minimumSize: const Size(double.infinity, 46),
                         shape: RoundedRectangleBorder(

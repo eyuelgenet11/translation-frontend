@@ -136,7 +136,7 @@ class _AdminDashboardTabState extends State<AdminDashboardTab> with SingleTicker
           // Calculate metrics
           _heldEscrow = _escrowJobs.fold(0.0, (sum, item) {
             final price = (item['price'] ?? 0.0).toDouble();
-            return sum + (price * 1.15);
+            return sum + (price * 1.20);
           });
 
           _readyToSettle = _unsettledJobs.fold(0.0, (sum, item) {
@@ -148,9 +148,9 @@ class _AdminDashboardTabState extends State<AdminDashboardTab> with SingleTicker
           });
 
           double totalEscrowBase = _escrowJobs.fold(0.0, (sum, item) => sum + (item['price'] ?? 0.0).toDouble());
-          _totalRevenue = (totalEscrowBase + _readyToSettle + _totalSettled) * 0.15;
+          _totalRevenue = (totalEscrowBase + _readyToSettle + _totalSettled) * 0.20;
 
-          _totalVolume = _readyToSettle * 1.15;
+          _totalVolume = _readyToSettle * 1.20;
 
           _loading = false;
         });
@@ -743,8 +743,8 @@ class _AdminDashboardTabState extends State<AdminDashboardTab> with SingleTicker
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text("Platform Service Charge (15%):", style: TextStyle(fontSize: 12, color: Colors.amber.shade700)),
-                  Text("- ${(price * 0.15).toStringAsFixed(2)} ETB", style: TextStyle(fontSize: 12, color: Colors.amber.shade700)),
+                  Text("Platform Service Charge (20%):", style: TextStyle(fontSize: 12, color: Colors.amber.shade700)),
+                  Text("- ${(price * 0.20).toStringAsFixed(2)} ETB", style: TextStyle(fontSize: 12, color: Colors.amber.shade700)),
                 ],
               ),
               const Divider(height: 16),
@@ -1001,8 +1001,8 @@ class _AdminDashboardTabState extends State<AdminDashboardTab> with SingleTicker
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text("Platform Service Charge (15%):", style: TextStyle(fontSize: 12, color: Colors.amber.shade700)),
-                  Text("- ${(netPayout * 0.15).toStringAsFixed(2)} ETB", style: TextStyle(fontSize: 12, color: Colors.amber.shade700)),
+                  Text("Platform Service Charge (20%):", style: TextStyle(fontSize: 12, color: Colors.amber.shade700)),
+                  Text("- ${(netPayout * 0.20).toStringAsFixed(2)} ETB", style: TextStyle(fontSize: 12, color: Colors.amber.shade700)),
                 ],
               ),
               const Divider(height: 16),
@@ -1124,8 +1124,8 @@ class _AdminDashboardTabState extends State<AdminDashboardTab> with SingleTicker
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text("Platform Service Charge (15%):", style: TextStyle(fontSize: 12, color: Colors.amber.shade700)),
-                  Text("- ${((job['price'] ?? 0.0) * 0.15).toStringAsFixed(2)} ETB", style: TextStyle(fontSize: 12, color: Colors.amber.shade700)),
+                  Text("Platform Service Charge (20%):", style: TextStyle(fontSize: 12, color: Colors.amber.shade700)),
+                  Text("- ${((job['price'] ?? 0.0) * 0.20).toStringAsFixed(2)} ETB", style: TextStyle(fontSize: 12, color: Colors.amber.shade700)),
                 ],
               ),
               const Divider(height: 16),
@@ -1342,7 +1342,7 @@ class _AdminDashboardTabState extends State<AdminDashboardTab> with SingleTicker
       itemBuilder: (context, index) {
         final job = allJobs[index];
         final double basePrice = (job['price'] ?? 0.0).toDouble();
-        final double platformFee = basePrice * 0.15;
+        final double platformFee = basePrice * 0.20;
         final double totalCustomerPaid = basePrice + platformFee;
         
         final String statusStr = (job['status'] ?? '').toString().toLowerCase();

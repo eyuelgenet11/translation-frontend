@@ -308,71 +308,10 @@ class _MarketplaceHomeScreenState extends State<MarketplaceHomeScreen> {
   void _showAdminPaymentAlert({required Map<String, dynamic> job}) {
     if (!mounted) return;
 
-    // Trigger local push notification (system tray)
+    // Trigger local push notification (system tray) only — popup review box removed as requested
     PushNotificationService().showLocalNotification(
       title: "Payment Slip Uploaded",
       body: "A client has uploaded a payment receipt for review: ${job['title'] ?? 'Translation Request'}.",
-    );
-
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        backgroundColor: surfaceTheme,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        title: const Row(
-          children: [
-            Icon(Icons.payment_rounded, color: brandBrown, size: 28),
-            SizedBox(width: 12),
-            Text("Payment Slip Uploaded", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text("A client has uploaded a payment receipt for review:", style: TextStyle(fontSize: 15)),
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: brandBrown.withValues(alpha: 0.05),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.description_outlined, size: 18, color: brandBrown),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      job['title'] ?? "Translation Request",
-                      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text("DISMISS", style: TextStyle(color: textSecTheme)),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              _openAdminTab();
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: brandBrown,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            ),
-            child: const Text("REVIEW NOW"),
-          ),
-        ],
-      ),
     );
   }
 
@@ -1361,6 +1300,18 @@ class _MarketplaceHomeScreenState extends State<MarketplaceHomeScreen> {
                             ? null
                             : () async {
                                 if (nameCtrl.text.trim().isEmpty) return;
+                                final rawP = phoneCtrl.text.trim();
+                                if (rawP.isNotEmpty) {
+                                  String p = rawP.replaceAll(RegExp(r'[\s\-\(\)]'), '');
+                                  if (p.startsWith('+251')) p = '0${p.substring(4)}';
+                                  else if (p.startsWith('251')) p = '0${p.substring(3)}';
+                                  if (!RegExp(r'^0\d{9}$').hasMatch(p)) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text("Phone number must start with 0 (e.g., 0911373034)")),
+                                    );
+                                    return;
+                                  }
+                                }
                                 setModalState(() => uploading = true);
                                 try {
                                   final userId =

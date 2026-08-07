@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -19,7 +19,7 @@ class _JobChatScreenState extends State<JobChatScreen> {
   List<Map<String, dynamic>> _messages = [];
   bool _isLoading = true;
 
-  static const Color brandBrown = Color(0xFF895129);
+  static const Color brandBrown = Color(0xFF8D5C3C);
 
   @override
   void initState() {
@@ -256,3 +256,5 @@ class _JobChatScreenState extends State<JobChatScreen> {
     );
   }
 }
+
+

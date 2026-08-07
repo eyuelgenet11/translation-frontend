@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -26,7 +26,7 @@ class _AdminOtpScreenState extends State<AdminOtpScreen> {
   String? _error;
   late String _email;
 
-  static const _brown = Color(0xFF895129);
+  static const _brown = Color(0xFF8D5C3C);
   static const _darkBg = Color(0xFF0D0A08);
 
   @override
@@ -93,7 +93,7 @@ class _AdminOtpScreenState extends State<AdminOtpScreen> {
     try {
       await AdminAuthService.verifyEmailOtp(email: _email, token: code);
       if (!mounted) return;
-      // Replace the entire stack with /home — admin is now verified
+      // Replace the entire stack with /home â€” admin is now verified
       Navigator.of(context).pushNamedAndRemoveUntil('/home', (route) => false);
     } catch (e) {
       if (mounted) {
@@ -108,7 +108,7 @@ class _AdminOtpScreenState extends State<AdminOtpScreen> {
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      // Prevent back navigation — admin must verify to access the app
+      // Prevent back navigation â€” admin must verify to access the app
       canPop: false,
       child: AnnotatedRegion<SystemUiOverlayStyle>(
         value: SystemUiOverlayStyle.light,
@@ -159,7 +159,7 @@ class _AdminOtpScreenState extends State<AdminOtpScreen> {
                   Text(
                     _codeSent
                         ? 'A 6-digit verification code was sent to\n$_email\n\nEnter it below to access the admin dashboard.'
-                        : 'Sending verification code to\n$_email…',
+                        : 'Sending verification code to\n$_emailâ€¦',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 14,
@@ -323,3 +323,5 @@ class _AdminOtpScreenState extends State<AdminOtpScreen> {
     );
   }
 }
+
+

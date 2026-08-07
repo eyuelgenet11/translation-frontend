@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'ds.dart';
 import 'services/api_service.dart';
 
 class PaymentScreen extends StatefulWidget {
@@ -15,7 +16,7 @@ class PaymentScreen extends StatefulWidget {
 }
 
 class _PaymentScreenState extends State<PaymentScreen> {
-  static const Color _brown = Color(0xFF895129);
+  static const Color _brown = DS.primary;
   final SupabaseClient _supabase = Supabase.instance.client;
   final TextEditingController _refController = TextEditingController();
   bool _isVerifying = false;
@@ -46,7 +47,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
     }
   }
 
-  // ── Verify payment via backend with direct Supabase fallback ────────────────
+  // â”€â”€ Verify payment via backend with direct Supabase fallback â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Future<void> _verifyPayment() async {
     final ref = _refController.text.trim();
     if (ref.isEmpty && _screenshotBytes == null) {
@@ -116,21 +117,21 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
       final List<List<Map<String, String>>> inlineKeyboard = [
         [
-          {'text': '✅ Approve Payment', 'callback_data': 'approve_pay_$jobIdStr'},
-          {'text': '❌ Reject Payment', 'callback_data': 'reject_pay_$jobIdStr'},
+          {'text': 'âœ… Approve Payment', 'callback_data': 'approve_pay_$jobIdStr'},
+          {'text': 'âŒ Reject Payment', 'callback_data': 'reject_pay_$jobIdStr'},
         ]
       ];
 
       ApiService.sendTelegramDirect(
-        text: '💳 <b>CUSTOMER PAYMENT SUBMITTED FOR VERIFICATION</b>\n'
-              '━━━━━━━━━━━━━━━━━━━━\n'
-              '🆔 <b>Job ID:</b> #$shortJobId\n'
-              '🔢 <b>Ref Number:</b> <code>$refText</code>\n'
-              '💰 <b>Quoted Price:</b> $priceText\n'
-              '🔤 <b>Languages:</b> $fromLang → $toLang\n'
-              '📱 <b>Customer Phone:</b> ${widget.job['client_phone'] ?? 'N/A'}\n'
-              '━━━━━━━━━━━━━━━━━━━━\n'
-              '⚠️ <i>Tap below to approve or reject this payment directly in Telegram:</i>',
+        text: 'ðŸ’³ <b>CUSTOMER PAYMENT SUBMITTED FOR VERIFICATION</b>\n'
+              'â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”\n'
+              'ðŸ†” <b>Job ID:</b> #$shortJobId\n'
+              'ðŸ”¢ <b>Ref Number:</b> <code>$refText</code>\n'
+              'ðŸ’° <b>Quoted Price:</b> $priceText\n'
+              'ðŸ”¤ <b>Languages:</b> $fromLang â†’ $toLang\n'
+              'ðŸ“± <b>Customer Phone:</b> ${widget.job['client_phone'] ?? 'N/A'}\n'
+              'â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”\n'
+              'âš ï¸ <i>Tap below to approve or reject this payment directly in Telegram:</i>',
         documentUrl: receiptPublicUrl,
         inlineKeyboard: inlineKeyboard,
       );
@@ -149,10 +150,10 @@ class _PaymentScreenState extends State<PaymentScreen> {
           arguments: updatedJob,
         );
       } else {
-        _showSnack('❌ Verification failed: ${response['message']}', isError: true);
+        _showSnack('âŒ Verification failed: ${response['message']}', isError: true);
       }
     } catch (e) {
-      _showSnack('❌ Error: ${e.toString()}', isError: true);
+      _showSnack('âŒ Error: ${e.toString()}', isError: true);
     } finally {
       if (mounted) setState(() => _isVerifying = false);
     }
@@ -161,9 +162,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
   void _showSnack(String msg, {bool isError = false}) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text(msg),
-      backgroundColor: isError ? Colors.red.shade700 : _brown,
+      backgroundColor: isError ? DS.error : DS.primary,
       behavior: SnackBarBehavior.floating,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
     ));
   }
 
@@ -183,11 +184,10 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bgColor = Theme.of(context).scaffoldBackgroundColor;
+    final bgColor = Colors.white;
     final cardColor = Theme.of(context).cardColor;
-    final headerColor = isDark ? Colors.white : Colors.black87;
-    final subColor = isDark ? Colors.white60 : Colors.black54;
+    final headerColor = Colors.black87;
+    final subColor = Colors.black54;
 
     final status = (widget.job['status'] ?? 'pending') as String;
     final fromLang = widget.job['from_lang'] ?? '';
@@ -197,36 +197,37 @@ class _PaymentScreenState extends State<PaymentScreen> {
     final priceStr = (price != null && (double.tryParse(price.toString()) ?? 0) > 0)
         ? '${(double.tryParse(price.toString()) ?? 0).toStringAsFixed(2)} ETB'
         : 'Quoted Price';
-    final accountNumber = '0911373034';
-    final accountName = 'Eyuel Shimelis';
+    const telebirrNumber = '0911373034';
+    const cbeNumber = '1000416227838';
+    const accountName = 'Eyuel Shimelis';
 
     final needsPayment = status.toLowerCase() == 'pending' ||
         status.toLowerCase() == 'awaiting payment';
     final isCompleted = status.toLowerCase() == 'completed';
 
     return Scaffold(
-      backgroundColor: bgColor,
+      backgroundColor: DS.background,
       appBar: AppBar(
-        backgroundColor: _brown,
-        foregroundColor: Colors.white,
+        backgroundColor: DS.background,
+        foregroundColor: DS.textPrimary,
+        elevation: 0,
+        surfaceTintColor: DS.background,
         title: Text(
           'Order Details',
           style: GoogleFonts.inter(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
+            color: DS.textPrimary,
+            fontWeight: FontWeight.w700,
+            fontSize: 17,
           ),
         ),
-        elevation: 0,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── Job summary card ──────────────────────────────────────────
-            _card(
-              cardColor: cardColor,
+            // â”€â”€ Job summary card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+            _dsCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -235,15 +236,15 @@ class _PaymentScreenState extends State<PaymentScreen> {
                       Container(
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                          color: _brown.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(10),
+                          color: DS.primary.withValues(alpha: 0.08),
+                          borderRadius: BorderRadius.circular(12),
                         ),
                         child: Icon(
                           widget.job['is_handwritten'] == true
                               ? Icons.draw_outlined
                               : Icons.description_outlined,
-                          color: _brown,
-                          size: 26,
+                          color: DS.primary,
+                          size: 24,
                         ),
                       ),
                       const SizedBox(width: 14),
@@ -254,17 +255,17 @@ class _PaymentScreenState extends State<PaymentScreen> {
                             Text(
                               'Translation Job',
                               style: GoogleFonts.inter(
-                                fontSize: 17,
-                                fontWeight: FontWeight.bold,
-                                color: headerColor,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                                color: DS.textPrimary,
                               ),
                             ),
                             const SizedBox(height: 2),
                             Text(
-                              '$fromLang → $toLang',
+                              'From: $fromLang  to  $toLang',
                               style: GoogleFonts.inter(
                                 fontSize: 13,
-                                color: subColor,
+                                color: DS.textSecondary,
                               ),
                             ),
                           ],
@@ -279,38 +280,34 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
             const SizedBox(height: 16),
 
-            // ── Price + payment instructions ──────────────────────────────
+            // â”€â”€ Price + payment instructions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             if (needsPayment) ...[
               // Price highlight
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
+                padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 24),
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [_brown, const Color(0xFFB06E3A)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(14),
+                  color: DS.bgSecondary,
+                  borderRadius: BorderRadius.circular(DS.radiusCard),
+                  border: Border.all(color: DS.border),
                 ),
                 child: Column(
                   children: [
                     Text(
                       'Amount Due',
                       style: GoogleFonts.inter(
-                        color: Colors.white70,
+                        color: DS.textSecondary,
                         fontSize: 13,
-                        letterSpacing: 0.5,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                     const SizedBox(height: 6),
                     Text(
                       priceStr,
                       style: GoogleFonts.inter(
-                        color: Colors.white,
-                        fontSize: 32,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 0.5,
+                        color: DS.textPrimary,
+                        fontSize: 34,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ],
@@ -320,64 +317,53 @@ class _PaymentScreenState extends State<PaymentScreen> {
               const SizedBox(height: 16),
 
               // Pay to account card
-              _card(
-                cardColor: cardColor,
+              _dsCard(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.account_balance_wallet_outlined, color: _brown, size: 20),
+                        Icon(Icons.account_balance_wallet_outlined, color: DS.primary, size: 20),
                         const SizedBox(width: 8),
                         Text(
                           'Pay To This Account',
                           style: GoogleFonts.inter(
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w700,
                             fontSize: 15,
-                            color: headerColor,
+                            color: DS.textPrimary,
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 14),
-                    const Divider(height: 1),
-                    const SizedBox(height: 14),
+                    const SizedBox(height: 16),
+                    Divider(height: 1, color: DS.divider),
+                    const SizedBox(height: 16),
 
-                    // Telebirr / CBE
+                    // Telebirr
                     _accountRow(
-                      label: 'Telebirr / CBE',
-                      value: accountNumber,
+                      label: 'Telebirr',
+                      value: telebirrNumber,
                       name: accountName,
-                      cardColor: isDark ? Colors.white.withValues(alpha: 0.06) : const Color(0xFFF5F0EB),
-                      headerColor: headerColor,
-                      subColor: subColor,
-                      onCopy: () => _copyToClipboard(accountNumber),
+                      onCopy: () => _copyToClipboard(telebirrNumber),
                     ),
 
-                    const SizedBox(height: 14),
+                    Divider(height: 24, color: DS.divider),
+
+                    // CBE
+                    _accountRow(
+                      label: 'CBE (Commercial Bank of Ethiopia)',
+                      value: cbeNumber,
+                      name: accountName,
+                      onCopy: () => _copyToClipboard(cbeNumber),
+                    ),
+
+                    const SizedBox(height: 16),
                     Text(
-                      '⚠️ Please transfer exactly $priceStr and enter your transaction reference below.',
+                      'Transfer exactly $priceStr and enter your transaction reference below.',
                       style: GoogleFonts.inter(
                         fontSize: 12,
-                        color: subColor,
-                        height: 1.5,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    ElevatedButton.icon(
-                      onPressed: _openTelebirr,
-                      icon: const Icon(Icons.open_in_new, size: 16),
-                      label: Text(
-                        'Open Telebirr App',
-                        style: GoogleFonts.inter(fontWeight: FontWeight.w600),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: _brown,
-                        foregroundColor: Colors.white,
-                        minimumSize: const Size(double.infinity, 46),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
+                        color: DS.textSecondary,
+                        height: 1.6,
                       ),
                     ),
                   ],
@@ -387,105 +373,83 @@ class _PaymentScreenState extends State<PaymentScreen> {
               const SizedBox(height: 16),
 
               // Reference entry card
-              _card(
-                cardColor: cardColor,
+              _dsCard(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.receipt_long_outlined, color: _brown, size: 20),
+                        Icon(Icons.receipt_long_outlined, color: DS.primary, size: 20),
                         const SizedBox(width: 8),
                         Text(
                           'Confirm Your Payment',
                           style: GoogleFonts.inter(
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w700,
                             fontSize: 15,
-                            color: headerColor,
+                            color: DS.textPrimary,
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 14),
+                    const SizedBox(height: 16),
                     TextField(
                       controller: _refController,
-                      style: GoogleFonts.inter(color: headerColor),
-                      decoration: InputDecoration(
-                        hintText: 'e.g. M12345678 or FT-XXXX',
-                        hintStyle: GoogleFonts.inter(color: subColor, fontSize: 13),
-                        labelText: 'Transaction Reference',
-                        labelStyle: GoogleFonts.inter(color: _brown, fontSize: 13),
-                        prefixIcon: Icon(Icons.tag, color: _brown, size: 20),
-                        filled: true,
-                        fillColor: isDark
-                            ? Colors.white.withValues(alpha: 0.06)
-                            : const Color(0xFFF5F0EB),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide.none,
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide(color: _brown, width: 1.5),
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(
-                            vertical: 14, horizontal: 12),
+                      style: GoogleFonts.inter(color: DS.textPrimary),
+                      decoration: DS.inputDecoration(
+                        hint: 'e.g. M12345678 or FT-XXXX',
+                        label: 'Transaction Reference',
+                        prefix: const Icon(Icons.tag_outlined, color: DS.primary, size: 20),
                       ),
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 12),
                     OutlinedButton.icon(
                       onPressed: _pickScreenshot,
                       icon: Icon(
-                        _screenshotBytes != null ? Icons.check_circle : Icons.add_photo_alternate_outlined,
-                        color: _screenshotBytes != null ? Colors.green.shade700 : _brown,
+                        _screenshotBytes != null ? Icons.check_circle_outline : Icons.add_photo_alternate_outlined,
+                        color: _screenshotBytes != null ? DS.success : DS.primary,
                         size: 18,
                       ),
                       label: Text(
                         _screenshotName != null
                             ? 'Attached: $_screenshotName'
-                            : 'Or Attach Receipt Screenshot Image',
+                            : 'Attach Receipt Screenshot',
                         style: GoogleFonts.inter(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
-                          color: _screenshotBytes != null ? Colors.green.shade700 : _brown,
+                          color: _screenshotBytes != null ? DS.success : DS.primary,
                         ),
                         overflow: TextOverflow.ellipsis,
                       ),
                       style: OutlinedButton.styleFrom(
-                        minimumSize: const Size(double.infinity, 44),
+                        minimumSize: const Size(double.infinity, 48),
                         side: BorderSide(
-                          color: _screenshotBytes != null ? Colors.green.shade700 : _brown.withValues(alpha: 0.5),
+                          color: _screenshotBytes != null ? DS.success : DS.border,
                         ),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
+                          borderRadius: BorderRadius.circular(DS.radiusButton),
                         ),
                       ),
                     ),
-                    const SizedBox(height: 14),
-                    ElevatedButton.icon(
-                      onPressed: _isVerifying ? null : _verifyPayment,
-                      icon: _isVerifying
-                          ? const SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(
-                                  strokeWidth: 2, color: Colors.white),
-                            )
-                          : const Icon(Icons.verified_outlined, size: 18),
-                      label: Text(
-                        _isVerifying ? 'Verifying...' : 'Verify Payment',
-                        style: GoogleFonts.inter(
-                            fontWeight: FontWeight.bold, fontSize: 15),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: _brown,
-                        foregroundColor: Colors.white,
-                        disabledBackgroundColor: _brown.withValues(alpha: 0.5),
-                        minimumSize: const Size(double.infinity, 50),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      height: DS.buttonHeight,
+                      child: ElevatedButton.icon(
+                        onPressed: _isVerifying ? null : _verifyPayment,
+                        icon: _isVerifying
+                            ? const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                    strokeWidth: 2, color: Colors.white),
+                              )
+                            : const Icon(Icons.verified_outlined, size: 18),
+                        label: Text(
+                          _isVerifying ? 'Verifying...' : 'Verify Payment',
+                          style: GoogleFonts.inter(
+                              fontWeight: FontWeight.w700, fontSize: 15),
                         ),
-                        elevation: 0,
+                        style: DS.primaryButton(),
                       ),
                     ),
                   ],
@@ -493,42 +457,46 @@ class _PaymentScreenState extends State<PaymentScreen> {
               ),
             ],
 
-            // ── Completed state ───────────────────────────────────────────
+            // â”€â”€ Completed state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             if (isCompleted)
-              _card(
-                cardColor: cardColor,
+              _dsCard(
                 child: Column(
                   children: [
-                    Icon(Icons.task_alt, color: Colors.teal.shade600, size: 48),
+                    Icon(Icons.task_alt_rounded, color: DS.success, size: 48),
                     const SizedBox(height: 12),
                     Text(
                       'Translation Complete!',
                       style: GoogleFonts.inter(
                         fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: headerColor,
+                        fontWeight: FontWeight.w700,
+                        color: DS.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 6),
                     Text(
                       'Your translated document is ready to download.',
                       textAlign: TextAlign.center,
-                      style: GoogleFonts.inter(color: subColor, fontSize: 13),
+                      style: GoogleFonts.inter(color: DS.textSecondary, fontSize: 13),
                     ),
-                    const SizedBox(height: 16),
-                    ElevatedButton.icon(
-                      onPressed: () {},
-                      icon: const Icon(Icons.download_outlined),
-                      label: Text(
-                        'Download Translation',
-                        style: GoogleFonts.inter(fontWeight: FontWeight.bold),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.teal.shade600,
-                        foregroundColor: Colors.white,
-                        minimumSize: const Size(double.infinity, 50),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
+                    const SizedBox(height: 20),
+                    SizedBox(
+                      width: double.infinity,
+                      height: DS.buttonHeight,
+                      child: ElevatedButton.icon(
+                        onPressed: () {},
+                        icon: const Icon(Icons.download_outlined),
+                        label: Text(
+                          'Download Translation',
+                          style: GoogleFonts.inter(fontWeight: FontWeight.w700),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: DS.success,
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(DS.radiusButton),
+                          ),
+                          minimumSize: const Size(double.infinity, DS.buttonHeight),
                         ),
                       ),
                     ),
@@ -536,10 +504,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 ),
               ),
 
-            // ── Work in Progress / Other status card ─────────────────────────
             if (!needsPayment && !isCompleted)
-              _card(
-                cardColor: cardColor,
+              _dsCard(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -548,10 +514,10 @@ class _PaymentScreenState extends State<PaymentScreen> {
                         Container(
                           padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
-                            color: _brown.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(10),
+                            color: DS.primary.withValues(alpha: 0.08),
+                            borderRadius: BorderRadius.circular(12),
                           ),
-                          child: Icon(Icons.hourglass_bottom_rounded, color: _brown, size: 24),
+                          child: const Icon(Icons.hourglass_bottom_rounded, color: DS.primary, size: 22),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
@@ -561,14 +527,14 @@ class _PaymentScreenState extends State<PaymentScreen> {
                               Text(
                                 'Translation in Progress',
                                 style: GoogleFonts.inter(
-                                  fontSize: 17,
-                                  fontWeight: FontWeight.bold,
-                                  color: headerColor,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                  color: DS.textPrimary,
                                 ),
                               ),
                               Text(
                                 'Status: $status',
-                                style: GoogleFonts.inter(fontSize: 12, color: subColor),
+                                style: GoogleFonts.inter(fontSize: 12, color: DS.textSecondary),
                               ),
                             ],
                           ),
@@ -576,51 +542,46 @@ class _PaymentScreenState extends State<PaymentScreen> {
                       ],
                     ),
                     const SizedBox(height: 16),
-                    const Divider(height: 1),
+                    Divider(height: 1, color: DS.divider),
                     const SizedBox(height: 16),
-
-                    // Phone Call Alert Box
                     Container(
-                      padding: const EdgeInsets.all(14),
+                      padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.amber.shade50,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.amber.shade300),
+                        color: DS.bgSecondary,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: DS.border),
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.phone_in_talk_rounded, color: Colors.green, size: 24),
+                          const Icon(Icons.phone_in_talk_rounded, color: DS.success, size: 22),
                           const SizedBox(width: 12),
                           Expanded(
                             child: Text(
-                              '📞 You will receive a direct phone call as soon as your document is finished!',
+                              'You will receive a direct phone call as soon as your document is finished.',
                               style: GoogleFonts.inter(
                                 fontSize: 13,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.amber.shade900,
-                                height: 1.4,
+                                fontWeight: FontWeight.w600,
+                                color: DS.textPrimary,
+                                height: 1.5,
                               ),
                             ),
                           ),
                         ],
                       ),
                     ),
-
                     const SizedBox(height: 12),
-
-                    // Urgency & Time notice
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(Icons.info_outline, color: _brown, size: 18),
-                        const SizedBox(width: 10),
+                        const Icon(Icons.info_outline_rounded, color: DS.primary, size: 16),
+                        const SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            'Please note: Quality translation requires careful review. Processing time varies depending on your selected urgency level (${widget.job['urgency'] ?? 'Normal'}). Our team is working on your file.',
+                            'Processing time varies by urgency level (${widget.job['urgency'] ?? 'Normal'}). Our team is working on your file.',
                             style: GoogleFonts.inter(
                               fontSize: 12,
-                              color: subColor,
-                              height: 1.5,
+                              color: DS.textSecondary,
+                              height: 1.6,
                             ),
                           ),
                         ),
@@ -630,32 +591,26 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 ),
               ),
 
-            const SizedBox(height: 32),
+            const SizedBox(height: 40),
           ],
         ),
       ),
     );
   }
 
-  // ── Helpers ───────────────────────────────────────────────────────────────
+  // â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-  Widget _card({required Color cardColor, required Widget child}) {
+  Widget _dsCard({required Widget child, Color? borderColor}) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: cardColor,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
+      padding: const EdgeInsets.all(24),
+      decoration: DS.cardDecoration(borderColor: borderColor),
       child: child,
     );
+  }
+
+  Widget _card({required Color cardColor, required Widget child}) {
+    return _dsCard(child: child);
   }
 
   Widget _statusBadge(String status) {
@@ -663,36 +618,36 @@ class _PaymentScreenState extends State<PaymentScreen> {
     switch (status.toLowerCase()) {
       case 'pending':
       case 'awaiting payment':
-        color = Colors.orange.shade700;
+        color = DS.warning;
         break;
       case 'in progress':
-        color = _brown;
+        color = DS.primary;
         break;
       case 'completed':
-        color = Colors.teal.shade600;
+        color = DS.success;
         break;
       case 'rejected':
-        color = Colors.red.shade600;
+        color = DS.error;
         break;
       case 'awaiting review':
-        color = Colors.indigo.shade500;
+        color = const Color(0xFF4F46E5); // indigo
         break;
       default:
-        color = Colors.grey.shade500;
+        color = DS.placeholder;
     }
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withValues(alpha: 0.4)),
+        color: color.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(DS.radiusTag),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Text(
         status,
         style: GoogleFonts.inter(
           color: color,
           fontSize: 11,
-          fontWeight: FontWeight.w700,
+          fontWeight: FontWeight.w600,
         ),
       ),
     );
@@ -724,56 +679,71 @@ class _PaymentScreenState extends State<PaymentScreen> {
     required String label,
     required String value,
     required String name,
-    required Color cardColor,
-    required Color headerColor,
-    required Color subColor,
     required VoidCallback onCopy,
   }) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: cardColor,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+    return Row(
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: GoogleFonts.inter(
+                  fontSize: 11,
+                  color: DS.textSecondary,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                value,
+                style: GoogleFonts.inter(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  color: DS.textPrimary,
+                  letterSpacing: 0.5,
+                ),
+              ),
+              Text(
+                name,
+                style: GoogleFonts.inter(
+                  fontSize: 12,
+                  color: DS.textSecondary,
+                ),
+              ),
+            ],
+          ),
+        ),
+        GestureDetector(
+          onTap: onCopy,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: DS.bgSecondary,
+              borderRadius: BorderRadius.circular(DS.radiusButton),
+              border: Border.all(color: DS.border),
+            ),
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  label,
-                  style: GoogleFonts.inter(fontSize: 11, color: subColor),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  value,
-                  style: GoogleFonts.inter(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w900,
-                    color: headerColor,
-                    letterSpacing: 1,
-                  ),
-                ),
-                Text(
-                  name,
-                  style: GoogleFonts.inter(fontSize: 12, color: subColor),
-                ),
+                Icon(Icons.copy_outlined, color: DS.primary, size: 14),
+                SizedBox(width: 4),
+                Text('Copy',
+                    style: TextStyle(
+                        color: DS.primary,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600)),
               ],
             ),
           ),
-          IconButton(
-            onPressed: onCopy,
-            icon: Icon(Icons.copy_rounded, color: _brown, size: 20),
-            tooltip: 'Copy',
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
   String _formatDate(dynamic dateStr) {
-    if (dateStr == null) return '—';
+    if (dateStr == null) return 'â€”';
     try {
       final dt = DateTime.parse(dateStr.toString()).toLocal();
       return '${dt.day}/${dt.month}/${dt.year}  ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
@@ -782,3 +752,4 @@ class _PaymentScreenState extends State<PaymentScreen> {
     }
   }
 }
+

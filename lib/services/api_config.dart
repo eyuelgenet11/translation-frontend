@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+﻿import 'package:flutter/foundation.dart';
 
 class ApiConfig {
   static String get localBaseUrl {
@@ -24,11 +24,11 @@ class ApiConfig {
   static String get listJobs => "$baseUrl/api/jobs";
 
 
-  static String? token; // ✅ Make sure this is defined as nullable
+  static String? token; // âœ… Make sure this is defined as nullable
 
   // Helper function to get headers
   static Map<String, String> get authHeaders {
-    // ✅ Check for null token safely
+    // âœ… Check for null token safely
     if (token != null && token!.isNotEmpty) {
       return {
         'Content-Type': 'application/json',
@@ -42,3 +42,4 @@ class ApiConfig {
   static String getJobDetails(dynamic id) => "$baseUrl/api/jobs/$id";
   static String downloadJob(dynamic id) => "$baseUrl/api/jobs/$id/download";
 }
+

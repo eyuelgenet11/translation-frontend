@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -19,7 +19,7 @@ class TranslatorDashboardScreen extends StatefulWidget {
 
 class _TranslatorDashboardScreenState extends State<TranslatorDashboardScreen> {
   final _supabase = Supabase.instance.client;
-  static const _brown = Color(0xFF895129);
+  static const _brown = Color(0xFF8D5C3C);
 
   List<Map<String, dynamic>> _jobs = [];
   String? _officeName;
@@ -229,7 +229,7 @@ class _TranslatorDashboardScreenState extends State<TranslatorDashboardScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Kelal — Translator',
+                'Kelal â€” Translator',
                 style: GoogleFonts.inter(fontWeight: FontWeight.w900, fontSize: 18),
               ),
               Text(
@@ -325,7 +325,7 @@ class _TranslatorDashboardScreenState extends State<TranslatorDashboardScreen> {
             padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
             child: Row(
               children: [
-                // ── Persistent: switch to customer marketplace ──────────────
+                // â”€â”€ Persistent: switch to customer marketplace â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
                 Expanded(
                   child: OutlinedButton.icon(
                     onPressed: () {
@@ -348,7 +348,7 @@ class _TranslatorDashboardScreenState extends State<TranslatorDashboardScreen> {
                   ),
                 ),
                 const SizedBox(width: 12),
-                // ── Sign out ───────────────────────────────────────────────
+                // â”€â”€ Sign out â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
                 Expanded(
                   child: OutlinedButton.icon(
                     onPressed: _signOut,
@@ -414,7 +414,7 @@ class _TranslatorDashboardScreenState extends State<TranslatorDashboardScreen> {
   }
 
   Widget _jobTile(Map<String, dynamic> job) {
-    final title = '${job['from_lang'] ?? '?'} → ${job['to_lang'] ?? '?'}';
+    final title = '${job['from_lang'] ?? '?'} â†’ ${job['to_lang'] ?? '?'}';
     final status = normalizeJobStatus(job['status']);
     final price = job['price'];
 
@@ -472,3 +472,5 @@ class _TranslatorDashboardScreenState extends State<TranslatorDashboardScreen> {
     );
   }
 }
+
+

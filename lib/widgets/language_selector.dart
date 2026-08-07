@@ -9,7 +9,7 @@ class LanguageSelector extends StatefulWidget {
 
 class _LanguageSelectorState extends State<LanguageSelector> {
   String selectedLanguage = 'English';
-  final languages = ['English', 'አማርኛ', 'Afan Oromo'];
+  final languages = ['English', 'Amharic', 'Afaan Oromoo'];
 
   @override
   Widget build(BuildContext context) {
@@ -26,3 +26,4 @@ class _LanguageSelectorState extends State<LanguageSelector> {
     );
   }
 }
+

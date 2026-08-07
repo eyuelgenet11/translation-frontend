@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -23,7 +23,7 @@ import 'login_screen.dart';
 import 'screens/admin_otp_screen.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
-/// Top-level background message handler — required for background/terminated state.
+/// Top-level background message handler â€” required for background/terminated state.
 /// Must be a top-level function (not a class method).
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -147,29 +147,32 @@ class _TranslationAppState extends State<TranslationApp> {
                     useMaterial3: true,
                     brightness: Brightness.light,
                     colorScheme: ColorScheme.fromSeed(
-                      seedColor: const Color(0xFF895129),
+                      seedColor: const Color(0xFF8D5C3C),
                       brightness: Brightness.light,
-                      primary: const Color(0xFF895129),
+                      primary: const Color(0xFF8D5C3C),
                       onPrimary: Colors.white,
+                      surface: Colors.white,
                     ),
-                    scaffoldBackgroundColor: const Color(0xFFFFFFFF),
+                    scaffoldBackgroundColor: Colors.white,
+                    cardColor: Colors.white,
+                    dividerColor: const Color(0xFFF2F0ED),
                     textTheme: GoogleFonts.interTextTheme(),
                     snackBarTheme: SnackBarThemeData(
-                      backgroundColor: const Color(0xFF1E293B),
+                      backgroundColor: const Color(0xFF111111),
                       contentTextStyle: const TextStyle(
                           color: Colors.white, fontWeight: FontWeight.w600),
                       behavior: SnackBarBehavior.floating,
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
+                          borderRadius: BorderRadius.circular(16)),
                     ),
                   ),
                   darkTheme: ThemeData(
                     useMaterial3: true,
                     brightness: Brightness.dark,
                     colorScheme: ColorScheme.fromSeed(
-                      seedColor: const Color(0xFF895129),
+                      seedColor: const Color(0xFF8D5C3C),
                       brightness: Brightness.dark,
-                      primary: const Color(0xFF895129),
+                      primary: const Color(0xFF8D5C3C),
                       onPrimary: Colors.white,
                     ),
                     scaffoldBackgroundColor:
@@ -242,3 +245,5 @@ class _TranslationAppState extends State<TranslationApp> {
     );
   }
 }
+
+

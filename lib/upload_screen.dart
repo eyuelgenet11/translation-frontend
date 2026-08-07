@@ -9,6 +9,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:pdfx/pdfx.dart';
 import 'package:archive/archive.dart';
+import 'ds.dart';
 import 'services/api_service.dart';
 import 'services/notification_sound_service.dart';
 import 'payment_screen.dart';
@@ -24,7 +25,7 @@ class UploadScreen extends StatefulWidget {
 
 class _UploadScreenState extends State<UploadScreen> {
   final supabase = Supabase.instance.client;
-  static const Color brandBrown = Color(0xFF895129);
+  static const Color brandBrown = DS.primary;
   late Color bgTheme;
   late Color cardTheme;
   late Color textThemeHeader;
@@ -41,17 +42,58 @@ class _UploadScreenState extends State<UploadScreen> {
 
   // Auto page count (calculated by system from uploaded document)
   int _autoPageCount = 1;
-  // Customer phone — collected here, sent to admin via Telegram
+  // Customer phone Ã¢â‚¬â€ collected here, sent to admin via Telegram
   final TextEditingController _phoneController = TextEditingController();
 
   List<PlatformFile> _pickedFiles = [];
   List<XFile> _pickedImages = []; // Images picked from gallery/camera
 
   // --- DYNAMIC LANGUAGES ---
-  List<String> allLanguages = [
-    'English', 'Amharic', 'Tigrinya', 'Oromiffa', 'French', 'Arabic', 
-    'Sidama', 'Wolayta', 'Somali', 'Afar', 'Spanish', 'Chinese', 'German', 'Italian'
-  ];
+  static const Set<String> _localLangNames = {
+    'afaan oromoo', 'afar', 'amharic', 'anuak', 'gumuz',
+    'hadiyya', 'harari', 'kambaata', 'sidamo', 'somali',
+    'tigrinya', 'wolaytta', 'oromiffa', 'oromia', 'sidama', 'wolayta'
+  };
+
+  static List<String> sortLanguagesCategorized(List<String> langs) {
+    final top = <String>[];
+    final local = <String>[];
+    final foreign = <String>[];
+
+    for (final l in langs) {
+      final nameLower = l.trim().toLowerCase();
+      if (nameLower == 'amharic' || nameLower == 'english') {
+        top.add(l);
+      } else if (_localLangNames.contains(nameLower)) {
+        local.add(l);
+      } else {
+        foreign.add(l);
+      }
+    }
+
+    // Top priority: Amharic first, then English
+    top.sort((a, b) {
+      if (a.trim().toLowerCase() == 'amharic') return -1;
+      if (b.trim().toLowerCase() == 'amharic') return 1;
+      return a.toLowerCase().compareTo(b.toLowerCase());
+    });
+
+    local.sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+    foreign.sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+
+    return [...top, ...local, ...foreign];
+  }
+
+  List<String> allLanguages = sortLanguagesCategorized([
+    // Primary Languages
+    'Amharic', 'English',
+    // Remaining Local Ethiopian Languages (Alphabetical)
+    'Afaan Oromoo', 'Afar', 'Anuak', 'Gumuz', 
+    'Hadiyya', 'Harari', 'Kambaata', 'Sidamo', 'Somali', 
+    'Tigrinya', 'Wolaytta',
+    // Remaining Foreign Languages (Alphabetical)
+    'Arabic', 'Chinese', 'French', 'German', 'Italian', 'Spanish'
+  ]);
   bool loadingLanguages = false;
 
   @override
@@ -77,7 +119,7 @@ class _UploadScreenState extends State<UploadScreen> {
         
         if (mounted) {
           setState(() {
-            allLanguages = fetchedLangs;
+            allLanguages = sortLanguagesCategorized(fetchedLangs);
           });
         }
       }
@@ -194,18 +236,18 @@ class _UploadScreenState extends State<UploadScreen> {
   @override
   Widget build(BuildContext context) {
     isDark = Theme.of(context).brightness == Brightness.dark;
-    bgTheme = Theme.of(context).scaffoldBackgroundColor;
-    cardTheme = Theme.of(context).cardColor;
-    textThemeHeader = isDark ? Colors.white : Colors.black;
-    textThemeSec = isDark ? Colors.white70 : Colors.black54;
+    bgTheme = DS.background;
+    cardTheme = DS.card;
+    textThemeHeader = DS.textPrimary;
+    textThemeSec = DS.textSecondary;
 
     return Scaffold(
       backgroundColor: bgTheme,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: bgTheme,
+        backgroundColor: Colors.white,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new, color: textThemeHeader, size: 20),
+          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black87, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
         title: Row(
@@ -236,14 +278,14 @@ class _UploadScreenState extends State<UploadScreen> {
             const SizedBox(height: 12),
             _translatorProfileHeader(),
             const SizedBox(height: 32),
-            _buildSectionLabelWithIcon(Icons.assignment_outlined, "ASSIGNMENT SPECIFICATIONS"),
+            _buildSectionLabelWithIcon(Icons.translate_outlined, "CHOOSE LANGUAGES"),
             const SizedBox(height: 16),
             _infoTakingBox(
-                label: "Source Language",
+                label: "From",
                 child: _customDropdown(fromLang, (v) => setState(() => fromLang = v), allLanguages)),
             const SizedBox(height: 12),
             _infoTakingBox(
-                label: "Target Language",
+                label: "To",
                 child: _customDropdown(toLang, (v) => setState(() => toLang = v),
                     allLanguages.where((l) => l != fromLang).toList())),
             const SizedBox(height: 24),
@@ -326,7 +368,7 @@ class _UploadScreenState extends State<UploadScreen> {
           }
         }
       } else {
-        // Image path — use first image name & bytes
+        // Image path Ã¢â‚¬â€ use first image name & bytes
         final XFile firstImage = _pickedImages.first;
         filename = firstImage.name.isNotEmpty ? firstImage.name : 'image_${DateTime.now().millisecondsSinceEpoch}.jpg';
         for (var img in _pickedImages) {
@@ -387,18 +429,20 @@ class _UploadScreenState extends State<UploadScreen> {
         bool isAfarOrSomali(String? lang) {
           if (lang == null) return false;
           final l = lang.trim().toLowerCase();
-          return l.contains('afar') || l.contains('somali') || l.contains('ሶማሊ') || l.contains('ዓፋር');
+          return l.contains('afar') || l.contains('somali') || l.contains('Ã¡Ë†Â¶Ã¡Ë†â€ºÃ¡Ë†Å ') || l.contains('Ã¡â€¹â€œÃ¡Â â€¹Ã¡Ë†Â­');
         }
 
         bool isLocalLang(String? lang) {
           if (lang == null) return false;
           final l = lang.trim().toLowerCase();
-          return l.contains('amharic') || l.contains('አማርኛ') ||
+          return l.contains('amharic') ||
                  l.contains('english') ||
                  l.contains('orom') || l.contains('oromiffa') || l.contains('afaan') ||
                  l.contains('tigr') || l.contains('tigray') ||
-                 l.contains('arabic') || l.contains('ዓረብኛ') ||
-                 l.contains('sidama') || l.contains('wolayta') || l.contains('wolaytta') ||
+                 l.contains('arabic') ||
+                 l.contains('sidam') || l.contains('wolayt') || l.contains('wolaytta') ||
+                 l.contains('hadiyya') || l.contains('kambaata') || l.contains('harari') ||
+                 l.contains('gumuz') || l.contains('anuak') ||
                  isAfarOrSomali(l);
         }
 
@@ -456,15 +500,11 @@ class _UploadScreenState extends State<UploadScreen> {
 
         // Direct Telegram Bot HTTP call backup
         ApiService.sendTelegramDirect(
-          text: '📝 <b>NEW TRANSLATION JOB UPLOADED</b>\n'
-                '━━━━━━━━━━━━━━━━━━━━\n'
-                '🆔 <b>Job ID:</b> #${insertedJob['id']}\n'
-                '🏪 <b>Merchant:</b> $merchantNameStr\n'
-                '📄 <b>Pages:</b> $_autoPageCount\n'
-                '🔤 <b>Language:</b> $fromLang → $toLang\n'
-                '📱 <b>Customer Phone:</b> $phone\n'
-                '⚡ <b>Urgency:</b> $urgency\n'
-                '💰 <b>Price:</b> ${totalPrice.toStringAsFixed(2)} ETB',
+          text: 'New Order Request!\n'
+                'Language: $fromLang -> $toLang\n'
+                'Customer Phone: $phone\n'
+                'Urgency: $urgency\n'
+                'Price: ${totalPrice.toStringAsFixed(2)} ETB',
           documentUrl: fileUrl,
         );
 
@@ -478,7 +518,7 @@ class _UploadScreenState extends State<UploadScreen> {
         final jobData = result['data'] as Map<String, dynamic>? ?? {};
 
         if (isHandwritten) {
-          _showSnack('✅ Submitted! Admin will review your handwritten document.');
+          _showSnack('Submitted! Admin will review your handwritten document.');
           Navigator.pushReplacementNamed(context, '/live_tracker', arguments: jobData);
         } else {
           Navigator.pushReplacement(
@@ -500,7 +540,7 @@ class _UploadScreenState extends State<UploadScreen> {
 
   // --- UI COMPONENTS ---
 
-  // Phone number field — collected at upload time, sent to admin via Telegram
+  // Phone number field Ã¢â‚¬â€ collected at upload time, sent to admin via Telegram
   Widget _phoneField() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
@@ -598,7 +638,7 @@ class _UploadScreenState extends State<UploadScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
         decoration: BoxDecoration(
           color: isHandwritten
-              ? const Color(0xFF895129).withValues(alpha: 0.10)
+              ? const Color(0xFF8D5C3C).withValues(alpha: 0.10)
               : (isDark ? Colors.white.withValues(alpha: 0.04) : const Color(0xFFF1F5F9)),
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
@@ -664,7 +704,7 @@ class _UploadScreenState extends State<UploadScreen> {
 
 
 
-  // Urgency selector — labels only, no prices shown to user
+  // Urgency selector Ã¢â‚¬â€ labels only, no prices shown to user
   Widget _urgencySelector() {
     final options = [
       const _UrgencyOption('Normal',      'Standard delivery',         Icons.access_time_rounded),
@@ -674,8 +714,9 @@ class _UploadScreenState extends State<UploadScreen> {
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: isDark ? Colors.white.withValues(alpha: 0.05) : const Color(0xFFF1F5F9),
-        borderRadius: BorderRadius.circular(18),
+        color: DS.bgSecondary,
+        borderRadius: BorderRadius.circular(DS.radiusCard),
+        border: Border.all(color: DS.border),
       ),
       child: Column(
         children: options.map((opt) {
@@ -685,22 +726,17 @@ class _UploadScreenState extends State<UploadScreen> {
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
               margin: const EdgeInsets.symmetric(vertical: 3, horizontal: 4),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               decoration: BoxDecoration(
-                color: isSel
-                    ? brandBrown.withValues(alpha: 0.12)
-                    : Colors.transparent,
-                borderRadius: BorderRadius.circular(14),
+                color: isSel ? DS.primary.withValues(alpha: 0.08) : Colors.transparent,
+                borderRadius: BorderRadius.circular(DS.radiusInput),
                 border: Border.all(
-                  color: isSel ? brandBrown : Colors.transparent,
-                  width: 1.5,
+                  color: isSel ? DS.primary : Colors.transparent,
                 ),
               ),
               child: Row(
                 children: [
-                  Icon(opt.icon,
-                      size: 20,
-                      color: isSel ? brandBrown : textThemeSec),
+                  Icon(opt.icon, size: 20, color: isSel ? DS.primary : DS.textSecondary),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
@@ -708,18 +744,18 @@ class _UploadScreenState extends State<UploadScreen> {
                       children: [
                         Text(opt.label,
                             style: TextStyle(
-                                fontWeight: FontWeight.w800,
+                                fontWeight: FontWeight.w700,
                                 fontSize: 14,
-                                color: isSel ? brandBrown : textThemeHeader)),
+                                color: isSel ? DS.primary : DS.textPrimary)),
                         Text(opt.subtitle,
-                            style: TextStyle(
+                            style: const TextStyle(
                                 fontSize: 11,
-                                color: textThemeSec)),
+                                color: DS.textSecondary)),
                       ],
                     ),
                   ),
                   if (isSel)
-                    Icon(Icons.check_circle_rounded, color: brandBrown, size: 18),
+                    const Icon(Icons.check_circle_rounded, color: DS.primary, size: 18),
                 ],
               ),
             ),
@@ -733,19 +769,18 @@ class _UploadScreenState extends State<UploadScreen> {
     final avatar = widget.company['avatar_url'];
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-          color: cardTheme,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.grey.shade200)),
+      decoration: DS.cardDecoration(),
       child: Row(
         children: [
           Hero(
             tag: 'translator_avatar_${widget.company['id']}',
             child: CircleAvatar(
               radius: 24,
-              backgroundColor: brandBrown.withValues(alpha: 0.05),
+              backgroundColor: DS.primary.withValues(alpha: 0.08),
               backgroundImage: (avatar != null && avatar.isNotEmpty) ? NetworkImage(avatar) : null,
-              child: (avatar == null || avatar.isEmpty) ? const Icon(Icons.person, color: brandBrown) : null,
+              child: (avatar == null || avatar.isEmpty)
+                  ? const Icon(Icons.person_outline_rounded, color: DS.primary)
+                  : null,
             ),
           ),
           const SizedBox(width: 16),
@@ -753,16 +788,28 @@ class _UploadScreenState extends State<UploadScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(widget.company['full_name'] ?? "Expert Translator",
-                    style: TextStyle(color: textThemeHeader, fontWeight: FontWeight.w800, fontSize: 15),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis),
-                const Text("Translator Profile",
-                    style: TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.w500)),
+                Text(
+                  widget.company['full_name'] ?? 'Expert Translator',
+                  style: const TextStyle(
+                    color: DS.textPrimary,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 15,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const Text(
+                  'Translator Profile',
+                  style: TextStyle(
+                    color: DS.textSecondary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
               ],
             ),
           ),
-          const Icon(Icons.verified_user_rounded, color: Colors.green, size: 20),
+          const Icon(Icons.verified_user_rounded, color: DS.success, size: 20),
         ],
       ),
     );
@@ -771,13 +818,24 @@ class _UploadScreenState extends State<UploadScreen> {
   Widget _infoTakingBox({required String label, required Widget child}) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-      decoration: BoxDecoration(color: isDark ? Colors.white.withValues(alpha: 0.05) : const Color(0xFFF1F5F9), borderRadius: BorderRadius.circular(18)),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: DS.background,
+        borderRadius: BorderRadius.circular(DS.radiusInput),
+        border: Border.all(color: DS.border),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label.toUpperCase(),
-              style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: brandBrown, letterSpacing: 0.5)),
+          Text(
+            label.toUpperCase(),
+            style: const TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+              color: DS.textSecondary,
+              letterSpacing: 0.5,
+            ),
+          ),
           const SizedBox(height: 4),
           child,
         ],
@@ -844,26 +902,23 @@ class _UploadScreenState extends State<UploadScreen> {
           height: 160,
           width: double.infinity,
           decoration: BoxDecoration(
-            color: isDark ? Colors.white.withValues(alpha: 0.05) : brandBrown,
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(
-              color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05),
-              width: 1.5,
-            ),
+            color: DS.bgSecondary,
+            borderRadius: BorderRadius.circular(DS.radiusCard),
+            border: Border.all(color: DS.border),
           ),
           child: !hasAny
               ? Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.cloud_upload_rounded, size: 40, color: textThemeHeader),
+                    const Icon(Icons.cloud_upload_rounded, size: 40, color: DS.textSecondary),
                     const SizedBox(height: 10),
                     Text(
                       AppLocalizations.of(context)?.translate('upload') ?? 'Upload Document or Image',
-                      style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: textThemeHeader),
+                      style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: Colors.black87),
                     ),
                     Text(
                       'PDF, Word Docs, or Images',
-                      style: TextStyle(fontSize: 11, color: textThemeHeader.withValues(alpha: 0.65)),
+                      style: TextStyle(fontSize: 11, color: Colors.black45),
                     ),
                   ],
                 )
@@ -884,23 +939,23 @@ class _UploadScreenState extends State<UploadScreen> {
                     ),
                     const SizedBox(height: 8),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: isDark ? brandBrown : Colors.white.withValues(alpha: 0.25),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.white.withValues(alpha: 0.4)),
-                      ),
+                       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                       decoration: BoxDecoration(
+                         color: brandBrown.withValues(alpha: 0.12),
+                         borderRadius: BorderRadius.circular(12),
+                         border: Border.all(color: brandBrown.withValues(alpha: 0.3)),
+                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.description_rounded, size: 13, color: Colors.white),
+                          const Icon(Icons.description_rounded, size: 13, color: brandBrown),
                           const SizedBox(width: 6),
                           Text(
                             '$_autoPageCount page${_autoPageCount > 1 ? 's' : ''}',
                             style: const TextStyle(
                               fontWeight: FontWeight.w900,
                               fontSize: 12,
-                              color: Colors.white,
+                              color: brandBrown,
                             ),
                           ),
                         ],
@@ -979,31 +1034,44 @@ class _UploadScreenState extends State<UploadScreen> {
   Widget _actionButton() {
     return SizedBox(
       width: double.infinity,
-      height: 68,
+      height: DS.buttonHeight,
       child: ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: brandBrown,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
-          elevation: 0,
-        ),
+        style: DS.primaryButton(),
         onPressed: processing ? null : _submitJob,
         child: processing
-            ? const CircularProgressIndicator(color: Colors.white)
-            : const Text("PLACE ORDER",
-                style: TextStyle(fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: 1.5)),
+            ? const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+              )
+            : const Text(
+                'Place Order',
+                style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                  fontSize: 16,
+                ),
+              ),
       ),
     );
   }
 
   Widget _buildSectionLabel(String text) {
-    return Text(text,
-        style: TextStyle(fontWeight: FontWeight.w800, fontSize: 11, color: Colors.grey.shade500, letterSpacing: 0.5));
+    return Text(
+      text,
+      style: const TextStyle(
+        fontWeight: FontWeight.w600,
+        fontSize: 11,
+        color: DS.textSecondary,
+        letterSpacing: 0.3,
+      ),
+    );
   }
 
   Widget _buildSectionLabelWithIcon(IconData icon, String text) {
     return Row(
       children: [
-        Icon(icon, size: 16, color: Colors.grey.shade400),
+        Icon(icon, size: 16, color: DS.textSecondary),
         const SizedBox(width: 8),
         _buildSectionLabel(text),
       ],
@@ -1014,23 +1082,29 @@ class _UploadScreenState extends State<UploadScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: cardTheme,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        backgroundColor: DS.card,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(DS.radiusCard)),
         title: const Row(
           children: [
-            Icon(Icons.lock_outline_rounded, color: brandBrown, size: 28),
+            Icon(Icons.lock_outline_rounded, color: DS.primary, size: 26),
             SizedBox(width: 12),
-            Text("Sign In Required", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+            Text('Sign In Required',
+                style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 17,
+                  color: DS.textPrimary,
+                )),
           ],
         ),
         content: const Text(
-          "Please sign in to your account to upload documents and place translation orders.",
-          style: TextStyle(fontSize: 14, height: 1.5),
+          'Please sign in to upload documents and place translation orders.',
+          style: TextStyle(fontSize: 14, height: 1.6, color: DS.textSecondary),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text("CANCEL", style: TextStyle(color: Colors.grey)),
+            child: const Text('Cancel',
+                style: TextStyle(color: DS.textSecondary)),
           ),
           ElevatedButton(
             onPressed: () {
@@ -1038,11 +1112,13 @@ class _UploadScreenState extends State<UploadScreen> {
               Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: brandBrown,
+              backgroundColor: DS.primary,
               foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(DS.radiusButton)),
             ),
-            child: const Text("SIGN IN"),
+            child: const Text('Sign In'),
           ),
         ],
       ),
@@ -1067,3 +1143,5 @@ class _UrgencyOption {
   final IconData icon;
   const _UrgencyOption(this.label, this.subtitle, this.icon);
 }
+
+

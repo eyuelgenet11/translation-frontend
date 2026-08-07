@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'services/theme_controller.dart';
@@ -17,7 +17,7 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  final Color brandColor = const Color(0xFF895129); // Brand brown
+  final Color brandColor = const Color(0xFF8D5C3C); // Brand brown
   late Color bgColor;
   late Color cardColor;
 
@@ -268,7 +268,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 children: [
                   _buildListTile(
                     icon: Icons.language_rounded,
-                    title: "Language / ቋንቋ",
+                    title: "Language / á‰‹áŠ•á‰‹",
                     subtitle: isEnglish ? "English" : "Amharic",
                     trailing: Switch(
                       value: isEnglish,
@@ -537,7 +537,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text("Account switched to ${type.toUpperCase()} successfully!"),
-          backgroundColor: const Color(0xFF895129),
+          backgroundColor: const Color(0xFF8D5C3C),
         ));
       }
     } catch (e) {
@@ -589,3 +589,5 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 }
+
+

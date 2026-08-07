@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../widgets/empty_state.dart';
@@ -172,3 +172,4 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     );
   }
 }
+

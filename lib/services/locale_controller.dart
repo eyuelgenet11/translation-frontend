@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 class LocaleController {
   static final ValueNotifier<Locale> localeNotifier = ValueNotifier(const Locale('en'));
@@ -15,3 +15,4 @@ class LocaleController {
     localeNotifier.value = Locale(langCode);
   }
 }
+

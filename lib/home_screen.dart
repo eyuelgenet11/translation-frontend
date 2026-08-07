@@ -16,6 +16,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:upgrader/upgrader.dart';
 
 import 'upload_screen.dart';
+import 'ds.dart';
 
 import 'services/locale_controller.dart';
 import 'services/push_notification_service.dart';
@@ -70,7 +71,7 @@ class _MarketplaceHomeScreenState extends State<MarketplaceHomeScreen> {
   String selectedCategory = "All";
 
   // Brand Palette
-  static const Color brandBrown = Color(0xFF895129);
+  static const Color brandBrown = DS.primary;
   
   // Dynamic color holders (will be set in build)
   late Color bgTheme;
@@ -172,7 +173,7 @@ class _MarketplaceHomeScreenState extends State<MarketplaceHomeScreen> {
     final user = supabase.auth.currentUser;
     if (user == null) return;
 
-    // Check designation by email (fast — no DB call needed)
+    // Check designation by email (fast â€” no DB call needed)
     final isDesignatedByEmail = SecurityConfig.isSuperAdminEmail(user.email);
     final isDesignated = isDesignatedByEmail;
     final granted = isDesignatedByEmail;
@@ -308,7 +309,7 @@ class _MarketplaceHomeScreenState extends State<MarketplaceHomeScreen> {
   void _showAdminPaymentAlert({required Map<String, dynamic> job}) {
     if (!mounted) return;
 
-    // Trigger local push notification (system tray) only — popup review box removed as requested
+    // Trigger local push notification (system tray) only â€” popup review box removed as requested
     PushNotificationService().showLocalNotification(
       title: "Payment Slip Uploaded",
       body: "A client has uploaded a payment receipt for review: ${job['title'] ?? 'Translation Request'}.",
@@ -883,19 +884,20 @@ class _MarketplaceHomeScreenState extends State<MarketplaceHomeScreen> {
       child: Container(
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
-          color: brandBrown.withValues(alpha: 0.04),
+          color: DS.background,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: brandBrown.withValues(alpha: 0.05)),
+          border: Border.all(color: DS.border),
+          boxShadow: DS.shadow,
         ),
         child: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: brandBrown.withValues(alpha: 0.12),
+                color: DS.primary.withValues(alpha: 0.08),
                 shape: BoxShape.circle,
               ),
-              child: Icon(icon, color: brandBrown, size: 22),
+              child: Icon(icon, color: DS.primary, size: 20),
             ),
             const SizedBox(width: 16),
             Text(
@@ -1125,7 +1127,7 @@ class _MarketplaceHomeScreenState extends State<MarketplaceHomeScreen> {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
                                         content:
-                                            Text("Profile photo updated! ✅")));
+                                            Text("Profile photo updated!")));
                               }
                             } finally {
                               setModalState(() => uploading = false);
@@ -1270,13 +1272,13 @@ class _MarketplaceHomeScreenState extends State<MarketplaceHomeScreen> {
                                       child: Text('English')),
                                   DropdownMenuItem(
                                       value: 'Amharic',
-                                      child: Text('አማርኛ')),
+                                      child: Text('áŠ áˆ›áˆ­áŠ›')),
                                   DropdownMenuItem(
                                       value: 'Tigrinya',
-                                      child: Text('ትግርኛ')),
+                                      child: Text('á‰µáŒáˆ­áŠ›')),
                                   DropdownMenuItem(
-                                      value: 'Oromia',
-                                      child: Text('Oromia')),
+                                      value: 'Afaan Oromoo',
+                                      child: Text('Afaan Oromoo')),
                                 ],
                                 onChanged: (v) {
                                   if (v != null) {
@@ -1340,9 +1342,9 @@ class _MarketplaceHomeScreenState extends State<MarketplaceHomeScreen> {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(
                                           content: Text(
-                                              "Profile updated successfully! ✅"),
+                                              "Profile updated successfully!"),
                                           backgroundColor:
-                                              Color(0xFF895129)),
+                                              Color(0xFF8D5C3C)),
                                     );
                                   }
                                   Navigator.pop(context);
@@ -1812,3 +1814,6 @@ class TranslatorProfileScreen extends StatelessWidget {
     );
   }
 }
+
+
+

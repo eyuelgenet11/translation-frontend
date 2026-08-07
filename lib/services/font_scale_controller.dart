@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class FontScaleController {
@@ -17,3 +17,4 @@ class FontScaleController {
 
   static double get scale => scaleNotifier.value;
 }
+

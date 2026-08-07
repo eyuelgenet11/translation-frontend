@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ThemeController {
@@ -6,7 +6,7 @@ class ThemeController {
 
   static Future<void> initialize() async {
     final prefs = await SharedPreferences.getInstance();
-    final isDark = prefs.getBool('is_dark_mode') ?? true;
+    final isDark = prefs.getBool('is_dark_mode') ?? false;
     themeNotifier.value = isDark ? ThemeMode.dark : ThemeMode.light;
   }
 
@@ -23,3 +23,4 @@ class ThemeController {
 
   static bool get isDark => themeNotifier.value == ThemeMode.dark;
 }
+

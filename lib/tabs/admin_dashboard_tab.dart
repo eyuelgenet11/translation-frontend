@@ -176,7 +176,7 @@ class _AdminDashboardTabState extends State<AdminDashboardTab> with SingleTicker
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text("✅ Translator approved successfully."),
+        content: Text("âœ… Translator approved successfully."),
         backgroundColor: Colors.green,
       ));
       _fetchData();
@@ -195,7 +195,7 @@ class _AdminDashboardTabState extends State<AdminDashboardTab> with SingleTicker
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text("✅ Payment approved. Status is now 'In Progress'."),
+        content: Text("âœ… Payment approved. Status is now 'In Progress'."),
         backgroundColor: Colors.green,
       ));
       _fetchData();
@@ -220,7 +220,7 @@ class _AdminDashboardTabState extends State<AdminDashboardTab> with SingleTicker
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text("❌ Payment rejected. Reason: $reason"),
+        content: Text("âŒ Payment rejected. Reason: $reason"),
         backgroundColor: Colors.redAccent,
       ));
       _fetchData();
@@ -244,7 +244,7 @@ class _AdminDashboardTabState extends State<AdminDashboardTab> with SingleTicker
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text("✅ Settlement processed! Net payout: ${netPayout.toStringAsFixed(2)} ETB."),
+        content: Text("âœ… Settlement processed! Net payout: ${netPayout.toStringAsFixed(2)} ETB."),
         backgroundColor: Colors.green,
       ));
       _fetchData();
@@ -712,7 +712,7 @@ class _AdminDashboardTabState extends State<AdminDashboardTab> with SingleTicker
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    "${job['from_lang']} → ${job['to_lang']}",
+                    "${job['from_lang']} -> ${job['to_lang']}",
                     style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 16, color: widget.brandBrown),
                   ),
                   Container(
@@ -806,7 +806,7 @@ class _AdminDashboardTabState extends State<AdminDashboardTab> with SingleTicker
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    "${job['from_lang']} → ${job['to_lang']}",
+                    "${job['from_lang']} -> ${job['to_lang']}",
                     style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 16, color: widget.brandBrown),
                   ),
                   Container(
@@ -969,7 +969,7 @@ class _AdminDashboardTabState extends State<AdminDashboardTab> with SingleTicker
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    "${job['from_lang']} → ${job['to_lang']}",
+                    "${job['from_lang']} -> ${job['to_lang']}",
                     style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 16, color: widget.brandBrown),
                   ),
                   Container(
@@ -1092,7 +1092,7 @@ class _AdminDashboardTabState extends State<AdminDashboardTab> with SingleTicker
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    "${job['from_lang']} → ${job['to_lang']}",
+                    "${job['from_lang']} -> ${job['to_lang']}",
                     style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 16, color: widget.brandBrown),
                   ),
                   Container(
@@ -1263,7 +1263,7 @@ class _AdminDashboardTabState extends State<AdminDashboardTab> with SingleTicker
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    "${job['from_lang']} → ${job['to_lang']}",
+                    "${job['from_lang']} -> ${job['to_lang']}",
                     style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 16, color: widget.brandBrown),
                   ),
                   Container(
@@ -1425,3 +1425,4 @@ class _AdminDashboardTabState extends State<AdminDashboardTab> with SingleTicker
     );
   }
 }
+

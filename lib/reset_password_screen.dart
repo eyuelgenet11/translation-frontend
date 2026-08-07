@@ -1,4 +1,4 @@
-import 'dart:ui';
+﻿import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -17,7 +17,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   bool _obscurePassword = true;
 
   late Color brandColor;
-  final Color accentColor = const Color(0xFF895129);
+  final Color accentColor = const Color(0xFF8D5C3C);
   late Color bgColor;
 
   @override
@@ -151,7 +151,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
       backgroundColor: bgColor,
       body: Stack(
         children: [
-          // 📸 Premium Background
+          // ðŸ“¸ Premium Background
           Positioned.fill(
             child: Opacity(
               opacity: Theme.of(context).brightness == Brightness.dark ? 0.15 : 0.4,
@@ -204,14 +204,14 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                     _buildModernInput(
                       controller: _passwordController,
                       label: "New Password",
-                      hint: "••••••••",
+                      hint: "â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢",
                       icon: Icons.lock_outline_rounded,
                     ),
                     const SizedBox(height: 20),
                     _buildModernInput(
                       controller: _confirmController,
                       label: "Confirm Password",
-                      hint: "••••••••",
+                      hint: "â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢",
                       icon: Icons.lock_outline_rounded,
                     ),
                     const SizedBox(height: 48),
@@ -276,3 +276,5 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     );
   }
 }
+
+

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 class AppLocalizations {
   final Locale locale;
@@ -39,33 +39,33 @@ class AppLocalizations {
       'invalid_credentials': 'Incorrect email or password',
     },
     'am': {
-      'app_title': 'ግዕዝ ትርጉም',
-      'home': 'መነሻ',
-      'tracker': 'ተከታታይ',
-      'profile': 'ፕሮፋይል',
-      'settings': 'ቅንብሮች',
-      'how_it_works': 'እንዴት እንደሚሰራ',
-      'search_placeholder': 'ተርጓሚዎችን ይፈልጉ...',
-      'recommended': 'የተመከሩ ባለሙያዎች',
-      'verified': 'የተረጋገጡ ተርጓሚዎች',
-      'login': 'ግባ',
-      'register': 'ተመዝገብ',
-      'email': 'ኢሜይል',
-      'password': 'የይለፍ ቃል',
-      'upload': 'ሰነድ ይጫኑ',
-      'source_lang': 'የመነሻ ቋንቋ',
-      'target_lang': 'የመድረሻ ቋንቋ',
-      'urgency': 'አስቸኳይነት',
-      'place_order': 'ትዕዛዝ በማስገባት ላይ',
-      'active_job': 'ንቁ ስራ',
-      'no_active_job': 'በአሁኑ ጊዜ ምንም ንቁ ስራዎች የሉም',
-      'payment_verified': 'ክፍያ ተረጋግጧል',
-      'in_progress': 'በሂደት ላይ',
-      'completed': 'ተጠናቋል',
-      'enter_valid_email': 'እባክዎን ትክክለኛ የኢሜይል አድራሻ ያስገቡ',
-      'recovery_link_sent': 'የማግኛ ሊንክ ተልኳል ወደ',
-      'identity_required': 'ኢሜይል እና የይለፍ ቃል ያስፈልጋል',
-      'invalid_credentials': 'የተሳሳተ ኢሜይል ወይም የይለፍ ቃል',
+      'app_title': 'áŒá‹•á‹ á‰µáˆ­áŒ‰áˆ',
+      'home': 'áˆ˜áŠáˆ»',
+      'tracker': 'á‰°áŠ¨á‰³á‰³á‹­',
+      'profile': 'á•áˆ®á‹á‹­áˆ',
+      'settings': 'á‰…áŠ•á‰¥áˆ®á‰½',
+      'how_it_works': 'áŠ¥áŠ•á‹´á‰µ áŠ¥áŠ•á‹°áˆšáˆ°áˆ«',
+      'search_placeholder': 'á‰°áˆ­áŒ“áˆšá‹Žá‰½áŠ• á‹­áˆáˆáŒ‰...',
+      'recommended': 'á‹¨á‰°áˆ˜áŠ¨áˆ© á‰£áˆˆáˆ™á‹«á‹Žá‰½',
+      'verified': 'á‹¨á‰°áˆ¨áŒ‹áŒˆáŒ¡ á‰°áˆ­áŒ“áˆšá‹Žá‰½',
+      'login': 'áŒá‰£',
+      'register': 'á‰°áˆ˜á‹áŒˆá‰¥',
+      'email': 'áŠ¢áˆœá‹­áˆ',
+      'password': 'á‹¨á‹­áˆˆá á‰ƒáˆ',
+      'upload': 'áˆ°áŠá‹µ á‹­áŒ«áŠ‘',
+      'source_lang': 'á‹¨áˆ˜áŠáˆ» á‰‹áŠ•á‰‹',
+      'target_lang': 'á‹¨áˆ˜á‹µáˆ¨áˆ» á‰‹áŠ•á‰‹',
+      'urgency': 'áŠ áˆµá‰¸áŠ³á‹­áŠá‰µ',
+      'place_order': 'á‰µá‹•á‹›á‹ á‰ áˆ›áˆµáŒˆá‰£á‰µ áˆ‹á‹­',
+      'active_job': 'áŠ•á‰ áˆµáˆ«',
+      'no_active_job': 'á‰ áŠ áˆáŠ‘ áŒŠá‹œ áˆáŠ•áˆ áŠ•á‰ áˆµáˆ«á‹Žá‰½ á‹¨áˆ‰áˆ',
+      'payment_verified': 'áŠ­áá‹« á‰°áˆ¨áŒ‹áŒáŒ§áˆ',
+      'in_progress': 'á‰ áˆ‚á‹°á‰µ áˆ‹á‹­',
+      'completed': 'á‰°áŒ áŠ“á‰‹áˆ',
+      'enter_valid_email': 'áŠ¥á‰£áŠ­á‹ŽáŠ• á‰µáŠ­áŠ­áˆˆáŠ› á‹¨áŠ¢áˆœá‹­áˆ áŠ á‹µáˆ«áˆ» á‹«áˆµáŒˆá‰¡',
+      'recovery_link_sent': 'á‹¨áˆ›áŒáŠ› áˆŠáŠ•áŠ­ á‰°áˆáŠ³áˆ á‹ˆá‹°',
+      'identity_required': 'áŠ¢áˆœá‹­áˆ áŠ¥áŠ“ á‹¨á‹­áˆˆá á‰ƒáˆ á‹«áˆµáˆáˆáŒ‹áˆ',
+      'invalid_credentials': 'á‹¨á‰°áˆ³áˆ³á‰° áŠ¢áˆœá‹­áˆ á‹ˆá‹­áˆ á‹¨á‹­áˆˆá á‰ƒáˆ',
     },
   };
 
@@ -88,3 +88,4 @@ class AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
   @override
   bool shouldReload(AppLocalizationsDelegate old) => false;
 }
+

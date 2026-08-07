@@ -1,4 +1,4 @@
-/// Normalizes job status strings from Supabase (mixed casing).
+﻿/// Normalizes job status strings from Supabase (mixed casing).
 String normalizeJobStatus(dynamic status) {
   return (status?.toString() ?? '').trim().toLowerCase().replaceAll('_', ' ');
 }
@@ -11,3 +11,4 @@ bool jobStatusIn(dynamic status, List<String> expected) {
   final n = normalizeJobStatus(status);
   return expected.map(normalizeJobStatus).contains(n);
 }
+

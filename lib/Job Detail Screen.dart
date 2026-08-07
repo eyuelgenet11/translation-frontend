@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'package:flutter/foundation.dart'; // For kIsWeb
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -25,7 +25,7 @@ class _CustomerJobDetailState extends State<CustomerJobDetail> {
   final TextEditingController _feedbackController = TextEditingController();
   bool _isFeedbackSubmitting = false;
   late Map currentJobData;
-  final Color brandColor = const Color(0xFF895129); // Earthy Brown
+  final Color brandColor = const Color(0xFF8D5C3C); // Earthy Brown
   late Color bgTheme;
   late Color cardTheme;
   late Color textThemeHeader;
@@ -220,7 +220,7 @@ class _CustomerJobDetailState extends State<CustomerJobDetail> {
 
             if (newStatus == 'completed' && oldStatus != 'completed') {
               ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                  content: Text("🎉 Translation Approved & Ready!"),
+                  content: Text("ðŸŽ‰ Translation Approved & Ready!"),
                   backgroundColor: Colors.green));
             }
           }
@@ -639,7 +639,7 @@ class _CustomerJobDetailState extends State<CustomerJobDetail> {
               currentJobData['status'].toString().toUpperCase()),
           const Divider(height: 24),
           _buildRow("Languages",
-              "${currentJobData['from_lang']} → ${currentJobData['to_lang']}"),
+              "${currentJobData['from_lang']} â†’ ${currentJobData['to_lang']}"),
         ],
       ),
     );
@@ -894,3 +894,5 @@ class _CustomerJobDetailState extends State<CustomerJobDetail> {
     );
   }
 }
+
+

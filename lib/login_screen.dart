@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'dart:math';
 import 'dart:ui';
 import 'dart:convert';
@@ -15,6 +15,7 @@ import 'services/admin_auth_service.dart';
 import 'config/security_config.dart';
 import 'services/push_notification_service.dart';
 import 'package:upgrader/upgrader.dart';
+import 'ds.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -26,8 +27,8 @@ class _LoginScreenState extends State<LoginScreen>
     with TickerProviderStateMixin {
   bool _loading = false;
 
-  static const _brown = Color(0xFF895129);
-  static const _darkBg = Color(0xFF0D0A08);
+  static const _brown = DS.primary;
+  static const _bg = DS.background;
 
   late AnimationController _bgCtrl;
   late AnimationController _entryCtrl;
@@ -101,7 +102,7 @@ class _LoginScreenState extends State<LoginScreen>
 
     if (!mounted) return;
 
-    // ── Admin ────────────────────────────────────────────────────────────
+    // Ã¢â€â‚¬Ã¢â€â‚¬ Admin Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
     // Admin must complete a one-time email OTP the first time.
     // After that the verification flag persists for 30 days.
     if (role == 'admin') {
@@ -115,13 +116,13 @@ class _LoginScreenState extends State<LoginScreen>
       return;
     }
 
-    // ── Approved translator ───────────────────────────────────────────────
+    // Ã¢â€â‚¬Ã¢â€â‚¬ Approved translator Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
     if (role == 'translator' && SecurityConfig.isApprovedTranslatorStatus(status)) {
       Navigator.pushReplacementNamed(context, '/translator-home');
       return;
     }
 
-    // ── Regular customer (or pending translator) ──────────────────────────
+    // Ã¢â€â‚¬Ã¢â€â‚¬ Regular customer (or pending translator) Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
     Navigator.pushReplacementNamed(context, '/home');
   }
 
@@ -233,48 +234,43 @@ class _LoginScreenState extends State<LoginScreen>
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text(msg),
       behavior: SnackBarBehavior.floating,
-      backgroundColor: const Color(0xFF2D1A0A),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      backgroundColor: DS.textPrimary,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
     ));
   }
 
   @override
   Widget build(BuildContext context) {
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.light,
+      value: SystemUiOverlayStyle.dark,
       child: UpgradeAlert(
         upgrader: Upgrader(),
         child: Scaffold(
-          backgroundColor: _darkBg,
-          body: Stack(
-            children: [
-              _AnimatedBg(controller: _bgCtrl),
-              SafeArea(
-                child: FadeTransition(
-                  opacity: _fadeIn,
-                  child: SlideTransition(
-                    position: _slideUp,
-                    child: Center(
-                      child: SingleChildScrollView(
-                        physics: const BouncingScrollPhysics(),
-                        padding: const EdgeInsets.symmetric(horizontal: 28),
-                        child: Column(
-                          children: [
-                            const SizedBox(height: 24),
-                            _buildHeader(),
-                            const SizedBox(height: 40),
-                            _buildGlassCard(),
-                            const SizedBox(height: 24),
-                            _buildFooter(),
-                            const SizedBox(height: 24),
-                          ],
-                        ),
-                      ),
+          backgroundColor: DS.background,
+          body: SafeArea(
+            child: FadeTransition(
+              opacity: _fadeIn,
+              child: SlideTransition(
+                position: _slideUp,
+                child: Center(
+                  child: SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Column(
+                      children: [
+                        const SizedBox(height: 32),
+                        _buildHeader(),
+                        const SizedBox(height: 36),
+                        _buildCard(),
+                        const SizedBox(height: 24),
+                        _buildFooter(),
+                        const SizedBox(height: 32),
+                      ],
                     ),
                   ),
                 ),
               ),
-            ],
+            ),
           ),
         ),
       ),
@@ -315,7 +311,7 @@ class _LoginScreenState extends State<LoginScreen>
         ),
         const SizedBox(height: 20),
         Text(
-          'ትርጉም ስራ',
+          'Ã¡â€°ÂµÃ¡Ë†Â­Ã¡Å’â€°Ã¡Ë†Â Ã¡Ë†ÂµÃ¡Ë†Â«',
           style: GoogleFonts.inter(
             fontSize: 38,
             fontWeight: FontWeight.w900,
@@ -356,90 +352,66 @@ class _LoginScreenState extends State<LoginScreen>
     );
   }
 
-  Widget _buildGlassCard() {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(32),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-        child: Container(
-          padding: const EdgeInsets.all(28),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(32),
-            color: Colors.white.withValues(alpha: 0.04),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.09)),
-          ),
-          child: Column(
-            children: [
-              _buildGoogleBtn(),
-              if (!kIsWeb && Theme.of(context).platform == TargetPlatform.iOS) ...[
-                const SizedBox(height: 16),
-                _buildAppleBtn(),
-              ],
-              const SizedBox(height: 20),
-              _buildDivider(),
-              const SizedBox(height: 20),
-              _buildGuestBtn(),
-            ],
-          ),
-        ),
+  Widget _buildCard() {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: DS.cardDecoration(),
+      child: Column(
+        children: [
+          _buildGoogleBtn(),
+          if (!kIsWeb && Theme.of(context).platform == TargetPlatform.iOS) ...[
+            const SizedBox(height: 16),
+            _buildAppleBtn(),
+          ],
+          const SizedBox(height: 20),
+          _buildDivider(),
+          const SizedBox(height: 20),
+          _buildGuestBtn(),
+        ],
       ),
     );
   }
 
   Widget _buildGoogleBtn() {
-    return GestureDetector(
-      onTap: _loading ? null : _googleSignIn,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        height: 58,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(18),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.white.withValues(alpha: 0.15),
-              blurRadius: 20,
-              spreadRadius: -4,
-              offset: const Offset(0, 8),
-            ),
-          ],
-        ),
-        child: Center(
-          child: _loading
-              ? const SizedBox(
-                  height: 22,
-                  width: 22,
-                  child: CircularProgressIndicator(
-                      strokeWidth: 2.5, color: _brown),
-                )
-              : Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Image.asset('assets/images/google_logo.png',
-                        width: 24, height: 24),
-                    const SizedBox(width: 14),
-                    Text(
-                      'Continue with Google',
-                      style: GoogleFonts.inter(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                        color: const Color(0xFF1A1A1A),
-                        letterSpacing: -0.2,
-                      ),
+    return SizedBox(
+      width: double.infinity,
+      height: DS.buttonHeight,
+      child: OutlinedButton(
+        onPressed: _loading ? null : _googleSignIn,
+        style: DS.secondaryButton(),
+        child: _loading
+            ? const SizedBox(
+                height: 20,
+                width: 20,
+                child: CircularProgressIndicator(
+                    strokeWidth: 2, color: DS.primary),
+              )
+            : Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Image.asset('assets/images/google_logo.png',
+                      width: 20, height: 20),
+                  const SizedBox(width: 12),
+                  Text(
+                    'Continue with Google',
+                    style: GoogleFonts.inter(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: DS.textPrimary,
                     ),
-                  ],
-                ),
-        ),
+                  ),
+                ],
+              ),
       ),
     );
   }
 
   Widget _buildAppleBtn() {
     return SizedBox(
-      height: 58,
+      height: DS.buttonHeight,
       child: SignInWithAppleButton(
         onPressed: _loading ? () {} : () => _appleSignIn(),
-        borderRadius: const BorderRadius.all(Radius.circular(18)),
+        borderRadius: BorderRadius.circular(DS.radiusButton),
       ),
     );
   }
@@ -447,65 +419,40 @@ class _LoginScreenState extends State<LoginScreen>
   Widget _buildDivider() {
     return Row(
       children: [
-        Expanded(
-          child: Container(height: 1, color: Colors.white.withValues(alpha: 0.08)),
-        ),
+        Expanded(child: Divider(color: DS.divider, height: 1)),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Text(
             'OR',
-            style: TextStyle(
-              fontSize: 10,
-              color: Colors.white.withValues(alpha: 0.35),
-              fontWeight: FontWeight.w800,
-              letterSpacing: 2,
+            style: GoogleFonts.inter(
+              fontSize: 11,
+              color: DS.placeholder,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 1.5,
             ),
           ),
         ),
-        Expanded(
-          child: Container(height: 1, color: Colors.white.withValues(alpha: 0.08)),
-        ),
+        Expanded(child: Divider(color: DS.divider, height: 1)),
       ],
     );
   }
 
   Widget _buildGuestBtn() {
-    return GestureDetector(
-      onTap: _loading ? null : _enterGuestMode,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        height: 54,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          color: Colors.white.withValues(alpha: 0.06),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.13)),
+    return SizedBox(
+      width: double.infinity,
+      height: DS.buttonHeight,
+      child: OutlinedButton.icon(
+        onPressed: _loading ? null : _enterGuestMode,
+        icon: const Icon(Icons.person_outline_rounded, color: DS.primary, size: 20),
+        label: Text(
+          'Continue as Guest',
+          style: GoogleFonts.inter(
+            color: DS.primary,
+            fontWeight: FontWeight.w600,
+            fontSize: 15,
+          ),
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.person_outline_rounded,
-              color: Colors.white.withValues(alpha: 0.6),
-              size: 20,
-            ),
-            const SizedBox(width: 10),
-            Text(
-              'Continue as Guest',
-              style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.7),
-                fontWeight: FontWeight.w600,
-                fontSize: 15,
-                letterSpacing: 0.3,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Icon(
-              Icons.arrow_forward_ios_rounded,
-              color: Colors.white.withValues(alpha: 0.3),
-              size: 13,
-            ),
-          ],
-        ),
+        style: DS.secondaryButton(),
       ),
     );
   }
@@ -514,9 +461,9 @@ class _LoginScreenState extends State<LoginScreen>
     return Text(
       'By continuing, you agree to our Terms & Privacy Policy.',
       textAlign: TextAlign.center,
-      style: TextStyle(
-        color: Colors.white.withValues(alpha: 0.25),
-        fontSize: 11,
+      style: GoogleFonts.inter(
+        color: DS.textSecondary,
+        fontSize: 12,
         fontWeight: FontWeight.w400,
         height: 1.5,
       ),
@@ -524,80 +471,6 @@ class _LoginScreenState extends State<LoginScreen>
   }
 }
 
-// ─────────────────────────────────────────────
-// Animated background with floating orbs
-// ─────────────────────────────────────────────
-class _AnimatedBg extends StatelessWidget {
-  final AnimationController controller;
-  const _AnimatedBg({required this.controller});
 
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: controller,
-      builder: (_, __) {
-        final t = controller.value;
-        return Stack(
-          children: [
-            // Deep dark base
-            Container(
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [Color(0xFF0D0A08), Color(0xFF160C04)],
-                ),
-              ),
-            ),
-            // Top orb
-            Positioned(
-              top: -80 + (t * 40),
-              left: -60 + (sin(t * pi) * 20),
-              child: _orb(260, const Color(0xFF895129), 0.18),
-            ),
-            // Bottom orb
-            Positioned(
-              bottom: -100 + (t * 30),
-              right: -80 + (cos(t * pi) * 25),
-              child: _orb(300, const Color(0xFF6B3E1E), 0.14),
-            ),
-            // Centre subtle glow
-            Positioned(
-              top: MediaQuery.of(context).size.height * 0.35,
-              left: MediaQuery.of(context).size.width * 0.1,
-              child: _orb(180, const Color(0xFFD4874A), 0.06),
-            ),
-            // Noise/grain overlay simulation
-            Positioned.fill(
-              child: Opacity(
-                opacity: 0.03,
-                child: Container(
-                  decoration: const BoxDecoration(
-                    gradient: RadialGradient(
-                      colors: [Colors.white, Colors.transparent],
-                      center: Alignment.topCenter,
-                      radius: 1.2,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
 
-  Widget _orb(double size, Color color, double opacity) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: RadialGradient(
-          colors: [color.withValues(alpha: opacity), Colors.transparent],
-        ),
-      ),
-    );
-  }
-}
+

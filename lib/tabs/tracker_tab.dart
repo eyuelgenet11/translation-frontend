@@ -221,7 +221,7 @@ class TrackerTab extends StatelessWidget {
                       _trackerRow("Title", job['title'] ?? "Translation Request"),
                       const Divider(height: 24),
                       _trackerRow("Languages",
-                          "${job['from_lang'] ?? '?'} → ${job['to_lang'] ?? '?'}",
+                          "${job['from_lang'] ?? '?'} -> ${job['to_lang'] ?? '?'}",
                           valueColor: brandBrown),
                       const Divider(height: 24),
                       _trackerRow("Total Price", "${job['price'] != null ? (double.tryParse(job['price'].toString()) ?? 0.0).toStringAsFixed(2) : '-'} ETB"),
@@ -363,7 +363,7 @@ class TrackerTab extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        "$from → $to",
+                        "$from -> $to",
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w800,
@@ -406,7 +406,7 @@ class TrackerTab extends StatelessWidget {
       return {
         'color': Colors.green,
         'icon': Icons.rate_review_rounded,
-        'label': '⚡ Review Your Document!',
+        'label': 'Review Your Document!',
         'desc': 'The translator has delivered your file. Tap to preview and accept or request a revision.'
       };
     }
@@ -482,3 +482,4 @@ class TrackerTab extends StatelessWidget {
     };
   }
 }
+

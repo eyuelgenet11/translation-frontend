@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'widgets/empty_state.dart';
@@ -61,7 +61,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     final surfaceTheme = isDark ? const Color(0xFF292524) : Colors.white;
     final textMainTheme = isDark ? Colors.white : const Color(0xFF1C1917);
     final textSecTheme = isDark ? Colors.white70 : const Color(0xFF78716C);
-    final brandBrown = const Color(0xFF895129);
+    final brandBrown = const Color(0xFF8D5C3C);
     final bgColor = isDark ? Colors.black : const Color(0xFFF8F9FA);
 
     return Scaffold(
@@ -175,3 +175,5 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     );
   }
 }
+
+

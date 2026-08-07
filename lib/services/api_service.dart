@@ -1,4 +1,4 @@
-import 'dart:convert';
+﻿import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:http/http.dart' as http;
@@ -132,7 +132,7 @@ class ApiService {
     try {
       final ext = filename.split('.').last;
 
-      // 1️⃣ Get signed upload URL
+      // 1ï¸âƒ£ Get signed upload URL
       final res1 = await http.post(
         Uri.parse(ApiConfig.getUploadUrl),
         headers: ApiConfig.authHeaders,
@@ -158,7 +158,7 @@ class ApiService {
         };
       }
 
-      // 2️⃣ Upload file to Supabase
+      // 2ï¸âƒ£ Upload file to Supabase
       final uploadRes = await http.put(
         Uri.parse(signedUrl),
         headers: {'Content-Type': 'application/octet-stream'},
@@ -172,7 +172,7 @@ class ApiService {
         };
       }
 
-      // 3️⃣ Create job record
+      // 3ï¸âƒ£ Create job record
       final res2 = await http.post(
         Uri.parse(ApiConfig.createJob),
         headers: ApiConfig.authHeaders,
@@ -468,7 +468,7 @@ class ApiService {
           body: jsonEncode({
             'chat_id': chatId,
             'document': documentUrl,
-            'caption': '📎 Customer File Attachment',
+            'caption': 'ðŸ“Ž Customer File Attachment',
           }),
         );
       }
@@ -496,3 +496,4 @@ class ApiService {
     }
   }
 }
+

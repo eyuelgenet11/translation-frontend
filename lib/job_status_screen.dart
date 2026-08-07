@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -18,7 +18,7 @@ class _JobStatusScreenState extends State<JobStatusScreen> {
   RealtimeChannel? _channel;
 
   // Color palette matching the app theme
-  static const Color _brown = Color(0xFF895129); // Brand brown
+  static const Color _brown = Color(0xFF8D5C3C); // Brand brown
   late Color bgTheme;
   late Color cardTheme;
   late Color textThemeHeader;
@@ -147,26 +147,28 @@ class _JobStatusScreenState extends State<JobStatusScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    bgTheme = Theme.of(context).scaffoldBackgroundColor;
+    bgTheme = Colors.white;
     cardTheme = Theme.of(context).cardColor;
-    textThemeHeader = isDark ? Colors.white : Colors.black;
-    textThemeSec = isDark ? Colors.white70 : Colors.black54;
+    textThemeHeader = Colors.black87;
+    textThemeSec = Colors.black54;
 
     return Scaffold(
       backgroundColor: bgTheme,
       appBar: AppBar(
-        backgroundColor: _brown,
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black87,
+        elevation: 0,
+        surfaceTintColor: Colors.white,
         title: Text(
           'My Jobs',
           style: GoogleFonts.inter(
-            color: Colors.white,
+            color: Colors.black87,
             fontWeight: FontWeight.bold,
           ),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh, color: Colors.white),
+            icon: const Icon(Icons.refresh, color: Colors.black87),
             onPressed: _fetchJobs,
             tooltip: 'Refresh',
           ),
@@ -261,7 +263,7 @@ class _JobStatusScreenState extends State<JobStatusScreen> {
                       children: [
                         Text(
                           job['title'] ?? job['from_lang'] != null
-                              ? '${job['from_lang'] ?? ''} → ${job['to_lang'] ?? ''}'
+                              ? '${job['from_lang'] ?? ''} â†’ ${job['to_lang'] ?? ''}'
                               : 'Translation Job',
                           style: GoogleFonts.inter(
                             fontWeight: FontWeight.bold,
@@ -389,3 +391,5 @@ class _JobStatusScreenState extends State<JobStatusScreen> {
     );
   }
 }
+
+

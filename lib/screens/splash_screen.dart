@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -28,7 +28,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   // Progress bar
   late AnimationController _progressController;
 
-  static const Color _brandBrown = Color(0xFF895129);
+  static const Color _brandBrown = Color(0xFF8D5C3C);
   static const Color _darkBg = Color(0xFF0A0806);
 
   @override
@@ -124,7 +124,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
       backgroundColor: _darkBg,
       body: Stack(
         children: [
-          // ── Background: deep radial gradient ──
+          // â”€â”€ Background: deep radial gradient â”€â”€
           Container(
             decoration: const BoxDecoration(
               gradient: RadialGradient(
@@ -138,7 +138,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
             ),
           ),
 
-          // ── Subtle warm glow behind logo ──
+          // â”€â”€ Subtle warm glow behind logo â”€â”€
           Center(
             child: Container(
               width: 280,
@@ -155,7 +155,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
             ),
           ),
 
-          // ── Logo + Text center stack ──
+          // â”€â”€ Logo + Text center stack â”€â”€
           Center(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -249,7 +249,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
             ),
           ),
 
-          // ── Bottom loading progress bar ──
+          // â”€â”€ Bottom loading progress bar â”€â”€
           Positioned(
             left: 0,
             right: 0,
@@ -273,4 +273,6 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
     );
   }
 }
+
+
 

@@ -1,4 +1,4 @@
-import 'package:audioplayers/audioplayers.dart';
+﻿import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
@@ -6,7 +6,7 @@ class NotificationSoundService {
   static final AudioPlayer _audioPlayer = AudioPlayer();
 
   /// Plays a short notification chime + vibration.
-  /// Uses a locally bundled asset — no internet needed.
+  /// Uses a locally bundled asset â€” no internet needed.
   static Future<void> playNotificationSound() async {
     try {
       // Haptic vibration (mobile only)
@@ -28,3 +28,4 @@ class NotificationSoundService {
     }
   }
 }
+

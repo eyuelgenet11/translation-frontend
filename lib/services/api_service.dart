@@ -1,4 +1,4 @@
-﻿import 'dart:convert';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:http/http.dart' as http;
@@ -225,6 +225,7 @@ class ApiService {
     bool isHandwritten = false,
     bool isMedical = false,
     String customerPhone = '',
+    String deliveryType = 'Soft Copy',
   }) async {
     try {
       final uri = Uri.parse(ApiConfig.submitJobWithNotify);
@@ -240,6 +241,7 @@ class ApiService {
       request.fields['isMedical']     = isMedical.toString();
       request.fields['customerPhone'] = customerPhone;
       request.fields['merchantName']  = merchantName;
+      request.fields['deliveryType']  = deliveryType;
       if (translatorId != null) {
         request.fields['translatorId'] = translatorId;
       }

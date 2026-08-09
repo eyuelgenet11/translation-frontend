@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'dart:math';
 import 'dart:ui';
 import 'dart:convert';
@@ -291,9 +291,10 @@ class _LoginScreenState extends State<LoginScreen>
             ),
             boxShadow: [
               BoxShadow(
-                color: _brown.withValues(alpha: 0.5),
-                blurRadius: 30,
-                spreadRadius: 2,
+                color: _brown.withValues(alpha: 0.18),
+                blurRadius: 24,
+                spreadRadius: 0,
+                offset: const Offset(0, 6),
               ),
             ],
           ),
@@ -311,11 +312,11 @@ class _LoginScreenState extends State<LoginScreen>
         ),
         const SizedBox(height: 20),
         Text(
-          'Ã¡â€°ÂµÃ¡Ë†Â­Ã¡Å’â€°Ã¡Ë†Â Ã¡Ë†ÂµÃ¡Ë†Â«',
+          'Tirgum Sra',
           style: GoogleFonts.inter(
-            fontSize: 38,
+            fontSize: 36,
             fontWeight: FontWeight.w900,
-            color: Colors.white,
+            color: DS.textPrimary,
             letterSpacing: -0.5,
             height: 1,
           ),

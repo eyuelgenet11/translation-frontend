@@ -39,6 +39,7 @@ class _UploadScreenState extends State<UploadScreen> {
   String urgency = 'Normal';
   bool isHandwritten = false; // admin gets Accept/Reject prompt when true
   bool isMedical = false; // Medical document flag for price calculation
+  String deliveryType = 'Soft Copy'; // 'Soft Copy' or 'Physical Delivery'
 
   // Auto page count (calculated by system from uploaded document)
   int _autoPageCount = 1;
@@ -50,9 +51,22 @@ class _UploadScreenState extends State<UploadScreen> {
 
   // --- DYNAMIC LANGUAGES ---
   static const Set<String> _localLangNames = {
-    'afaan oromoo', 'afar', 'amharic', 'anuak', 'gumuz',
-    'hadiyya', 'harari', 'kambaata', 'sidamo', 'somali',
-    'tigrinya', 'wolaytta', 'oromiffa', 'oromia', 'sidama', 'wolayta'
+    'afaan oromoo',
+    'afar',
+    'amharic',
+    'anuak',
+    'gumuz',
+    'hadiyya',
+    'harari',
+    'kambaata',
+    'sidamo',
+    'somali',
+    'tigrinya',
+    'wolaytta',
+    'oromiffa',
+    'oromia',
+    'sidama',
+    'wolayta'
   };
 
   static List<String> sortLanguagesCategorized(List<String> langs) {
@@ -88,8 +102,8 @@ class _UploadScreenState extends State<UploadScreen> {
     // Primary Languages
     'Amharic', 'English',
     // Remaining Local Ethiopian Languages (Alphabetical)
-    'Afaan Oromoo', 'Afar', 'Anuak', 'Gumuz', 
-    'Hadiyya', 'Harari', 'Kambaata', 'Sidamo', 'Somali', 
+    'Afaan Oromoo', 'Afar', 'Anuak', 'Gumuz',
+    'Hadiyya', 'Harari', 'Kambaata', 'Sidamo', 'Somali',
     'Tigrinya', 'Wolaytta',
     // Remaining Foreign Languages (Alphabetical)
     'Arabic', 'Chinese', 'French', 'German', 'Italian', 'Spanish'
@@ -105,18 +119,17 @@ class _UploadScreenState extends State<UploadScreen> {
   Future<void> _fetchLanguages() async {
     if (!mounted) return;
     setState(() => loadingLanguages = true);
-    
+
     try {
       final data = await supabase
           .from('languages')
           .select('name')
           .order('name', ascending: true);
-      
+
       if (data.isNotEmpty) {
-        final List<String> fetchedLangs = (data as List)
-            .map((item) => item['name'] as String)
-            .toList();
-        
+        final List<String> fetchedLangs =
+            (data as List).map((item) => item['name'] as String).toList();
+
         if (mounted) {
           setState(() {
             allLanguages = sortLanguagesCategorized(fetchedLangs);
@@ -153,7 +166,8 @@ class _UploadScreenState extends State<UploadScreen> {
         final archive = ZipDecoder().decodeBytes(bytes);
         for (final file in archive) {
           if (file.name == 'docProps/app.xml') {
-            final String xml = utf8.decode(file.content as List<int>, allowMalformed: true);
+            final String xml =
+                utf8.decode(file.content as List<int>, allowMalformed: true);
             final match = RegExp(r'<Pages>(\d+)</Pages>').firstMatch(xml);
             if (match != null && match.group(1) != null) {
               final int count = int.tryParse(match.group(1)!) ?? 1;
@@ -186,7 +200,8 @@ class _UploadScreenState extends State<UploadScreen> {
       }
       for (final m in kidsRegex.allMatches(fullContent)) {
         final String kidsStr = m.group(1) ?? '';
-        final int rCount = RegExp(r'\b\d+\s+\d+\s+R\b').allMatches(kidsStr).length;
+        final int rCount =
+            RegExp(r'\b\d+\s+\d+\s+R\b').allMatches(kidsStr).length;
         if (rCount > maxFoundPages) maxFoundPages = rCount;
       }
       final int directPageCount = pageRegex.allMatches(fullContent).length;
@@ -202,7 +217,9 @@ class _UploadScreenState extends State<UploadScreen> {
     for (var file in files) {
       try {
         Uint8List? bytes = file.bytes;
-        if ((bytes == null || bytes.isEmpty) && file.path != null && file.path!.isNotEmpty) {
+        if ((bytes == null || bytes.isEmpty) &&
+            file.path != null &&
+            file.path!.isNotEmpty) {
           final io.File f = io.File(file.path!);
           if (await f.exists()) {
             bytes = await f.readAsBytes();
@@ -247,7 +264,8 @@ class _UploadScreenState extends State<UploadScreen> {
         elevation: 0,
         backgroundColor: Colors.white,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black87, size: 20),
+          icon: const Icon(Icons.arrow_back_ios_new,
+              color: Colors.black87, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
         title: Row(
@@ -260,12 +278,19 @@ class _UploadScreenState extends State<UploadScreen> {
               ),
               child: const Text(
                 "TIRGUMSRA",
-                style: TextStyle(fontWeight: FontWeight.w900, fontSize: 9, letterSpacing: 1.5, color: brandBrown),
+                style: TextStyle(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 9,
+                    letterSpacing: 1.5,
+                    color: brandBrown),
               ),
             ),
             const SizedBox(width: 8),
             const Text("New Request",
-                style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: Colors.black87)),
+                style: TextStyle(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 14,
+                    color: Colors.black87)),
           ],
         ),
       ),
@@ -274,35 +299,48 @@ class _UploadScreenState extends State<UploadScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildSectionLabelWithIcon(Icons.person_outline_rounded, "TRANSLATOR"),
+            _buildSectionLabelWithIcon(
+                Icons.person_outline_rounded, "TRANSLATOR"),
             const SizedBox(height: 12),
             _translatorProfileHeader(),
             const SizedBox(height: 32),
-            _buildSectionLabelWithIcon(Icons.translate_outlined, "CHOOSE LANGUAGES"),
+            _buildSectionLabelWithIcon(
+                Icons.translate_outlined, "CHOOSE LANGUAGES"),
             const SizedBox(height: 16),
             _infoTakingBox(
                 label: "From",
-                child: _customDropdown(fromLang, (v) => setState(() => fromLang = v), allLanguages)),
+                child: _customDropdown(fromLang,
+                    (v) => setState(() => fromLang = v), allLanguages)),
             const SizedBox(height: 12),
             _infoTakingBox(
                 label: "To",
-                child: _customDropdown(toLang, (v) => setState(() => toLang = v),
+                child: _customDropdown(
+                    toLang,
+                    (v) => setState(() => toLang = v),
                     allLanguages.where((l) => l != fromLang).toList())),
             const SizedBox(height: 24),
             // Customer contact
-            _buildSectionLabelWithIcon(Icons.contact_phone_outlined, "YOUR CONTACT"),
+            _buildSectionLabelWithIcon(
+                Icons.contact_phone_outlined, "YOUR CONTACT"),
             const SizedBox(height: 12),
             _phoneField(),
             const SizedBox(height: 16),
             // Medical document checkbox prompt
             _medicalPrompt(),
+            const SizedBox(height: 12),
+            // Delivery type selector
+            _buildSectionLabelWithIcon(
+                Icons.local_shipping_outlined, "DELIVERY TYPE"),
+            const SizedBox(height: 12),
+            _deliveryTypeSelector(),
             const SizedBox(height: 24),
             // Urgency selector
             _buildSectionLabelWithIcon(Icons.timer_outlined, "SERVICE URGENCY"),
             const SizedBox(height: 12),
             _urgencySelector(),
             const SizedBox(height: 32),
-            _buildSectionLabelWithIcon(Icons.attach_file_rounded, "DOCUMENT ATTACHMENT"),
+            _buildSectionLabelWithIcon(
+                Icons.attach_file_rounded, "DOCUMENT ATTACHMENT"),
             const SizedBox(height: 16),
             _documentPickerArea(),
             const SizedBox(height: 20),
@@ -328,7 +366,9 @@ class _UploadScreenState extends State<UploadScreen> {
       phone = '0${phone.substring(3)}';
     }
 
-    if (fromLang == null || toLang == null || (_pickedFiles.isEmpty && _pickedImages.isEmpty)) {
+    if (fromLang == null ||
+        toLang == null ||
+        (_pickedFiles.isEmpty && _pickedImages.isEmpty)) {
       _showSnack("Please select languages and upload a document or image");
       return;
     }
@@ -370,7 +410,9 @@ class _UploadScreenState extends State<UploadScreen> {
       } else {
         // Image path Ã¢â‚¬â€ use first image name & bytes
         final XFile firstImage = _pickedImages.first;
-        filename = firstImage.name.isNotEmpty ? firstImage.name : 'image_${DateTime.now().millisecondsSinceEpoch}.jpg';
+        filename = firstImage.name.isNotEmpty
+            ? firstImage.name
+            : 'image_${DateTime.now().millisecondsSinceEpoch}.jpg';
         for (var img in _pickedImages) {
           final raw = await img.readAsBytes();
           allBytes.addAll(raw);
@@ -379,27 +421,31 @@ class _UploadScreenState extends State<UploadScreen> {
 
       if (allBytes.isEmpty) {
         setState(() => processing = false);
-        _showSnack("Unable to read file content. Please re-select the document or image.");
+        _showSnack(
+            "Unable to read file content. Please re-select the document or image.");
         return;
       }
 
-      final String merchantNameStr = widget.company['office_name'] ?? widget.company['full_name'] ?? 'General Marketplace';
+      final String merchantNameStr = widget.company['office_name'] ??
+          widget.company['full_name'] ??
+          'General Marketplace';
 
       Map<String, dynamic> result;
       try {
         result = await ApiService.submitJobWithNotify(
-          fileBytes:     Uint8List.fromList(allBytes),
-          filename:      filename,
-          userId:        user.id,
-          fromLang:      fromLang!,
-          toLang:        toLang!,
-          pageCount:     _autoPageCount,
-          urgency:       urgency,
-          translatorId:  widget.company['id']?.toString(),
-          merchantName:  merchantNameStr,
+          fileBytes: Uint8List.fromList(allBytes),
+          filename: filename,
+          userId: user.id,
+          fromLang: fromLang!,
+          toLang: toLang!,
+          pageCount: _autoPageCount,
+          urgency: urgency,
+          translatorId: widget.company['id']?.toString(),
+          merchantName: merchantNameStr,
           isHandwritten: isHandwritten,
-          isMedical:     isMedical,
+          isMedical: isMedical,
           customerPhone: phone,
+          deliveryType: deliveryType,
         );
       } catch (e) {
         result = {'success': false, 'message': e.toString()};
@@ -407,47 +453,64 @@ class _UploadScreenState extends State<UploadScreen> {
 
       // Fallback: If backend server is unreachable, upload directly via Supabase client
       if (result['success'] != true) {
-        debugPrint("Backend unreachable: ${result['message']}. Using direct Supabase fallback...");
-        
+        debugPrint(
+            "Backend unreachable: ${result['message']}. Using direct Supabase fallback...");
+
         // Use same path format as backend: jobs/{userId}/{timestamp}_{filename}
-        final String storagePath = 'jobs/${user.id}/${DateTime.now().millisecondsSinceEpoch}_$filename';
-        
+        final String storagePath =
+            'jobs/${user.id}/${DateTime.now().millisecondsSinceEpoch}_$filename';
+
         try {
           await supabase.storage.from('translations').uploadBinary(
-            storagePath,
-            Uint8List.fromList(allBytes),
-            fileOptions: FileOptions(
-              contentType: filename.toLowerCase().endsWith('.pdf') ? 'application/pdf' : 'image/jpeg',
-            ),
-          );
+                storagePath,
+                Uint8List.fromList(allBytes),
+                fileOptions: FileOptions(
+                  contentType: filename.toLowerCase().endsWith('.pdf')
+                      ? 'application/pdf'
+                      : 'image/jpeg',
+                ),
+              );
         } catch (storageErr) {
           debugPrint("Storage upload note: $storageErr");
         }
 
-        final String fileUrl = supabase.storage.from('translations').getPublicUrl(storagePath);
+        final String fileUrl =
+            supabase.storage.from('translations').getPublicUrl(storagePath);
 
         bool isAfarOrSomali(String? lang) {
           if (lang == null) return false;
           final l = lang.trim().toLowerCase();
-          return l.contains('afar') || l.contains('somali') || l.contains('Ã¡Ë†Â¶Ã¡Ë†â€ºÃ¡Ë†Å ') || l.contains('Ã¡â€¹â€œÃ¡Â â€¹Ã¡Ë†Â­');
+          return l.contains('afar') ||
+              l.contains('somali') ||
+              l.contains('Ã¡Ë†Â¶Ã¡Ë†â€ºÃ¡Ë†Å ') ||
+              l.contains('Ã¡â€¹â€œÃ¡Â â€¹Ã¡Ë†Â­');
         }
 
         bool isLocalLang(String? lang) {
           if (lang == null) return false;
           final l = lang.trim().toLowerCase();
           return l.contains('amharic') ||
-                 l.contains('english') ||
-                 l.contains('orom') || l.contains('oromiffa') || l.contains('afaan') ||
-                 l.contains('tigr') || l.contains('tigray') ||
-                 l.contains('arabic') ||
-                 l.contains('sidam') || l.contains('wolayt') || l.contains('wolaytta') ||
-                 l.contains('hadiyya') || l.contains('kambaata') || l.contains('harari') ||
-                 l.contains('gumuz') || l.contains('anuak') ||
-                 isAfarOrSomali(l);
+              l.contains('english') ||
+              l.contains('orom') ||
+              l.contains('oromiffa') ||
+              l.contains('afaan') ||
+              l.contains('tigr') ||
+              l.contains('tigray') ||
+              l.contains('arabic') ||
+              l.contains('sidam') ||
+              l.contains('wolayt') ||
+              l.contains('wolaytta') ||
+              l.contains('hadiyya') ||
+              l.contains('kambaata') ||
+              l.contains('harari') ||
+              l.contains('gumuz') ||
+              l.contains('anuak') ||
+              isAfarOrSomali(l);
         }
 
-        final bool hasAfarOrSomali = isAfarOrSomali(fromLang) || isAfarOrSomali(toLang);
-        final bool isLocalPair     = isLocalLang(fromLang) && isLocalLang(toLang);
+        final bool hasAfarOrSomali =
+            isAfarOrSomali(fromLang) || isAfarOrSomali(toLang);
+        final bool isLocalPair = isLocalLang(fromLang) && isLocalLang(toLang);
 
         final int pricePerPage = isMedical
             ? (isLocalPair ? 400 : 550)
@@ -458,13 +521,19 @@ class _UploadScreenState extends State<UploadScreen> {
         final double basePrice = (_autoPageCount * pricePerPage).toDouble();
         // Apply 20% service fee on base price
         final double serviceFee = basePrice * 0.20;
-        const double urgencyFee = 0.0; // Urgency fee removed from price calculation
+        const double urgencyFee =
+            0.0; // Urgency fee removed from price calculation
         final double totalPrice = basePrice + serviceFee;
 
         // Only use translator_id if it's a valid UUID (not a display-only string like 'wisdom-002')
         final rawTranslatorId = widget.company['id']?.toString();
-        final uuidRegex = RegExp(r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$', caseSensitive: false);
-        final String? validTranslatorId = (rawTranslatorId != null && uuidRegex.hasMatch(rawTranslatorId)) ? rawTranslatorId : null;
+        final uuidRegex = RegExp(
+            r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$',
+            caseSensitive: false);
+        final String? validTranslatorId =
+            (rawTranslatorId != null && uuidRegex.hasMatch(rawTranslatorId))
+                ? rawTranslatorId
+                : null;
 
         final Map<String, dynamic> jobPayload = {
           'client_id': user.id,
@@ -479,10 +548,13 @@ class _UploadScreenState extends State<UploadScreen> {
           'is_medical': isMedical,
           'client_phone': phone,
           'price': totalPrice,
+          'delivery_type': deliveryType,
         };
-        if (validTranslatorId != null) jobPayload['translator_id'] = validTranslatorId;
+        if (validTranslatorId != null)
+          jobPayload['translator_id'] = validTranslatorId;
 
-        final insertedJob = await supabase.from('jobs').insert(jobPayload).select().single();
+        final insertedJob =
+            await supabase.from('jobs').insert(jobPayload).select().single();
 
         // Send Telegram Notification to Admin containing Merchant Name & File URL
         ApiService.notifyTelegram(
@@ -501,10 +573,11 @@ class _UploadScreenState extends State<UploadScreen> {
         // Direct Telegram Bot HTTP call backup
         ApiService.sendTelegramDirect(
           text: 'New Order Request!\n'
-                'Language: $fromLang -> $toLang\n'
-                'Customer Phone: $phone\n'
-                'Urgency: $urgency\n'
-                'Price: ${totalPrice.toStringAsFixed(2)} ETB',
+              'Language: $fromLang -> $toLang\n'
+              'Customer Phone: $phone\n'
+              'Urgency: $urgency\n'
+              'Delivery: $deliveryType\n'
+              'Price: ${totalPrice.toStringAsFixed(2)} ETB',
           documentUrl: fileUrl,
         );
 
@@ -519,7 +592,8 @@ class _UploadScreenState extends State<UploadScreen> {
 
         if (isHandwritten) {
           _showSnack('Submitted! Admin will review your handwritten document.');
-          Navigator.pushReplacementNamed(context, '/live_tracker', arguments: jobData);
+          Navigator.pushReplacementNamed(context, '/live_tracker',
+              arguments: jobData);
         } else {
           Navigator.pushReplacement(
             context,
@@ -545,25 +619,33 @@ class _UploadScreenState extends State<UploadScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
       decoration: BoxDecoration(
-        color: isDark ? Colors.white.withValues(alpha: 0.05) : const Color(0xFFF1F5F9),
+        color: isDark
+            ? Colors.white.withValues(alpha: 0.05)
+            : const Color(0xFFF1F5F9),
         borderRadius: BorderRadius.circular(18),
       ),
       child: Row(
         children: [
-          Icon(Icons.phone_outlined, size: 18, color: brandBrown.withValues(alpha: 0.7)),
+          Icon(Icons.phone_outlined,
+              size: 18, color: brandBrown.withValues(alpha: 0.7)),
           const SizedBox(width: 10),
           Expanded(
             child: TextField(
               controller: _phoneController,
               keyboardType: TextInputType.phone,
-              inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9+]'))],
+              autofillHints: const [], // disable OS phone number suggestion
+              enableSuggestions: false,
+              autocorrect: false,
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp(r'[0-9+]'))
+              ],
               style: TextStyle(
                 fontWeight: FontWeight.w700,
                 fontSize: 15,
                 color: textThemeHeader,
               ),
               decoration: InputDecoration(
-                hintText: '09XXXXXXXX  (e.g., 0911373034)',
+                hintText: '09XXXXXXXX  (e.g., 0909090909)',
                 hintStyle: TextStyle(
                   color: isDark ? Colors.white24 : Colors.black26,
                   fontSize: 13,
@@ -588,7 +670,9 @@ class _UploadScreenState extends State<UploadScreen> {
         decoration: BoxDecoration(
           color: isMedical
               ? brandBrown.withValues(alpha: 0.10)
-              : (isDark ? Colors.white.withValues(alpha: 0.04) : const Color(0xFFF1F5F9)),
+              : (isDark
+                  ? Colors.white.withValues(alpha: 0.04)
+                  : const Color(0xFFF1F5F9)),
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
             color: isMedical ? brandBrown : Colors.transparent,
@@ -604,7 +688,8 @@ class _UploadScreenState extends State<UploadScreen> {
                 value: isMedical,
                 onChanged: (val) => setState(() => isMedical = val ?? false),
                 activeColor: brandBrown,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(5)),
               ),
             ),
             const SizedBox(width: 14),
@@ -629,6 +714,98 @@ class _UploadScreenState extends State<UploadScreen> {
     );
   }
 
+  // --- DELIVERY TYPE SELECTOR WIDGET ---
+  Widget _deliveryTypeSelector() {
+    const options = [
+      (
+        label: 'Soft Copy',
+        subtitle: 'Delivered digitally via email or app',
+        icon: Icons.email_outlined
+      ),
+      (
+        label: 'Physical Delivery',
+        subtitle: 'Printed copy delivered to your location',
+        icon: Icons.local_shipping_outlined
+      ),
+    ];
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: DS.bgSecondary,
+        borderRadius: BorderRadius.circular(DS.radiusCard),
+        border: Border.all(color: DS.border),
+      ),
+      child: Column(
+        children: options.map((opt) {
+          final bool isSel = deliveryType == opt.label;
+          return GestureDetector(
+            onTap: () => setState(() => deliveryType = opt.label),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              margin: const EdgeInsets.symmetric(vertical: 3, horizontal: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              decoration: BoxDecoration(
+                color: isSel
+                    ? brandBrown.withValues(alpha: 0.08)
+                    : Colors.transparent,
+                borderRadius: BorderRadius.circular(DS.radiusInput),
+                border: Border.all(
+                  color: isSel ? brandBrown : Colors.transparent,
+                ),
+              ),
+              child: Row(
+                children: [
+                  SizedBox(
+                    height: 24,
+                    width: 24,
+                    child: Checkbox(
+                      value: isSel,
+                      onChanged: (_) =>
+                          setState(() => deliveryType = opt.label),
+                      activeColor: brandBrown,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(999)),
+                      side: BorderSide(
+                        color: isSel ? brandBrown : DS.textSecondary,
+                        width: 1.5,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          opt.label,
+                          style: TextStyle(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 14,
+                            color: isSel ? brandBrown : DS.textPrimary,
+                          ),
+                        ),
+                        Text(
+                          opt.subtitle,
+                          style: const TextStyle(
+                              fontSize: 11, color: DS.textSecondary),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(
+                    opt.icon,
+                    color: isSel ? brandBrown : DS.textSecondary,
+                    size: 20,
+                  ),
+                ],
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
   // --- HANDWRITTEN DOCUMENT TOGGLE WIDGET ---
   Widget _handwrittenToggle() {
     return GestureDetector(
@@ -639,7 +816,9 @@ class _UploadScreenState extends State<UploadScreen> {
         decoration: BoxDecoration(
           color: isHandwritten
               ? const Color(0xFF8D5C3C).withValues(alpha: 0.10)
-              : (isDark ? Colors.white.withValues(alpha: 0.04) : const Color(0xFFF1F5F9)),
+              : (isDark
+                  ? Colors.white.withValues(alpha: 0.04)
+                  : const Color(0xFFF1F5F9)),
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
             color: isHandwritten ? brandBrown : Colors.transparent,
@@ -655,12 +834,16 @@ class _UploadScreenState extends State<UploadScreen> {
               padding: const EdgeInsets.all(3),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(13),
-                color: isHandwritten ? brandBrown : (isDark ? Colors.white24 : Colors.black26),
+                color: isHandwritten
+                    ? brandBrown
+                    : (isDark ? Colors.white24 : Colors.black26),
               ),
               child: AnimatedAlign(
                 duration: const Duration(milliseconds: 200),
                 curve: Curves.easeInOut,
-                alignment: isHandwritten ? Alignment.centerRight : Alignment.centerLeft,
+                alignment: isHandwritten
+                    ? Alignment.centerRight
+                    : Alignment.centerLeft,
                 child: Container(
                   width: 20,
                   height: 20,
@@ -702,14 +885,15 @@ class _UploadScreenState extends State<UploadScreen> {
     );
   }
 
-
-
   // Urgency selector Ã¢â‚¬â€ labels only, no prices shown to user
   Widget _urgencySelector() {
     final options = [
-      const _UrgencyOption('Normal',      'Standard delivery',         Icons.access_time_rounded),
-      const _UrgencyOption('Urgent',      'Prioritized processing',    Icons.bolt_rounded),
-      const _UrgencyOption('Super Urgent','Immediate attention needed', Icons.local_fire_department_rounded),
+      const _UrgencyOption(
+          'Normal', 'Standard delivery', Icons.access_time_rounded),
+      const _UrgencyOption(
+          'Urgent', 'Prioritized processing', Icons.bolt_rounded),
+      const _UrgencyOption('Super Urgent', 'Immediate attention needed',
+          Icons.local_fire_department_rounded),
     ];
     return Container(
       padding: const EdgeInsets.all(4),
@@ -728,7 +912,9 @@ class _UploadScreenState extends State<UploadScreen> {
               margin: const EdgeInsets.symmetric(vertical: 3, horizontal: 4),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               decoration: BoxDecoration(
-                color: isSel ? DS.primary.withValues(alpha: 0.08) : Colors.transparent,
+                color: isSel
+                    ? DS.primary.withValues(alpha: 0.08)
+                    : Colors.transparent,
                 borderRadius: BorderRadius.circular(DS.radiusInput),
                 border: Border.all(
                   color: isSel ? DS.primary : Colors.transparent,
@@ -736,7 +922,8 @@ class _UploadScreenState extends State<UploadScreen> {
               ),
               child: Row(
                 children: [
-                  Icon(opt.icon, size: 20, color: isSel ? DS.primary : DS.textSecondary),
+                  Icon(opt.icon,
+                      size: 20, color: isSel ? DS.primary : DS.textSecondary),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
@@ -749,13 +936,13 @@ class _UploadScreenState extends State<UploadScreen> {
                                 color: isSel ? DS.primary : DS.textPrimary)),
                         Text(opt.subtitle,
                             style: const TextStyle(
-                                fontSize: 11,
-                                color: DS.textSecondary)),
+                                fontSize: 11, color: DS.textSecondary)),
                       ],
                     ),
                   ),
                   if (isSel)
-                    const Icon(Icons.check_circle_rounded, color: DS.primary, size: 18),
+                    const Icon(Icons.check_circle_rounded,
+                        color: DS.primary, size: 18),
                 ],
               ),
             ),
@@ -777,7 +964,9 @@ class _UploadScreenState extends State<UploadScreen> {
             child: CircleAvatar(
               radius: 24,
               backgroundColor: DS.primary.withValues(alpha: 0.08),
-              backgroundImage: (avatar != null && avatar.isNotEmpty) ? NetworkImage(avatar) : null,
+              backgroundImage: (avatar != null && avatar.isNotEmpty)
+                  ? NetworkImage(avatar)
+                  : null,
               child: (avatar == null || avatar.isEmpty)
                   ? const Icon(Icons.person_outline_rounded, color: DS.primary)
                   : null,
@@ -843,16 +1032,24 @@ class _UploadScreenState extends State<UploadScreen> {
     );
   }
 
-  Widget _customDropdown(String? value, Function(String?) onChanged, List<String> items) {
+  Widget _customDropdown(
+      String? value, Function(String?) onChanged, List<String> items) {
     return DropdownButtonHideUnderline(
       child: DropdownButton<String>(
         value: value,
         isExpanded: true,
-        icon: Icon(Icons.expand_more_rounded, color: isDark ? Colors.white38 : Colors.black38),
-        hint: Text("Select...", style: TextStyle(color: isDark ? Colors.white24 : Colors.black26, fontSize: 14)),
-        items: items.map((e) => DropdownMenuItem(
-            value: e,
-            child: Text(e, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15)))).toList(),
+        icon: Icon(Icons.expand_more_rounded,
+            color: isDark ? Colors.white38 : Colors.black38),
+        hint: Text("Select...",
+            style: TextStyle(
+                color: isDark ? Colors.white24 : Colors.black26, fontSize: 14)),
+        items: items
+            .map((e) => DropdownMenuItem(
+                value: e,
+                child: Text(e,
+                    style: const TextStyle(
+                        fontWeight: FontWeight.w700, fontSize: 15))))
+            .toList(),
         onChanged: onChanged,
       ),
     );
@@ -878,7 +1075,9 @@ class _UploadScreenState extends State<UploadScreen> {
     final ImagePicker picker = ImagePicker();
     final List<XFile> images = source == ImageSource.gallery
         ? await picker.pickMultiImage(imageQuality: 90)
-        : [await picker.pickImage(source: ImageSource.camera, imageQuality: 90)].whereType<XFile>().toList();
+        : [await picker.pickImage(source: ImageSource.camera, imageQuality: 90)]
+            .whereType<XFile>()
+            .toList();
 
     if (images.isEmpty) return;
 
@@ -910,11 +1109,16 @@ class _UploadScreenState extends State<UploadScreen> {
               ? Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.cloud_upload_rounded, size: 40, color: DS.textSecondary),
+                    const Icon(Icons.cloud_upload_rounded,
+                        size: 40, color: DS.textSecondary),
                     const SizedBox(height: 10),
                     Text(
-                      AppLocalizations.of(context)?.translate('upload') ?? 'Upload Document or Image',
-                      style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: Colors.black87),
+                      AppLocalizations.of(context)?.translate('upload') ??
+                          'Upload Document or Image',
+                      style: TextStyle(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 14,
+                          color: Colors.black87),
                     ),
                     Text(
                       'PDF, Word Docs, or Images',
@@ -926,7 +1130,9 @@ class _UploadScreenState extends State<UploadScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(
-                      hasImages ? Icons.image_rounded : Icons.library_books_rounded,
+                      hasImages
+                          ? Icons.image_rounded
+                          : Icons.library_books_rounded,
                       size: 36,
                       color: textThemeHeader,
                     ),
@@ -935,20 +1141,26 @@ class _UploadScreenState extends State<UploadScreen> {
                       hasImages
                           ? '${_pickedImages.length} image${_pickedImages.length > 1 ? 's' : ''} selected'
                           : '${_pickedFiles.length} file${_pickedFiles.length > 1 ? 's' : ''} selected',
-                      style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: textThemeHeader),
+                      style: TextStyle(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 14,
+                          color: textThemeHeader),
                     ),
                     const SizedBox(height: 8),
                     Container(
-                       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                       decoration: BoxDecoration(
-                         color: brandBrown.withValues(alpha: 0.12),
-                         borderRadius: BorderRadius.circular(12),
-                         border: Border.all(color: brandBrown.withValues(alpha: 0.3)),
-                       ),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: brandBrown.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                            color: brandBrown.withValues(alpha: 0.3)),
+                      ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.description_rounded, size: 13, color: brandBrown),
+                          const Icon(Icons.description_rounded,
+                              size: 13, color: brandBrown),
                           const SizedBox(width: 6),
                           Text(
                             '$_autoPageCount page${_autoPageCount > 1 ? 's' : ''}',
@@ -997,13 +1209,18 @@ class _UploadScreenState extends State<UploadScreen> {
     );
   }
 
-  Widget _attachButton({required IconData icon, required String label, required VoidCallback onTap}) {
+  Widget _attachButton(
+      {required IconData icon,
+      required String label,
+      required VoidCallback onTap}) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
-          color: isDark ? Colors.white.withValues(alpha: 0.06) : brandBrown.withValues(alpha: 0.08),
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.06)
+              : brandBrown.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
             color: brandBrown.withValues(alpha: 0.2),
@@ -1029,8 +1246,6 @@ class _UploadScreenState extends State<UploadScreen> {
     );
   }
 
-
-
   Widget _actionButton() {
     return SizedBox(
       width: double.infinity,
@@ -1042,7 +1257,8 @@ class _UploadScreenState extends State<UploadScreen> {
             ? const SizedBox(
                 width: 20,
                 height: 20,
-                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                child: CircularProgressIndicator(
+                    color: Colors.white, strokeWidth: 2),
               )
             : const Text(
                 'Place Order',
@@ -1083,7 +1299,8 @@ class _UploadScreenState extends State<UploadScreen> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: DS.card,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(DS.radiusCard)),
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(DS.radiusCard)),
         title: const Row(
           children: [
             Icon(Icons.lock_outline_rounded, color: DS.primary, size: 26),
@@ -1103,13 +1320,14 @@ class _UploadScreenState extends State<UploadScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel',
-                style: TextStyle(color: DS.textSecondary)),
+            child:
+                const Text('Cancel', style: TextStyle(color: DS.textSecondary)),
           ),
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
-              Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+              Navigator.pushNamedAndRemoveUntil(
+                  context, '/login', (route) => false);
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: DS.primary,
@@ -1143,5 +1361,3 @@ class _UrgencyOption {
   final IconData icon;
   const _UrgencyOption(this.label, this.subtitle, this.icon);
 }
-
-

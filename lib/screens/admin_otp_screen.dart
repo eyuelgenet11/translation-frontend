@@ -1,10 +1,11 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../config/security_config.dart';
 import '../services/admin_auth_service.dart';
+import '../ds.dart';
 
 /// One-time email OTP verification for the admin before accessing the dashboard.
 /// After successful verification the flag is persisted locally for 30 days,
@@ -25,9 +26,6 @@ class _AdminOtpScreenState extends State<AdminOtpScreen> {
   bool _codeSent = false;
   String? _error;
   late String _email;
-
-  static const _brown = Color(0xFF8D5C3C);
-  static const _darkBg = Color(0xFF0D0A08);
 
   @override
   void initState() {
@@ -93,7 +91,6 @@ class _AdminOtpScreenState extends State<AdminOtpScreen> {
     try {
       await AdminAuthService.verifyEmailOtp(email: _email, token: code);
       if (!mounted) return;
-      // Replace the entire stack with /home â€” admin is now verified
       Navigator.of(context).pushNamedAndRemoveUntil('/home', (route) => false);
     } catch (e) {
       if (mounted) {
@@ -108,87 +105,100 @@ class _AdminOtpScreenState extends State<AdminOtpScreen> {
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      // Prevent back navigation â€” admin must verify to access the app
       canPop: false,
       child: AnnotatedRegion<SystemUiOverlayStyle>(
-        value: SystemUiOverlayStyle.light,
+        value: SystemUiOverlayStyle.dark,
         child: Scaffold(
-          backgroundColor: _darkBg,
+          backgroundColor: DS.background,
           body: SafeArea(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(28),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 24),
 
-                  // Shield icon
+                  // ── Shield icon ──────────────────────────────────────────
                   Center(
                     child: Container(
-                      width: 88,
-                      height: 88,
+                      width: 80,
+                      height: 80,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: _brown.withValues(alpha: 0.12),
+                        color: DS.primary.withValues(alpha: 0.08),
                         border: Border.all(
-                          color: _brown.withValues(alpha: 0.3),
-                          width: 1.5,
+                          color: DS.primary.withValues(alpha: 0.20),
+                          width: 1,
                         ),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Color(0x0F111111),
+                            blurRadius: 24,
+                            offset: Offset(0, 6),
+                          ),
+                        ],
                       ),
                       child: const Icon(
                         Icons.shield_outlined,
-                        size: 42,
-                        color: Color(0xFFD4874A),
+                        size: 38,
+                        color: DS.primary,
                       ),
                     ),
                   ),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 28),
 
+                  // ── Title ────────────────────────────────────────────────
                   Text(
                     'Admin Verification',
                     textAlign: TextAlign.center,
                     style: GoogleFonts.inter(
-                      fontSize: 26,
+                      fontSize: 24,
                       fontWeight: FontWeight.w900,
-                      color: Colors.white,
+                      color: DS.textPrimary,
                       letterSpacing: -0.5,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+
+                  // ── Subtitle ─────────────────────────────────────────────
+                  Text(
+                    _codeSent
+                        ? 'A 6-digit code was sent to\n$_email\n\nEnter it below to access the dashboard.'
+                        : 'Sending verification code to\n$_email…',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.inter(
+                      fontSize: 14,
+                      height: 1.6,
+                      color: DS.textSecondary,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                   const SizedBox(height: 12),
 
-                  Text(
-                    _codeSent
-                        ? 'A 6-digit verification code was sent to\n$_email\n\nEnter it below to access the admin dashboard.'
-                        : 'Sending verification code to\n$_emailâ€¦',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 14,
-                      height: 1.6,
-                      color: Colors.white.withValues(alpha: 0.6),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-
-                  // One-time notice
+                  // ── One-time notice badge ─────────────────────────────────
                   Container(
-                    margin: const EdgeInsets.symmetric(vertical: 8),
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      color: _brown.withValues(alpha: 0.1),
-                      border: Border.all(color: _brown.withValues(alpha: 0.2)),
+                      borderRadius: BorderRadius.circular(16),
+                      color: DS.primary.withValues(alpha: 0.06),
+                      border: Border.all(color: DS.border),
                     ),
                     child: Row(
                       children: [
-                        Icon(Icons.info_outline, size: 15, color: _brown.withValues(alpha: 0.9)),
+                        Icon(
+                          Icons.info_outline_rounded,
+                          size: 16,
+                          color: DS.primary.withValues(alpha: 0.8),
+                        ),
                         const SizedBox(width: 10),
                         Expanded(
                           child: Text(
-                            'You only need to verify once. The app remembers your access for 30 days.',
-                            style: TextStyle(
+                            'You only need to verify once. Access is remembered for 30 days.',
+                            style: GoogleFonts.inter(
                               fontSize: 12,
-                              color: Colors.white.withValues(alpha: 0.6),
-                              height: 1.4,
+                              color: DS.textSecondary,
+                              height: 1.5,
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
                         ),
@@ -197,51 +207,60 @@ class _AdminOtpScreenState extends State<AdminOtpScreen> {
                   ),
                   const SizedBox(height: 32),
 
-                  // OTP input
+                  // ── OTP input ────────────────────────────────────────────
                   TextField(
                     controller: _codeController,
                     keyboardType: TextInputType.number,
                     maxLength: 8,
                     textAlign: TextAlign.center,
                     inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                    style: const TextStyle(
+                    style: GoogleFonts.inter(
                       fontSize: 28,
                       letterSpacing: 10,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      fontWeight: FontWeight.w900,
+                      color: DS.textPrimary,
                     ),
                     decoration: InputDecoration(
                       hintText: '000000',
-                      hintStyle: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.2),
+                      hintStyle: GoogleFonts.inter(
+                        color: DS.placeholder,
                         letterSpacing: 10,
                         fontSize: 28,
+                        fontWeight: FontWeight.w400,
                       ),
                       counterText: '',
                       filled: true,
-                      fillColor: Colors.white.withValues(alpha: 0.06),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(18),
-                        borderSide: BorderSide.none,
+                      fillColor: DS.bgSecondary,
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(DS.radiusInput),
+                        borderSide: const BorderSide(color: DS.border),
                       ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(DS.radiusInput),
+                        borderSide: const BorderSide(color: DS.primary, width: 1.5),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(vertical: 20),
                     ),
                   ),
 
+                  // ── Error message ─────────────────────────────────────────
                   if (_error != null) ...[
                     const SizedBox(height: 12),
                     Container(
-                      padding: const EdgeInsets.all(12),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                       decoration: BoxDecoration(
-                        color: Colors.red.withValues(alpha: 0.1),
+                        color: DS.error.withValues(alpha: 0.06),
                         borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: DS.error.withValues(alpha: 0.2)),
                       ),
                       child: Text(
                         _error!,
                         textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          color: Colors.redAccent,
+                        style: GoogleFonts.inter(
+                          color: DS.error,
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
+                          height: 1.4,
                         ),
                       ),
                     ),
@@ -249,31 +268,25 @@ class _AdminOtpScreenState extends State<AdminOtpScreen> {
 
                   const SizedBox(height: 24),
 
-                  // Verify button
+                  // ── Verify button ─────────────────────────────────────────
                   SizedBox(
-                    height: 56,
+                    height: DS.buttonHeight,
                     child: ElevatedButton(
                       onPressed: _loading ? null : _verify,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: _brown,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        elevation: 0,
-                      ),
+                      style: DS.primaryButton(),
                       child: _loading
                           ? const SizedBox(
-                              height: 22,
-                              width: 22,
+                              height: 20,
+                              width: 20,
                               child: CircularProgressIndicator(
                                   strokeWidth: 2, color: Colors.white),
                             )
-                          : const Text(
+                          : Text(
                               'Verify & Enter Dashboard',
-                              style: TextStyle(
-                                fontWeight: FontWeight.w800,
+                              style: GoogleFonts.inter(
+                                fontWeight: FontWeight.w700,
                                 fontSize: 15,
+                                color: Colors.white,
                               ),
                             ),
                     ),
@@ -281,21 +294,22 @@ class _AdminOtpScreenState extends State<AdminOtpScreen> {
 
                   const SizedBox(height: 16),
 
-                  // Resend code
+                  // ── Resend button ─────────────────────────────────────────
                   TextButton(
                     onPressed: _sending ? null : _sendCode,
                     child: Text(
                       _codeSent ? 'Resend code' : 'Send code',
-                      style: TextStyle(
-                        color: _brown,
+                      style: GoogleFonts.inter(
+                        color: DS.primary,
                         fontWeight: FontWeight.w700,
+                        fontSize: 14,
                       ),
                     ),
                   ),
 
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 8),
 
-                  // Sign out option
+                  // ── Sign out ─────────────────────────────────────────────
                   TextButton(
                     onPressed: () async {
                       await Supabase.instance.client.auth.signOut();
@@ -308,12 +322,15 @@ class _AdminOtpScreenState extends State<AdminOtpScreen> {
                     },
                     child: Text(
                       'Sign out',
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.4),
+                      style: GoogleFonts.inter(
+                        color: DS.textSecondary,
                         fontSize: 13,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ),
+
+                  const SizedBox(height: 32),
                 ],
               ),
             ),
@@ -323,5 +340,3 @@ class _AdminOtpScreenState extends State<AdminOtpScreen> {
     );
   }
 }
-
-

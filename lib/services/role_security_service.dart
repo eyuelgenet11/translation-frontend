@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+﻿import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../config/security_config.dart';
@@ -138,3 +138,4 @@ class TranslatorAccessResult {
         message: message,
       );
 }
+

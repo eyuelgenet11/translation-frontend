@@ -1,7 +1,7 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 // Using the same brand colors from your HomeScreen
-const Color brandColor = Color(0xFF895129);
+const Color brandColor = Color(0xFF8D5C3C);
 const Color accentColor = Color(0xFFD8B88A);
 
 class HelpCenterScreen extends StatefulWidget {
@@ -430,3 +430,5 @@ class HelpArticleDetailScreen extends StatelessWidget {
     );
   }
 }
+
+

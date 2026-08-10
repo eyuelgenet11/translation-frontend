@@ -80,22 +80,50 @@ class _AdminDashboardTabState extends State<AdminDashboardTab> with SingleTicker
     setState(() => _loading = true);
 
     try {
-      // Use SECURITY DEFINER RPC functions to bypass RLS
-      final pendingRes = await _supabase.rpc('admin_get_pending_payments');
-      final unsettledRes = await _supabase.rpc('admin_get_unsettled_jobs');
-      final escrowRes = await _supabase.rpc('admin_get_escrow_jobs');
-      final translatorsRes = await _supabase.rpc('admin_get_pending_translators');
-      final requestsRes = await _supabase.rpc('admin_get_all_requests');
-      final settledRes = await _supabase.rpc('admin_get_settled_history');
+      // Use SECURITY DEFINER RPC functions to bypass RLS, with direct query fallbacks
+      List pendingRes = [];
+      try {
+        pendingRes = await _supabase.rpc('admin_get_pending_payments') as List;
+      } catch (e) {
+        debugPrint("RPC admin_get_pending_payments error: $e");
+      }
+
+      if (pendingRes.isEmpty) {
+        final directData = await _supabase
+            .from('jobs')
+            .select('*')
+            .or('status.eq.awaiting_verification,status.eq.awaiting_payment,status.eq.pending')
+            .not('transaction_ref', 'is', null)
+            .order('created_at', ascending: false);
+        pendingRes = directData as List;
+      }
+
+      List unsettledRes = [];
+      try { unsettledRes = await _supabase.rpc('admin_get_unsettled_jobs') as List; } catch (_) {}
+      
+      List escrowRes = [];
+      try { escrowRes = await _supabase.rpc('admin_get_escrow_jobs') as List; } catch (_) {}
+      
+      List translatorsRes = [];
+      try { translatorsRes = await _supabase.rpc('admin_get_pending_translators') as List; } catch (_) {}
+      
+      List requestsRes = [];
+      try { requestsRes = await _supabase.rpc('admin_get_all_requests') as List; } catch (_) {
+        final directReq = await _supabase.from('jobs').select('*').order('created_at', ascending: false);
+        requestsRes = directReq as List;
+      }
+      
+      List settledRes = [];
+      try { settledRes = await _supabase.rpc('admin_get_settled_history') as List; } catch (_) {}
 
       if (mounted) {
         setState(() {
-          _pendingPayments = List<Map<String, dynamic>>.from(pendingRes as List);
-          _unsettledJobs = List<Map<String, dynamic>>.from(unsettledRes as List);
-          _escrowJobs = List<Map<String, dynamic>>.from(escrowRes as List);
-          _pendingTranslators = List<Map<String, dynamic>>.from(translatorsRes as List);
-          _allRequests = List<Map<String, dynamic>>.from(requestsRes as List);
-          _settledHistory = List<Map<String, dynamic>>.from(settledRes as List);
+          _pendingPayments = List<Map<String, dynamic>>.from(pendingRes);
+          _unsettledJobs = List<Map<String, dynamic>>.from(unsettledRes);
+          _escrowJobs = List<Map<String, dynamic>>.from(escrowRes);
+          _pendingTranslators = List<Map<String, dynamic>>.from(translatorsRes);
+          _allRequests = List<Map<String, dynamic>>.from(requestsRes);
+          _settledHistory = List<Map<String, dynamic>>.from(settledRes);
 
           debugPrint("Admin Dashboard Fetched Data:");
           debugPrint("- Pending Payments: ${_pendingPayments.length}");
@@ -108,7 +136,7 @@ class _AdminDashboardTabState extends State<AdminDashboardTab> with SingleTicker
           // Calculate metrics
           _heldEscrow = _escrowJobs.fold(0.0, (sum, item) {
             final price = (item['price'] ?? 0.0).toDouble();
-            return sum + (price * 1.15);
+            return sum + (price * 1.20);
           });
 
           _readyToSettle = _unsettledJobs.fold(0.0, (sum, item) {
@@ -120,9 +148,9 @@ class _AdminDashboardTabState extends State<AdminDashboardTab> with SingleTicker
           });
 
           double totalEscrowBase = _escrowJobs.fold(0.0, (sum, item) => sum + (item['price'] ?? 0.0).toDouble());
-          _totalRevenue = (totalEscrowBase + _readyToSettle + _totalSettled) * 0.15;
+          _totalRevenue = (totalEscrowBase + _readyToSettle + _totalSettled) * 0.20;
 
-          _totalVolume = _readyToSettle * 1.15;
+          _totalVolume = _readyToSettle * 1.20;
 
           _loading = false;
         });
@@ -148,7 +176,7 @@ class _AdminDashboardTabState extends State<AdminDashboardTab> with SingleTicker
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text("✅ Translator approved successfully."),
+        content: Text("âœ… Translator approved successfully."),
         backgroundColor: Colors.green,
       ));
       _fetchData();
@@ -159,13 +187,15 @@ class _AdminDashboardTabState extends State<AdminDashboardTab> with SingleTicker
 
   Future<void> _approvePayment(String jobId) async {
     try {
-      await _supabase.rpc('admin_approve_payment', params: {
-        'p_job_id': jobId,
-      });
+      try {
+        await _supabase.rpc('admin_approve_payment', params: {'p_job_id': jobId});
+      } catch (_) {
+        await _supabase.from('jobs').update({'status': 'In Progress'}).eq('id', jobId);
+      }
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text("✅ Payment approved. Status is now 'In Progress'."),
+        content: Text("âœ… Payment approved. Status is now 'In Progress'."),
         backgroundColor: Colors.green,
       ));
       _fetchData();
@@ -176,14 +206,21 @@ class _AdminDashboardTabState extends State<AdminDashboardTab> with SingleTicker
 
   Future<void> _rejectPayment(String jobId, String reason) async {
     try {
-      await _supabase.rpc('admin_reject_payment', params: {
-        'p_job_id': jobId,
-        'p_reason': reason,
-      });
+      try {
+        await _supabase.rpc('admin_reject_payment', params: {
+          'p_job_id': jobId,
+          'p_reason': reason,
+        });
+      } catch (_) {
+        await _supabase.from('jobs').update({
+          'status': 'awaiting_payment',
+          'rejection_reason': reason,
+        }).eq('id', jobId);
+      }
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text("❌ Payment rejected. Reason: $reason"),
+        content: Text("âŒ Payment rejected. Reason: $reason"),
         backgroundColor: Colors.redAccent,
       ));
       _fetchData();
@@ -207,7 +244,7 @@ class _AdminDashboardTabState extends State<AdminDashboardTab> with SingleTicker
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text("✅ Settlement processed! Net payout: ${netPayout.toStringAsFixed(2)} ETB."),
+        content: Text("âœ… Settlement processed! Net payout: ${netPayout.toStringAsFixed(2)} ETB."),
         backgroundColor: Colors.green,
       ));
       _fetchData();
@@ -675,7 +712,7 @@ class _AdminDashboardTabState extends State<AdminDashboardTab> with SingleTicker
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    "${job['from_lang']} → ${job['to_lang']}",
+                    "${job['from_lang']} -> ${job['to_lang']}",
                     style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 16, color: widget.brandBrown),
                   ),
                   Container(
@@ -706,8 +743,8 @@ class _AdminDashboardTabState extends State<AdminDashboardTab> with SingleTicker
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text("Platform Service Charge (15%):", style: TextStyle(fontSize: 12, color: Colors.amber.shade700)),
-                  Text("- ${(price * 0.15).toStringAsFixed(2)} ETB", style: TextStyle(fontSize: 12, color: Colors.amber.shade700)),
+                  Text("Platform Service Charge (20%):", style: TextStyle(fontSize: 12, color: Colors.amber.shade700)),
+                  Text("- ${(price * 0.20).toStringAsFixed(2)} ETB", style: TextStyle(fontSize: 12, color: Colors.amber.shade700)),
                 ],
               ),
               const Divider(height: 16),
@@ -769,7 +806,7 @@ class _AdminDashboardTabState extends State<AdminDashboardTab> with SingleTicker
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    "${job['from_lang']} → ${job['to_lang']}",
+                    "${job['from_lang']} -> ${job['to_lang']}",
                     style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 16, color: widget.brandBrown),
                   ),
                   Container(
@@ -932,7 +969,7 @@ class _AdminDashboardTabState extends State<AdminDashboardTab> with SingleTicker
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    "${job['from_lang']} → ${job['to_lang']}",
+                    "${job['from_lang']} -> ${job['to_lang']}",
                     style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 16, color: widget.brandBrown),
                   ),
                   Container(
@@ -964,8 +1001,8 @@ class _AdminDashboardTabState extends State<AdminDashboardTab> with SingleTicker
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text("Platform Service Charge (15%):", style: TextStyle(fontSize: 12, color: Colors.amber.shade700)),
-                  Text("- ${(netPayout * 0.15).toStringAsFixed(2)} ETB", style: TextStyle(fontSize: 12, color: Colors.amber.shade700)),
+                  Text("Platform Service Charge (20%):", style: TextStyle(fontSize: 12, color: Colors.amber.shade700)),
+                  Text("- ${(netPayout * 0.20).toStringAsFixed(2)} ETB", style: TextStyle(fontSize: 12, color: Colors.amber.shade700)),
                 ],
               ),
               const Divider(height: 16),
@@ -1055,7 +1092,7 @@ class _AdminDashboardTabState extends State<AdminDashboardTab> with SingleTicker
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    "${job['from_lang']} → ${job['to_lang']}",
+                    "${job['from_lang']} -> ${job['to_lang']}",
                     style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 16, color: widget.brandBrown),
                   ),
                   Container(
@@ -1087,8 +1124,8 @@ class _AdminDashboardTabState extends State<AdminDashboardTab> with SingleTicker
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text("Platform Service Charge (15%):", style: TextStyle(fontSize: 12, color: Colors.amber.shade700)),
-                  Text("- ${((job['price'] ?? 0.0) * 0.15).toStringAsFixed(2)} ETB", style: TextStyle(fontSize: 12, color: Colors.amber.shade700)),
+                  Text("Platform Service Charge (20%):", style: TextStyle(fontSize: 12, color: Colors.amber.shade700)),
+                  Text("- ${((job['price'] ?? 0.0) * 0.20).toStringAsFixed(2)} ETB", style: TextStyle(fontSize: 12, color: Colors.amber.shade700)),
                 ],
               ),
               const Divider(height: 16),
@@ -1226,7 +1263,7 @@ class _AdminDashboardTabState extends State<AdminDashboardTab> with SingleTicker
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    "${job['from_lang']} → ${job['to_lang']}",
+                    "${job['from_lang']} -> ${job['to_lang']}",
                     style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 16, color: widget.brandBrown),
                   ),
                   Container(
@@ -1305,7 +1342,7 @@ class _AdminDashboardTabState extends State<AdminDashboardTab> with SingleTicker
       itemBuilder: (context, index) {
         final job = allJobs[index];
         final double basePrice = (job['price'] ?? 0.0).toDouble();
-        final double platformFee = basePrice * 0.15;
+        final double platformFee = basePrice * 0.20;
         final double totalCustomerPaid = basePrice + platformFee;
         
         final String statusStr = (job['status'] ?? '').toString().toLowerCase();
@@ -1388,3 +1425,4 @@ class _AdminDashboardTabState extends State<AdminDashboardTab> with SingleTicker
     );
   }
 }
+

@@ -4,7 +4,9 @@ import '../live_order_tracker_screen.dart';
 import '../widgets/empty_state.dart';
 
 class TrackerTab extends StatelessWidget {
-  final Map<String, dynamic>? activeTrackerJob;
+  final List<Map<String, dynamic>> activeTrackerJobs;
+  final Map<String, dynamic>? selectedTrackerJob;
+  final ValueChanged<Map<String, dynamic>> onSelectJob;
   final Color brandBrown;
   final Color textMainTheme;
   final Color textSecTheme;
@@ -13,7 +15,9 @@ class TrackerTab extends StatelessWidget {
 
   const TrackerTab({
     super.key,
-    required this.activeTrackerJob,
+    required this.activeTrackerJobs,
+    required this.selectedTrackerJob,
+    required this.onSelectJob,
     required this.brandBrown,
     required this.textMainTheme,
     required this.textSecTheme,
@@ -23,12 +27,12 @@ class TrackerTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (activeTrackerJob == null) {
+    if (activeTrackerJobs.isEmpty) {
       return _buildEmptyState(
           "No active translation project to track.", Icons.track_changes_rounded);
     }
 
-    final job = activeTrackerJob!;
+    final job = selectedTrackerJob ?? activeTrackerJobs.first;
     final status = (job['status'] ?? 'Unknown').toString().toLowerCase();
     final cfg = _getStatusConfig(status);
 
@@ -38,7 +42,7 @@ class TrackerTab extends StatelessWidget {
         children: [
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.fromLTRB(24, 50, 24, 28),
+            padding: const EdgeInsets.fromLTRB(24, 50, 24, 24),
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [brandBrown, brandBrown.withValues(alpha: 0.75)],
@@ -61,6 +65,7 @@ class TrackerTab extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -80,6 +85,18 @@ class TrackerTab extends StatelessWidget {
                         ],
                       ),
                     ),
+                    if (activeTrackerJobs.length > 1)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.25),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          "${activeTrackerJobs.length} Active Projects",
+                          style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: Colors.white),
+                        ),
+                      ),
                   ],
                 ),
                 const SizedBox(height: 12),
@@ -94,9 +111,15 @@ class TrackerTab extends StatelessWidget {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  "Track your document in real-time.",
+                  activeTrackerJobs.length > 1
+                      ? "Select a project below to track its progress."
+                      : "Track your document in real-time.",
                   style: TextStyle(fontSize: 13, color: Colors.white.withValues(alpha: 0.7)),
                 ),
+                if (activeTrackerJobs.length > 1) ...[
+                  const SizedBox(height: 20),
+                  _buildProjectSelector(),
+                ],
               ],
             ),
           ),
@@ -198,10 +221,10 @@ class TrackerTab extends StatelessWidget {
                       _trackerRow("Title", job['title'] ?? "Translation Request"),
                       const Divider(height: 24),
                       _trackerRow("Languages",
-                          "${job['from_lang'] ?? '?'} → ${job['to_lang'] ?? '?'}",
+                          "${job['from_lang'] ?? '?'} -> ${job['to_lang'] ?? '?'}",
                           valueColor: brandBrown),
                       const Divider(height: 24),
-                      _trackerRow("Total Price", "${job['price'] != null ? (job['price'] * 1.15).toStringAsFixed(2) : '-'} ETB"),
+                      _trackerRow("Total Price", "${job['price'] != null ? (double.tryParse(job['price'].toString()) ?? 0.0).toStringAsFixed(2) : '-'} ETB"),
                       const Divider(height: 24),
                       _trackerRow(
                         "Urgency / Delivery",
@@ -247,7 +270,7 @@ class TrackerTab extends StatelessWidget {
                         context,
                         MaterialPageRoute(
                           builder: (_) => LiveOrderTrackerScreen(
-                            job: activeTrackerJob!,
+                            job: job,
                           ),
                         ),
                       ).then((_) => onRefresh());
@@ -281,6 +304,93 @@ class TrackerTab extends StatelessWidget {
     );
   }
 
+  Widget _buildProjectSelector() {
+    final currentSelectedId = (selectedTrackerJob ?? activeTrackerJobs.first)['id'];
+
+    return SizedBox(
+      height: 48,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        clipBehavior: Clip.none,
+        itemCount: activeTrackerJobs.length,
+        itemBuilder: (context, index) {
+          final item = activeTrackerJobs[index];
+          final bool isSelected = item['id'] == currentSelectedId;
+          final from = item['from_lang'] ?? '?';
+          final to = item['to_lang'] ?? '?';
+          final statusStr = (item['status'] ?? '').toString();
+
+          return GestureDetector(
+            onTap: () => onSelectJob(item),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              margin: const EdgeInsets.only(right: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? Colors.white
+                    : Colors.white.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: isSelected
+                      ? Colors.white
+                      : Colors.white.withValues(alpha: 0.3),
+                  width: 1.5,
+                ),
+                boxShadow: isSelected
+                    ? [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.1),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        )
+                      ]
+                    : [],
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    isSelected
+                        ? Icons.check_circle_rounded
+                        : Icons.description_outlined,
+                    size: 16,
+                    color: isSelected ? brandBrown : Colors.white,
+                  ),
+                  const SizedBox(width: 8),
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "$from -> $to",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w800,
+                          color: isSelected ? brandBrown : Colors.white,
+                        ),
+                      ),
+                      Text(
+                        statusStr.toUpperCase(),
+                        style: TextStyle(
+                          fontSize: 8,
+                          fontWeight: FontWeight.w700,
+                          color: isSelected
+                              ? brandBrown.withValues(alpha: 0.75)
+                              : Colors.white.withValues(alpha: 0.8),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
   Widget _trackerRow(String label, String value, {Color? valueColor}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -296,7 +406,7 @@ class TrackerTab extends StatelessWidget {
       return {
         'color': Colors.green,
         'icon': Icons.rate_review_rounded,
-        'label': '⚡ Review Your Document!',
+        'label': 'Review Your Document!',
         'desc': 'The translator has delivered your file. Tap to preview and accept or request a revision.'
       };
     }
@@ -365,10 +475,11 @@ class TrackerTab extends StatelessWidget {
       };
     }
     return {
-      'color': Colors.orange,
-      'icon': Icons.hourglass_empty_rounded,
-      'label': 'Analyzing Document',
-      'desc': 'An expert translator is currently evaluating your document to provide a quote.'
+      'color': brandBrown,
+      'icon': Icons.assignment_turned_in_rounded,
+      'label': 'Order Received',
+      'desc': 'Your translation request has been received and is ready for processing.'
     };
   }
 }
+

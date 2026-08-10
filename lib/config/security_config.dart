@@ -1,4 +1,4 @@
-/// Central security constants for role and admin access control.
+﻿/// Central security constants for role and admin access control.
 class SecurityConfig {
   SecurityConfig._();
 
@@ -24,3 +24,4 @@ class SecurityConfig {
     return s == 'pending' || s == 'new';
   }
 }
+

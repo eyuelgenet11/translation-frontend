@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -62,7 +62,7 @@ class _RatingDialogState extends State<RatingDialog> {
       if (mounted) {
         Navigator.of(context).pop(true); // Return true to indicate success
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Thank you for your review! 🌟'), backgroundColor: Colors.green),
+          const SnackBar(content: Text('Thank you for your review! ðŸŒŸ'), backgroundColor: Colors.green),
         );
       }
     } catch (e) {
@@ -96,10 +96,10 @@ class _RatingDialogState extends State<RatingDialog> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF895129).withValues(alpha: 0.1),
+                  color: const Color(0xFF8D5C3C).withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.star_rounded, size: 48, color: Color(0xFF895129)),
+                child: const Icon(Icons.star_rounded, size: 48, color: Color(0xFF8D5C3C)),
               ),
               const SizedBox(height: 20),
               Text(
@@ -165,7 +165,7 @@ class _RatingDialogState extends State<RatingDialog> {
                     child: ElevatedButton(
                       onPressed: _rating == 0 || _isSubmitting ? null : _submitReview,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF895129),
+                        backgroundColor: const Color(0xFF8D5C3C),
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                         disabledBackgroundColor: Colors.grey.shade300,
@@ -184,3 +184,5 @@ class _RatingDialogState extends State<RatingDialog> {
     );
   }
 }
+
+

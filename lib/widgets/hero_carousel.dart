@@ -12,7 +12,7 @@ class HeroCarousel extends StatelessWidget {
     final List<Map<String, String>> slides = [
       {
         'url': 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?q=80&w=1000',
-        'title': "Ge'ez Legal Experts",
+        'title': "Legal Experts",
         'subtitle': "Certified translations for court & official use"
       },
       {
@@ -36,7 +36,7 @@ class HeroCarousel extends StatelessWidget {
         autoPlayCurve: Curves.fastOutSlowIn,
         enableInfiniteScroll: true,
         autoPlayAnimationDuration: const Duration(milliseconds: 1000),
-        viewportFraction: 0.8,
+        viewportFraction: 0.88,
       ),
       items: slides.map((slide) {
         return Builder(
@@ -45,26 +45,27 @@ class HeroCarousel extends StatelessWidget {
               width: MediaQuery.of(context).size.width,
               margin: const EdgeInsets.symmetric(horizontal: 5.0),
               decoration: BoxDecoration(
-                color: brandBrown,
-                borderRadius: BorderRadius.circular(16),
+                color: const Color(0xFF1E293B),
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(color: const Color(0xFFECE7E2)),
                 boxShadow: [
                   BoxShadow(
-                    color: brandBrown.withValues(alpha: 0.1),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
+                    color: const Color(0xFF111111).withValues(alpha: 0.06),
+                    blurRadius: 24,
+                    offset: const Offset(0, 6),
                   )
                 ],
                 image: DecorationImage(
                   image: NetworkImage(slide['url']!),
                   fit: BoxFit.cover,
                   colorFilter: ColorFilter.mode(
-                    Colors.black.withValues(alpha: 0.3),
+                    Colors.black.withValues(alpha: 0.45),
                     BlendMode.darken,
                   ),
                 ),
               ),
               child: Padding(
-                padding: const EdgeInsets.all(16.0),
+                padding: const EdgeInsets.all(20.0),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.end,
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -73,18 +74,18 @@ class HeroCarousel extends StatelessWidget {
                       slide['title']!,
                       style: GoogleFonts.inter(
                         color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w900,
+                        fontSize: 17,
+                        fontWeight: FontWeight.w700,
                         height: 1.1,
                       ),
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: 4),
                     Text(
                       slide['subtitle']!,
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.8),
-                        fontSize: 10,
-                        fontWeight: FontWeight.w500,
+                      style: GoogleFonts.inter(
+                        color: Colors.white.withValues(alpha: 0.85),
+                        fontSize: 11,
+                        fontWeight: FontWeight.w400,
                       ),
                     ),
                   ],
@@ -97,3 +98,5 @@ class HeroCarousel extends StatelessWidget {
     );
   }
 }
+
+

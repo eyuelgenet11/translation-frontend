@@ -1,18 +1,18 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-// ── The current app version (keep in sync with pubspec.yaml) ──────────────────
+// â”€â”€ The current app version (keep in sync with pubspec.yaml) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const String kCurrentVersion = '1.0.0';
 
-// ── Play Store / App Store URL ────────────────────────────────────────────────
+// â”€â”€ Play Store / App Store URL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const String kStoreUrl =
     'https://play.google.com/store/apps/details?id=com.geezscript.translation';
 
-// ── Update type ───────────────────────────────────────────────────────────────
+// â”€â”€ Update type â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 enum UpdateType { none, soft, force }
 
-// ── Version comparator ────────────────────────────────────────────────────────
+// â”€â”€ Version comparator â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 bool _isBelow(String current, String required) {
   final c = current.split('.').map(int.parse).toList();
   final r = required.split('.').map(int.parse).toList();
@@ -25,7 +25,7 @@ bool _isBelow(String current, String required) {
   return false;
 }
 
-// ── Service ───────────────────────────────────────────────────────────────────
+// â”€â”€ Service â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 class ForceUpdateService {
   static final _supabase = Supabase.instance.client;
 
@@ -58,7 +58,7 @@ class ForceUpdateService {
   }
 }
 
-// ── Shared store launcher ─────────────────────────────────────────────────────
+// â”€â”€ Shared store launcher â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 Future<void> _openStore() async {
   final uri = Uri.parse(kStoreUrl);
   if (await canLaunchUrl(uri)) {
@@ -66,7 +66,7 @@ Future<void> _openStore() async {
   }
 }
 
-// ── Hard-block dialog (force update) ─────────────────────────────────────────
+// â”€â”€ Hard-block dialog (force update) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 class ForceUpdateDialog extends StatelessWidget {
   final String requiredVersion;
   const ForceUpdateDialog({super.key, required this.requiredVersion});
@@ -102,7 +102,7 @@ class ForceUpdateDialog extends StatelessWidget {
   }
 }
 
-// ── Soft-update dialog (dismissible) ─────────────────────────────────────────
+// â”€â”€ Soft-update dialog (dismissible) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 class SoftUpdateDialog extends StatelessWidget {
   final String newVersion;
   const SoftUpdateDialog({super.key, required this.newVersion});
@@ -115,7 +115,7 @@ class SoftUpdateDialog extends StatelessWidget {
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _icon(Icons.new_releases_rounded, const Color(0xFF895129), 0.1),
+          _icon(Icons.new_releases_rounded, const Color(0xFF8D5C3C), 0.1),
           const SizedBox(height: 20),
           const Text('New Update Available',
               style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900,
@@ -144,7 +144,7 @@ class SoftUpdateDialog extends StatelessWidget {
   }
 }
 
-// ── Shared helpers ────────────────────────────────────────────────────────────
+// â”€â”€ Shared helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 Widget _icon(IconData icon, Color color, double opacity) => Container(
   width: 72, height: 72,
   decoration: BoxDecoration(
@@ -158,7 +158,7 @@ Widget _storeButton(String label) => SizedBox(
   width: double.infinity,
   child: ElevatedButton.icon(
     style: ElevatedButton.styleFrom(
-      backgroundColor: const Color(0xFF895129),
+      backgroundColor: const Color(0xFF8D5C3C),
       foregroundColor: Colors.white,
       padding: const EdgeInsets.symmetric(vertical: 16),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
@@ -169,3 +169,5 @@ Widget _storeButton(String label) => SizedBox(
     onPressed: _openStore,
   ),
 );
+
+

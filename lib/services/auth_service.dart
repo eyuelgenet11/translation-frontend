@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../config/security_config.dart';
 import 'admin_auth_service.dart';
@@ -14,7 +14,7 @@ class AuthService {
     final session = client.auth.currentSession;
 
     if (session == null) {
-      // No session — go to login screen.
+      // No session â€” go to login screen.
       // ignore: use_build_context_synchronously
       Navigator.pushReplacementNamed(context, '/login');
       return false;
@@ -45,7 +45,7 @@ class AuthService {
       if (verified) {
         Navigator.pushReplacementNamed(context, '/home');
       } else {
-        // Need one-time OTP verification — replace the entire stack
+        // Need one-time OTP verification â€” replace the entire stack
         Navigator.of(context).pushNamedAndRemoveUntil(
           '/admin-otp',
           (route) => false,
@@ -58,7 +58,7 @@ class AuthService {
     // ignore: use_build_context_synchronously
     if (!context.mounted) return false;
 
-    // Approved translator → translator dashboard
+    // Approved translator â†’ translator dashboard
     if (role == 'translator' && SecurityConfig.isApprovedTranslatorStatus(status)) {
       Navigator.pushReplacementNamed(context, '/translator-home');
       return true;
@@ -69,3 +69,4 @@ class AuthService {
     return true;
   }
 }
+

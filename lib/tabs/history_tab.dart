@@ -201,7 +201,7 @@ class HistoryTab extends StatelessWidget {
                                         Container(
                                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                                           decoration: BoxDecoration(color: brandBrown.withValues(alpha: 0.08), borderRadius: BorderRadius.circular(8)),
-                                          child: Text("${job['from_lang'] ?? '?'} → ${job['to_lang'] ?? '?'}",
+                                          child: Text("${job['from_lang'] ?? '?'} -> ${job['to_lang'] ?? '?'}",
                                               style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: brandBrown)),
                                         ),
                                         const SizedBox(width: 8),
@@ -209,7 +209,7 @@ class HistoryTab extends StatelessWidget {
                                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                                           decoration: BoxDecoration(color: statusColor.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
                                           child: Text(
-                                            status == 'pending_review' ? '⚡ REVIEW NOW' : status == 'revision_requested' ? '✏️ REVISION' : status.toUpperCase(),
+                                            status == 'pending_review' ? 'REVIEW NOW' : status == 'revision_requested' ? 'REVISION' : status.toUpperCase(),
                                             style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: statusColor),
                                           ),
                                         ),
@@ -245,3 +245,4 @@ class HistoryTab extends StatelessWidget {
     );
   }
 }
+

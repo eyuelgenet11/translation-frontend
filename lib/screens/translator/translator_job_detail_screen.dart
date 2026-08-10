@@ -1,4 +1,4 @@
-import 'dart:io';
+﻿import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -28,7 +28,7 @@ class _TranslatorJobDetailScreenState extends State<TranslatorJobDetailScreen> {
   PlatformFile? _selectedFile;
   RealtimeChannel? _jobChannel;
 
-  static const _brown = Color(0xFF895129);
+  static const _brown = Color(0xFF8D5C3C);
 
   @override
   void initState() {
@@ -143,7 +143,7 @@ class _TranslatorJobDetailScreenState extends State<TranslatorJobDetailScreen> {
       }).eq('id', _job['id']);
 
       setState(() => _selectedFile = null);
-      _snack('Translation delivered — awaiting customer review.');
+      _snack('Translation delivered â€” awaiting customer review.');
     } catch (e) {
       _snack('Delivery failed: $e', isError: true);
     } finally {
@@ -165,7 +165,7 @@ class _TranslatorJobDetailScreenState extends State<TranslatorJobDetailScreen> {
   Widget build(BuildContext context) {
     final status = normalizeJobStatus(_job['status']);
     final title =
-        '${_job['from_lang'] ?? '?'} → ${_job['to_lang'] ?? '?'}';
+        '${_job['from_lang'] ?? '?'} â†’ ${_job['to_lang'] ?? '?'}';
 
     return Scaffold(
       appBar: AppBar(
@@ -338,7 +338,7 @@ class _TranslatorJobDetailScreenState extends State<TranslatorJobDetailScreen> {
             padding: const EdgeInsets.symmetric(vertical: 14),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
-          child: Text(_loading ? 'Sending…' : 'Send quote'),
+          child: Text(_loading ? 'Sendingâ€¦' : 'Send quote'),
         ),
       ],
     );
@@ -355,7 +355,7 @@ class _TranslatorJobDetailScreenState extends State<TranslatorJobDetailScreen> {
             borderRadius: BorderRadius.circular(12),
           ),
           child: const Text(
-            'Payment verified — upload your completed file.',
+            'Payment verified â€” upload your completed file.',
             style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
           ),
         ),
@@ -378,7 +378,7 @@ class _TranslatorJobDetailScreenState extends State<TranslatorJobDetailScreen> {
             padding: const EdgeInsets.symmetric(vertical: 14),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
-          child: Text(_loading ? 'Uploading…' : label),
+          child: Text(_loading ? 'Uploadingâ€¦' : label),
         ),
       ],
     );
@@ -396,3 +396,5 @@ class _TranslatorJobDetailScreenState extends State<TranslatorJobDetailScreen> {
     );
   }
 }
+
+

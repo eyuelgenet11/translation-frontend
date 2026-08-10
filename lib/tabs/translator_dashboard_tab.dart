@@ -18,7 +18,7 @@ class TranslatorDashboardTab extends StatefulWidget {
 
 class _TranslatorDashboardTabState extends State<TranslatorDashboardTab> {
   final _supabase = Supabase.instance.client;
-  static const _brown = Color(0xFF895129);
+  static const _brown = Color(0xFF8D5C3C);
 
   List<Map<String, dynamic>> _jobs = [];
   String? _officeName;
@@ -221,7 +221,7 @@ class _TranslatorDashboardTabState extends State<TranslatorDashboardTab> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Kelal — Translator',
+                'Kelal â€” Translator',
                 style: GoogleFonts.inter(fontWeight: FontWeight.w900, fontSize: 18),
               ),
               Text(
@@ -361,7 +361,7 @@ class _TranslatorDashboardTabState extends State<TranslatorDashboardTab> {
   }
 
   Widget _jobTile(Map<String, dynamic> job) {
-    final title = '${job['from_lang'] ?? '?'} → ${job['to_lang'] ?? '?'}';
+    final title = '${job['from_lang'] ?? '?'} -> ${job['to_lang'] ?? '?'}';
     final status = normalizeJobStatus(job['status']);
     final price = job['price'];
 
@@ -419,3 +419,5 @@ class _TranslatorDashboardTabState extends State<TranslatorDashboardTab> {
     );
   }
 }
+
+

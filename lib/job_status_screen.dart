@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -18,7 +18,7 @@ class _JobStatusScreenState extends State<JobStatusScreen> {
   RealtimeChannel? _channel;
 
   // Color palette matching the app theme
-  static const Color _brown = Color(0xFF895129); // Brand brown
+  static const Color _brown = Color(0xFF8D5C3C); // Brand brown
   late Color bgTheme;
   late Color cardTheme;
   late Color textThemeHeader;
@@ -111,11 +111,14 @@ class _JobStatusScreenState extends State<JobStatusScreen> {
         return _brown;
       case 'Awaiting Payment':
       case 'Pending':
+      case 'pending':
         return Colors.orange.shade700;
       case 'Completed':
         return Colors.teal.shade700;
       case 'Rejected':
         return Colors.red.shade700;
+      case 'Awaiting Review':
+        return Colors.indigo.shade500;
       default:
         return Colors.grey.shade600;
     }
@@ -129,11 +132,14 @@ class _JobStatusScreenState extends State<JobStatusScreen> {
         return Icons.autorenew;
       case 'Awaiting Payment':
       case 'Pending':
+      case 'pending':
         return Icons.payment;
       case 'Completed':
         return Icons.task_alt;
       case 'Rejected':
         return Icons.cancel_outlined;
+      case 'Awaiting Review':
+        return Icons.hourglass_top_rounded;
       default:
         return Icons.help_outline;
     }
@@ -141,26 +147,28 @@ class _JobStatusScreenState extends State<JobStatusScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    bgTheme = Theme.of(context).scaffoldBackgroundColor;
+    bgTheme = Colors.white;
     cardTheme = Theme.of(context).cardColor;
-    textThemeHeader = isDark ? Colors.white : Colors.black;
-    textThemeSec = isDark ? Colors.white70 : Colors.black54;
+    textThemeHeader = Colors.black87;
+    textThemeSec = Colors.black54;
 
     return Scaffold(
       backgroundColor: bgTheme,
       appBar: AppBar(
-        backgroundColor: _brown,
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black87,
+        elevation: 0,
+        surfaceTintColor: Colors.white,
         title: Text(
           'My Jobs',
           style: GoogleFonts.inter(
-            color: Colors.white,
+            color: Colors.black87,
             fontWeight: FontWeight.bold,
           ),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh, color: Colors.white),
+            icon: const Icon(Icons.refresh, color: Colors.black87),
             onPressed: _fetchJobs,
             tooltip: 'Refresh',
           ),
@@ -210,7 +218,9 @@ class _JobStatusScreenState extends State<JobStatusScreen> {
     final status = job['status'] as String? ?? 'Unknown';
     final statusColor = _getStatusColor(status);
     final statusIcon = _getStatusIcon(status);
-    final needsPayment = status == 'Awaiting Payment' || status == 'Pending';
+    final needsPayment = status == 'Awaiting Payment' || status == 'Pending' || status == 'pending';
+    final isRejected = status == 'Rejected';
+    final isAwaitingReview = status == 'Awaiting Review';
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
@@ -238,7 +248,13 @@ class _JobStatusScreenState extends State<JobStatusScreen> {
                       color: cardTheme,
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Icon(Icons.description, color: _brown, size: 24),
+                    child: Icon(
+                      job['is_handwritten'] == true
+                          ? Icons.draw_outlined
+                          : Icons.description,
+                      color: _brown,
+                      size: 24,
+                    ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -247,7 +263,7 @@ class _JobStatusScreenState extends State<JobStatusScreen> {
                       children: [
                         Text(
                           job['title'] ?? job['from_lang'] != null
-                              ? '${job['from_lang'] ?? ''} → ${job['to_lang'] ?? ''}'
+                              ? '${job['from_lang'] ?? ''} â†’ ${job['to_lang'] ?? ''}'
                               : 'Translation Job',
                           style: GoogleFonts.inter(
                             fontWeight: FontWeight.bold,
@@ -322,6 +338,52 @@ class _JobStatusScreenState extends State<JobStatusScreen> {
                     ),
                 ],
               ),
+              // Awaiting Review info row
+              if (isAwaitingReview) ...[
+                const SizedBox(height: 10),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.indigo.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.info_outline, size: 13, color: Colors.indigo.shade400),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          "Your handwritten document is being reviewed. We'll notify you once confirmed.",
+                          style: TextStyle(fontSize: 11, color: Colors.indigo.shade400, fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+              // Rejected reason row
+              if (isRejected && job['rejection_reason'] != null) ...[
+                const SizedBox(height: 10),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.red.withValues(alpha: 0.07),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.error_outline, size: 13, color: Colors.redAccent),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          job['rejection_reason'] as String,
+                          style: const TextStyle(fontSize: 11, color: Colors.redAccent, fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ],
           ),
         ),
@@ -329,3 +391,5 @@ class _JobStatusScreenState extends State<JobStatusScreen> {
     );
   }
 }
+
+

@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:shimmer/shimmer.dart';
 import '../widgets/hero_carousel.dart';
 import '../widgets/empty_state.dart';
+import '../ds.dart';
 
 class MarketplaceTab extends StatelessWidget {
   final List<Map<String, dynamic>> filteredTranslators;
@@ -80,15 +81,16 @@ class MarketplaceTab extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: brandBrown.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(20),
+                    color: DS.bgSecondary,
+                    borderRadius: BorderRadius.circular(DS.radiusTag),
+                    border: Border.all(color: DS.border),
                   ),
                   child: Text(
                     "${filteredTranslators.length} Experts",
-                    style: TextStyle(
+                    style: GoogleFonts.inter(
                       fontSize: 10,
-                      fontWeight: FontWeight.w800,
-                      color: brandBrown,
+                      fontWeight: FontWeight.w600,
+                      color: DS.textSecondary,
                     ),
                   ),
                 ),
@@ -108,43 +110,45 @@ class MarketplaceTab extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
       child: Row(
         children: [
-          Column(
-            children: [
-              Container(
-                margin: const EdgeInsets.only(right: 16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: brandBrown, width: 2),
-                  boxShadow: [
-                    BoxShadow(
-                      color: brandBrown.withValues(alpha: 0.15),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    )
-                  ],
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: Image.asset(
-                    'assets/icon/TERGUM_padded.png',
-                    width: 52,
-                    height: 52,
-                    fit: BoxFit.contain,
+          Container(
+            margin: const EdgeInsets.only(right: 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: DS.background,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: DS.border),
+                    boxShadow: DS.shadow,
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.asset(
+                      'assets/icon/TERGUM_padded.png',
+                      fit: BoxFit.contain,
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                "Tirgumsra",
-                style: TextStyle(
-                  fontSize: 8,
-                  fontWeight: FontWeight.w900,
-                  color: brandBrown,
-                  letterSpacing: 0.5,
+                const SizedBox(height: 4),
+                SizedBox(
+                  width: 56,
+                  child: Text(
+                    "TIRGUMSRA",
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.inter(
+                      fontSize: 8.5,
+                      fontWeight: FontWeight.w700,
+                      color: DS.textPrimary,
+                      letterSpacing: 0.6,
+                    ),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
           Expanded(
             child: Column(
@@ -152,17 +156,17 @@ class MarketplaceTab extends StatelessWidget {
               children: [
                 Text(
                   "Hello,",
-                  style: TextStyle(
+                  style: GoogleFonts.inter(
                       fontSize: 12,
-                      color: textSecTheme.withValues(alpha: 0.6),
-                      fontWeight: FontWeight.w500),
+                      color: DS.textSecondary,
+                      fontWeight: FontWeight.w400),
                 ),
                 Text(
                   userName ?? 'Guest',
                   style: GoogleFonts.inter(
                     fontSize: 20,
-                    fontWeight: FontWeight.w900,
-                    color: textMainTheme,
+                    fontWeight: FontWeight.w700,
+                    color: DS.textPrimary,
                     height: 1.1,
                   ),
                   overflow: TextOverflow.ellipsis,
@@ -180,14 +184,13 @@ class MarketplaceTab extends StatelessWidget {
                   width: 44,
                   height: 44,
                   decoration: BoxDecoration(
-                    color: brandBrown.withValues(alpha: 0.08),
+                    color: DS.background,
                     borderRadius: BorderRadius.circular(14),
-                    border: Border.all(
-                        color: brandBrown.withValues(alpha: 0.15), width: 1),
+                    border: Border.all(color: DS.border),
                   ),
-                  child: Icon(
+                  child: const Icon(
                     Icons.notifications_none_rounded,
-                    color: brandBrown,
+                    color: DS.textPrimary,
                     size: 22,
                   ),
                 ),
@@ -198,16 +201,16 @@ class MarketplaceTab extends StatelessWidget {
                     child: Container(
                       padding: const EdgeInsets.all(5),
                       decoration: BoxDecoration(
-                        color: Colors.redAccent.shade400,
+                        color: DS.error,
                         shape: BoxShape.circle,
-                        border: Border.all(color: surfaceTheme, width: 2),
+                        border: Border.all(color: DS.background, width: 2),
                       ),
                       child: Text(
                         unreadNotificationCount > 9 ? '9+' : '$unreadNotificationCount',
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 9,
-                          fontWeight: FontWeight.w900,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                     ),
@@ -224,26 +227,24 @@ class MarketplaceTab extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Container(
-        height: 56,
+        height: DS.inputHeight,
         decoration: BoxDecoration(
-            color: surfaceTheme,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.04),
-                  blurRadius: 20,
-                  offset: const Offset(0, 8))
-            ]),
+          color: DS.background,
+          borderRadius: BorderRadius.circular(DS.radiusInput),
+          border: Border.all(color: DS.border),
+          boxShadow: DS.shadow,
+        ),
         child: TextField(
           controller: searchController,
           onChanged: (v) => onSearchChanged(),
+          style: GoogleFonts.inter(color: DS.textPrimary),
           decoration: InputDecoration(
             hintText: "Search legal or medical experts...",
-            hintStyle:
-                TextStyle(fontSize: 14, color: textSecTheme.withValues(alpha: 0.5)),
-            prefixIcon:
-                Icon(Icons.search_rounded, color: brandBrown, size: 22),
+            hintStyle: GoogleFonts.inter(fontSize: 14, color: DS.placeholder),
+            prefixIcon: const Icon(Icons.search_rounded, color: DS.primary, size: 20),
             border: InputBorder.none,
+            enabledBorder: InputBorder.none,
+            focusedBorder: InputBorder.none,
             contentPadding: const EdgeInsets.symmetric(vertical: 18),
           ),
         ),
@@ -260,7 +261,7 @@ class MarketplaceTab extends StatelessWidget {
       {"label": "Books", "emoji": "📚"},
     ];
     return SizedBox(
-      height: 42,
+      height: 40,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.only(left: 20),
@@ -271,38 +272,23 @@ class MarketplaceTab extends StatelessWidget {
           return GestureDetector(
             onTap: () => onCategoryChanged(cat['label']!),
             child: AnimatedContainer(
-              duration: const Duration(milliseconds: 220),
+              duration: const Duration(milliseconds: 200),
               margin: const EdgeInsets.only(right: 10),
               padding: const EdgeInsets.symmetric(horizontal: 18),
               decoration: BoxDecoration(
-                gradient: isSelected
-                    ? LinearGradient(
-                        colors: [brandBrown, brandBrown.withValues(alpha: 0.75)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      )
-                    : null,
-                color: isSelected ? null : surfaceTheme,
-                borderRadius: BorderRadius.circular(30),
+                color: isSelected ? DS.primary : DS.background,
+                borderRadius: BorderRadius.circular(DS.radiusTag),
                 border: Border.all(
-                    color: isSelected ? Colors.transparent : Colors.grey.shade200),
-                boxShadow: isSelected
-                    ? [
-                        BoxShadow(
-                          color: brandBrown.withValues(alpha: 0.3),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        )
-                      ]
-                    : [],
+                  color: isSelected ? DS.primary : DS.border,
+                ),
               ),
               child: Center(
                 child: Text(
                   "${cat['emoji']} ${cat['label']}",
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
-                    color: isSelected ? Colors.white : textSecTheme,
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                    color: isSelected ? Colors.white : DS.textSecondary,
                   ),
                 ),
               ),
@@ -320,16 +306,16 @@ class MarketplaceTab extends StatelessWidget {
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
-        childAspectRatio: 0.60,
-        crossAxisSpacing: 16,
-        mainAxisSpacing: 16,
+        childAspectRatio: 0.88,
+        crossAxisSpacing: 14,
+        mainAxisSpacing: 14,
       ),
       itemCount: 4,
       itemBuilder: (context, index) {
         return Container(
           decoration: BoxDecoration(
             color: surfaceTheme,
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: BorderRadius.circular(20),
             border: Border.all(color: Colors.grey.shade100),
           ),
           child: Column(
@@ -338,25 +324,25 @@ class MarketplaceTab extends StatelessWidget {
               Shimmer.fromColors(
                 baseColor: Colors.grey.shade300,
                 highlightColor: Colors.grey.shade100,
-                child: const CircleAvatar(radius: 36, backgroundColor: Colors.white),
+                child: const CircleAvatar(radius: 24, backgroundColor: Colors.white),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 10),
               Shimmer.fromColors(
                 baseColor: Colors.grey.shade300,
                 highlightColor: Colors.grey.shade100,
-                child: Container(width: 80, height: 16, color: Colors.white),
+                child: Container(width: 70, height: 12, color: Colors.white),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 10),
               Shimmer.fromColors(
                 baseColor: Colors.grey.shade300,
                 highlightColor: Colors.grey.shade100,
                 child: Container(
                   width: double.infinity,
-                  height: 36,
-                  margin: const EdgeInsets.symmetric(horizontal: 16),
+                  height: 28,
+                  margin: const EdgeInsets.symmetric(horizontal: 14),
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(10),
                   ),
                 ),
               ),
@@ -386,9 +372,9 @@ class MarketplaceTab extends StatelessWidget {
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
-        childAspectRatio: 0.60,
-        crossAxisSpacing: 16,
-        mainAxisSpacing: 16,
+        childAspectRatio: 0.74,
+        crossAxisSpacing: 14,
+        mainAxisSpacing: 14,
       ),
       itemCount: filteredTranslators.length,
       itemBuilder: (context, index) {
@@ -405,175 +391,98 @@ class MarketplaceTab extends StatelessWidget {
     final double avgRating = (t['avg_rating'] ?? 5.0).toDouble();
     final int reviewCount = (t['review_count'] ?? 0) as int;
 
-    // Always use the brand color for all cards instead of dynamic category colors
-    final Color accentColor = brandBrown;
-
     return GestureDetector(
       onTap: () => onTranslatorTapped(t),
       child: Container(
-        decoration: BoxDecoration(
-            color: surfaceTheme,
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: Colors.grey.shade100),
-            boxShadow: [
-              BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.04),
-                  blurRadius: 16,
-                  offset: const Offset(0, 8))
-            ]),
-        child: Stack(
-          clipBehavior: Clip.none,
+        decoration: DS.cardDecoration(),
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            Hero(
+              tag: 'translator_avatar_${t['id']}',
+              child: CircleAvatar(
+                radius: 26,
+                backgroundColor: DS.bgSecondary,
+                backgroundImage: (t['avatar_url'] != null)
+                    ? NetworkImage(t['avatar_url'])
+                    : null,
+                child: (t['avatar_url'] == null)
+                    ? Text(
+                        (t['full_name'] ?? "?")[0].toUpperCase(),
+                        style: GoogleFonts.inter(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                          color: DS.primary,
+                        ),
+                      )
+                    : null,
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              t['office_name'] ?? t['full_name'] ?? "Unknown",
+              style: GoogleFonts.inter(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: DS.textPrimary,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 2),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: DS.bgSecondary,
+                borderRadius: BorderRadius.circular(DS.radiusTag),
+                border: Border.all(color: DS.border),
+              ),
+              child: Text(
+                displayCategory.toUpperCase(),
+                style: GoogleFonts.inter(
+                  fontSize: 9,
+                  fontWeight: FontWeight.w600,
+                  color: DS.textSecondary,
+                ),
+              ),
+            ),
+            const SizedBox(height: 6),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Colored top accent strip
-                Container(
-                  height: 80,
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-                    gradient: LinearGradient(
-                      colors: [accentColor, accentColor.withValues(alpha: 0.6)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
+                Icon(
+                  Icons.star_rounded,
+                  color: reviewCount > 0 ? const Color(0xFFF59E0B) : DS.placeholder,
+                  size: 14,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  reviewCount > 0
+                      ? "${avgRating.toStringAsFixed(1)} ($reviewCount)"
+                      : "New",
+                  style: GoogleFonts.inter(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                    color: DS.textSecondary,
                   ),
                 ),
-                const SizedBox(height: 36), // space for overlapping avatar
-                Padding(
-              padding: const EdgeInsets.fromLTRB(12, 0, 12, 14),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  // Category pill
-                  Center(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: accentColor.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Text(
-                        displayCategory.toUpperCase(),
-                        style: TextStyle(fontSize: 7, fontWeight: FontWeight.w900, color: accentColor, letterSpacing: 0.8),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    t['office_name'] ?? t['full_name'] ?? "Unknown",
-                    style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.bold, color: textMainTheme),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.star_rounded, color: reviewCount > 0 ? Colors.amber : Colors.grey.shade300, size: 13),
-                      const SizedBox(width: 2),
-                      Text(
-                        reviewCount > 0
-                            ? "${avgRating.toStringAsFixed(1)} (${reviewCount})"
-                            : "New",
-                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: textSecTheme),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 34,
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [accentColor, accentColor.withValues(alpha: 0.75)],
-                          begin: Alignment.centerLeft,
-                          end: Alignment.centerRight,
-                        ),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: ElevatedButton(
-                        onPressed: () => onTranslatorTapped(t),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.transparent,
-                          shadowColor: Colors.transparent,
-                          foregroundColor: Colors.white,
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        ),
-                        child: const Text("BOOK NOW",
-                            style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+              ],
             ),
-          ],
-        ),
-        // ACTIVE badge positioned relative to the whole card
-        Positioned(
-              top: 10,
-              right: 10,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.25),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 5, height: 5,
-                      decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-                    ),
-                    const SizedBox(width: 4),
-                    const Text("ACTIVE",
-                        style: TextStyle(fontSize: 7, fontWeight: FontWeight.w900, color: Colors.white)),
-                  ],
-                ),
-              ),
-            ),
-            // Avatar centered overlapping the strip
-            Positioned(
-              top: 50, // 80 (strip height) - 30 (avatar radius)
-              left: 0,
-              right: 0,
-              child: Center(
-                child: Stack(
-                  children: [
-                    Hero(
-                      tag: 'translator_avatar_${t['id']}',
-                      child: CircleAvatar(
-                        radius: 30,
-                        backgroundColor: Colors.white,
-                        backgroundImage: (t['avatar_url'] != null)
-                            ? NetworkImage(t['avatar_url'])
-                            : null,
-                        child: (t['avatar_url'] == null)
-                            ? Text(
-                                (t['full_name'] ?? "?")[0].toUpperCase(),
-                                style: GoogleFonts.inter(
-                                    fontSize: 24, fontWeight: FontWeight.bold, color: accentColor),
-                              )
-                            : null,
-                      ),
-                    ),
-                    Positioned(
-                      bottom: 0, right: 0,
-                      child: Container(
-                        padding: const EdgeInsets.all(2),
-                        decoration: const BoxDecoration(
-                          color: Colors.white, shape: BoxShape.circle),
-                        child: const Icon(Icons.verified_rounded,
-                            color: Colors.blueAccent, size: 14),
-                      ),
-                    ),
-                  ],
+            const Spacer(),
+            SizedBox(
+              width: double.infinity,
+              height: 36,
+              child: ElevatedButton(
+                onPressed: () => onTranslatorTapped(t),
+                style: DS.primaryButton(height: 36),
+                child: const Text(
+                  "Select",
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ),
@@ -585,7 +494,6 @@ class MarketplaceTab extends StatelessWidget {
 
 
   Widget _buildHorizontalRecommended(BuildContext context) {
-
     if (recommendedTranslators.isEmpty) return const SizedBox.shrink();
 
     return Column(
@@ -593,42 +501,24 @@ class MarketplaceTab extends StatelessWidget {
       children: [
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text("Top Rated Experts",
-                  style: GoogleFonts.inter(
-                      fontWeight: FontWeight.w800,
-                      fontSize: 17,
-                      color: textMainTheme)),
-              Row(
-                children: [
-                  const Icon(Icons.star_rounded, color: Color(0xFFF59E0B), size: 16),
-                  const SizedBox(width: 4),
-                  Text(
-                    "By Real Reviews",
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: textSecTheme,
-                    ),
-                  ),
-                ],
-              ),
-            ],
+          child: Text(
+            "Top Rated Experts",
+            style: GoogleFonts.inter(
+              fontWeight: FontWeight.w700,
+              fontSize: 17,
+              color: DS.textPrimary,
+            ),
           ),
         ),
         const SizedBox(height: 16),
         SizedBox(
-          height: 155,
+          height: 165,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.only(left: 20),
             itemCount: recommendedTranslators.length,
             itemBuilder: (context, i) {
               final t = recommendedTranslators[i];
-
-              // Real data
               final double avgRating = (t['avg_rating'] ?? 0.0).toDouble();
               final int reviewCount = (t['review_count'] ?? 0) as int;
               final List? cats = t['category'] as List?;
@@ -636,17 +526,10 @@ class MarketplaceTab extends StatelessWidget {
                   ? cats.first.toString().toUpperCase()
                   : 'GENERALIST';
 
-              // Display rating: real value with 1 decimal, or "New" if no reviews
               final String ratingDisplay = reviewCount > 0
                   ? avgRating.toStringAsFixed(1)
                   : 'New';
-              final String reviewLabel = reviewCount == 1
-                  ? '1 review'
-                  : reviewCount > 1
-                      ? '$reviewCount reviews'
-                      : 'No reviews yet';
 
-              // Rank badge
               final String rankLabel = i == 0
                   ? '🥇 #1 TOP RATED'
                   : i == 1
@@ -658,128 +541,94 @@ class MarketplaceTab extends StatelessWidget {
               return GestureDetector(
                 onTap: () => onTranslatorTapped(t),
                 child: Container(
-                  width: 260,
+                  width: 250,
                   margin: const EdgeInsets.only(right: 16),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [brandBrown, brandBrown.withValues(alpha: 0.8)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: brandBrown.withValues(alpha: 0.25),
-                        blurRadius: 18,
-                        offset: const Offset(0, 8),
-                      )
-                    ],
-                  ),
-                  child: Stack(
+                  decoration: DS.cardDecoration(),
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Positioned(
-                        right: -15,
-                        top: -15,
-                        child: Icon(Icons.verified_user_rounded,
-                            size: 80, color: Colors.white.withValues(alpha: 0.08)),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
+                      Row(
+                        children: [
+                          Hero(
+                            tag: 'translator_avatar_${t['id']}_rec',
+                            child: CircleAvatar(
+                              radius: 20,
+                              backgroundColor: DS.bgSecondary,
+                              backgroundImage: (t['avatar_url'] != null)
+                                  ? NetworkImage(t['avatar_url'])
+                                  : null,
+                              child: (t['avatar_url'] == null)
+                                  ? Text(
+                                      (t['full_name'] ?? "?")[0].toUpperCase(),
+                                      style: GoogleFonts.inter(
+                                        color: DS.primary,
+                                        fontWeight: FontWeight.w700,
+                                        fontSize: 15,
+                                      ),
+                                    )
+                                  : null,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Hero(
-                                  tag: 'translator_avatar_${t['id']}_rec',
-                                  child: CircleAvatar(
-                                    radius: 20,
-                                    backgroundColor: Colors.white24,
-                                    backgroundImage: (t['avatar_url'] != null)
-                                        ? NetworkImage(t['avatar_url'])
-                                        : null,
-                                    child: (t['avatar_url'] == null)
-                                        ? Text(
-                                            (t['full_name'] ?? "?")[0].toUpperCase(),
-                                            style: const TextStyle(
-                                              color: Colors.white,
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 16,
-                                            ),
-                                          )
-                                        : null,
-                                  ),
+                                Text(
+                                  t['office_name'] ?? t['full_name'] ?? "Expert",
+                                  style: GoogleFonts.inter(
+                                      color: DS.textPrimary,
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 14),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        t['office_name'] ?? t['full_name'] ?? "Expert",
-                                        style: GoogleFonts.inter(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 14),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                      const SizedBox(height: 2),
-                                      Row(
-                                        children: [
-                                          Icon(
-                                            Icons.star_rounded,
-                                            color: reviewCount > 0
-                                                ? const Color(0xFFFCD34D)
-                                                : Colors.white38,
-                                            size: 12,
-                                          ),
-                                          const SizedBox(width: 4),
-                                          Text(
-                                            "$ratingDisplay  •  $reviewLabel",
-                                            style: TextStyle(
-                                                color: Colors.white.withValues(alpha: 0.85),
-                                                fontSize: 10,
-                                                fontWeight: FontWeight.w600),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
+                                const SizedBox(height: 2),
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.star_rounded,
+                                      color: reviewCount > 0
+                                          ? const Color(0xFFF59E0B)
+                                          : DS.placeholder,
+                                      size: 14,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      "$ratingDisplay • $reviewCount reviews",
+                                      style: GoogleFonts.inter(
+                                          color: DS.textSecondary,
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w500),
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
-                            const Spacer(),
-                            // Category badge
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 10, vertical: 4),
-                              decoration: BoxDecoration(
-                                  color: Colors.white.withValues(alpha: 0.18),
-                                  borderRadius: BorderRadius.circular(10)),
-                              child: Text(
-                                rankLabel,
-                                style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 8,
-                                    fontWeight: FontWeight.w900,
-                                    letterSpacing: 0.5),
-                              ),
+                          ),
+                        ],
+                      ),
+                      const Spacer(),
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: DS.bgSecondary,
+                              borderRadius: BorderRadius.circular(DS.radiusTag),
+                              border: Border.all(color: DS.border),
                             ),
-                            const SizedBox(height: 8),
-                            Text(
-                              reviewCount > 0
-                                  ? "Rated $ratingDisplay/5 by $reviewCount verified client${reviewCount == 1 ? '' : 's'}."
-                                  : "Newly joined expert. Be the first to review!",
-                              style: const TextStyle(
-                                  color: Colors.white70,
-                                  fontSize: 10,
-                                  height: 1.3),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
+                            child: Text(
+                              rankLabel,
+                              style: GoogleFonts.inter(
+                                  color: DS.textPrimary,
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w600),
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -792,3 +641,4 @@ class MarketplaceTab extends StatelessWidget {
     );
   }
 }
+

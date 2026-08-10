@@ -1,6 +1,6 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
-const Color brandColor = Color(0xFF895129);
+const Color brandColor = Color(0xFF8D5C3C);
 const Color backgroundColor = Color(0xFFF9F5F2);
 
 class ContactScreen extends StatelessWidget {
@@ -58,3 +58,5 @@ class ContactScreen extends StatelessWidget {
     );
   }
 }
+
+

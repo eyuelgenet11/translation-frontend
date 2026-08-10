@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class PrivacyDataScreen extends StatelessWidget {
@@ -7,7 +7,7 @@ class PrivacyDataScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final Color brandColor = isDark ? Colors.white : const Color(0xFF895129);
+    final Color brandColor = isDark ? Colors.white : const Color(0xFF8D5C3C);
     final Color bgColor = Theme.of(context).scaffoldBackgroundColor;
 
     return Scaffold(
@@ -59,7 +59,7 @@ class PrivacyDataScreen extends StatelessWidget {
 
   Widget _buildSection(BuildContext context, String title, String content) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final Color brandColor = isDark ? Colors.white : const Color(0xFF895129);
+    final Color brandColor = isDark ? Colors.white : const Color(0xFF8D5C3C);
     return Padding(
       padding: const EdgeInsets.only(bottom: 24),
       child: Column(
@@ -87,3 +87,5 @@ class PrivacyDataScreen extends StatelessWidget {
     );
   }
 }
+
+

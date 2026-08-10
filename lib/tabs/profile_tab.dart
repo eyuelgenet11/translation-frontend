@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../privacy_data_screen.dart';
 import '../HelpCenterScreen.dart';
 import '../widgets/how_to_guide.dart';
+import '../ds.dart';
 
 class ProfileTab extends StatelessWidget {
   final String? displayName;
@@ -184,23 +185,20 @@ class ProfileTab extends StatelessWidget {
           Stack(
             children: [
               Container(
-                padding: const EdgeInsets.all(4),
+                padding: const EdgeInsets.all(3),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  gradient: LinearGradient(
-                    colors: [brandBrown, brandBrown.withValues(alpha: 0.5)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
+                  color: DS.background,
+                  border: Border.all(color: DS.border),
                 ),
                 child: CircleAvatar(
                   radius: 50,
-                  backgroundColor: surfaceTheme,
+                  backgroundColor: DS.bgSecondary,
                   backgroundImage: (avatarUrl != null && avatarUrl!.isNotEmpty)
                       ? NetworkImage(avatarUrl!)
                       : null,
                   child: (avatarUrl == null || avatarUrl!.isEmpty)
-                      ? Icon(Icons.person_rounded, size: 40, color: brandBrown)
+                      ? const Icon(Icons.person_rounded, size: 40, color: DS.primary)
                       : null,
                 ),
               ),
@@ -230,16 +228,17 @@ class ProfileTab extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
             decoration: BoxDecoration(
-              color: brandBrown.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(20),
+              color: DS.bgSecondary,
+              borderRadius: BorderRadius.circular(DS.radiusTag),
+              border: Border.all(color: DS.border),
             ),
             child: Text(
               "${accountType.toUpperCase()} ACCOUNT",
-              style: TextStyle(
+              style: GoogleFonts.inter(
                 fontSize: 10,
-                fontWeight: FontWeight.w800,
-                color: brandBrown,
-                letterSpacing: 1.0,
+                fontWeight: FontWeight.w600,
+                color: DS.textSecondary,
+                letterSpacing: 0.5,
               ),
             ),
           ),
@@ -396,3 +395,4 @@ class ProfileTab extends StatelessWidget {
     );
   }
 }
+

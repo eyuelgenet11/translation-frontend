@@ -2,7 +2,9 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 import '/services/api_config.dart';
+
 
 class ApiService {
   // -------------------------------
@@ -130,7 +132,7 @@ class ApiService {
     try {
       final ext = filename.split('.').last;
 
-      // 1️⃣ Get signed upload URL
+      // 1ï¸âƒ£ Get signed upload URL
       final res1 = await http.post(
         Uri.parse(ApiConfig.getUploadUrl),
         headers: ApiConfig.authHeaders,
@@ -156,7 +158,7 @@ class ApiService {
         };
       }
 
-      // 2️⃣ Upload file to Supabase
+      // 2ï¸âƒ£ Upload file to Supabase
       final uploadRes = await http.put(
         Uri.parse(signedUrl),
         headers: {'Content-Type': 'application/octet-stream'},
@@ -170,7 +172,7 @@ class ApiService {
         };
       }
 
-      // 3️⃣ Create job record
+      // 3ï¸âƒ£ Create job record
       final res2 = await http.post(
         Uri.parse(ApiConfig.createJob),
         headers: ApiConfig.authHeaders,
@@ -199,6 +201,119 @@ class ApiService {
       };
     } catch (e) {
       return {'success': false, 'message': 'Upload error: $e'};
+    }
+  }
+
+  // -------------------------------
+  // SUBMIT JOB WITH TELEGRAM NOTIFY
+  // Replaces direct Supabase insert from upload_screen.dart
+  // Sends file + metadata to backend which:
+  //  - uploads to storage
+  //  - auto-calculates hidden price
+  //  - notifies admin via Telegram
+  // -------------------------------
+  static Future<Map<String, dynamic>> submitJobWithNotify({
+    required Uint8List fileBytes,
+    required String filename,
+    required String userId,
+    required String fromLang,
+    required String toLang,
+    required int pageCount,
+    required String urgency,
+    String? translatorId,
+    String merchantName = '',
+    bool isHandwritten = false,
+    bool isMedical = false,
+    String customerPhone = '',
+    String deliveryType = 'Soft Copy',
+  }) async {
+    try {
+      final uri = Uri.parse(ApiConfig.submitJobWithNotify);
+      final request = http.MultipartRequest('POST', uri);
+
+      // Text fields
+      request.fields['userId']        = userId;
+      request.fields['fromLang']      = fromLang;
+      request.fields['toLang']        = toLang;
+      request.fields['pageCount']     = pageCount.toString();
+      request.fields['urgency']       = urgency;
+      request.fields['isHandwritten'] = isHandwritten.toString();
+      request.fields['isMedical']     = isMedical.toString();
+      request.fields['customerPhone'] = customerPhone;
+      request.fields['merchantName']  = merchantName;
+      request.fields['deliveryType']  = deliveryType;
+      if (translatorId != null) {
+        request.fields['translatorId'] = translatorId;
+      }
+
+
+      // File
+      final ext = filename.split('.').last.toLowerCase();
+      final mimeType = ext == 'pdf'
+          ? 'application/pdf'
+          : (ext == 'docx'
+              ? 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+              : 'application/msword');
+
+      request.files.add(http.MultipartFile.fromBytes(
+        'document',
+        fileBytes,
+        filename: filename,
+        contentType: MediaType('application', mimeType.split('/').last),
+      ));
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
+      final data = jsonDecode(response.body);
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        return {'success': true, ...data};
+      } else {
+        return {
+          'success': false,
+          'message': data['message'] ?? 'Submission failed.',
+        };
+      }
+    } catch (e) {
+      return {'success': false, 'message': 'Upload error: $e'};
+    }
+  }
+
+  // -------------------------------
+  // NOTIFY TELEGRAM ADMIN (Fallback endpoint)
+  // -------------------------------
+  static Future<void> notifyTelegram({
+    required String jobId,
+    required String merchantName,
+    required String fromLang,
+    required String toLang,
+    required int pages,
+    required String urgency,
+    required bool isHandwritten,
+    required String customerPhone,
+    required String fileUrl,
+    required String fileName,
+  }) async {
+    try {
+      final uri = Uri.parse("${ApiConfig.baseUrl}/api/jobs/notify-telegram");
+      await http.post(
+        uri,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'jobId': jobId,
+          'merchantName': merchantName,
+          'fromLang': fromLang,
+          'toLang': toLang,
+          'pages': pages,
+          'urgency': urgency,
+          'isHandwritten': isHandwritten,
+          'customerPhone': customerPhone,
+          'fileUrl': fileUrl,
+          'fileName': fileName,
+        }),
+      );
+    } catch (e) {
+      print("Telegram notify fallback notice: $e");
     }
   }
 
@@ -232,20 +347,33 @@ class ApiService {
   // -------------------------------
   static Future<Map<String, dynamic>> verifyPayment({
     required String jobId,
-    required String transactionRef,
-    String? suffix,
+    String? transactionRef,
+    Uint8List? screenshotBytes,
+    String? screenshotFilename,
   }) async {
     try {
-      final response = await http.post(
-        Uri.parse(ApiConfig.verifyPayment),
-        headers: ApiConfig.authHeaders,
-        body: jsonEncode({
-          'jobId': jobId,
-          'transactionRef': transactionRef,
-          'suffix': suffix,
-        }),
-      );
+      final uri = Uri.parse(ApiConfig.verifyPayment);
+      final request = http.MultipartRequest('POST', uri);
 
+      request.fields['jobId'] = jobId;
+      if (transactionRef != null && transactionRef.isNotEmpty) {
+        request.fields['transactionRef'] = transactionRef;
+      }
+
+      if (screenshotBytes != null) {
+        final filename = screenshotFilename ?? 'receipt.png';
+        final ext = filename.split('.').last.toLowerCase();
+        final mimeType = (ext == 'jpg' || ext == 'jpeg') ? 'image/jpeg' : 'image/png';
+        request.files.add(http.MultipartFile.fromBytes(
+          'screenshot',
+          screenshotBytes,
+          filename: filename,
+          contentType: MediaType('image', mimeType.split('/').last),
+        ));
+      }
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
       return _handleResponse(response);
     } catch (e) {
       return {'success': false, 'message': 'Error verifying payment: $e'};
@@ -287,6 +415,71 @@ class ApiService {
   }
 
   // -------------------------------
+  // DIRECT TELEGRAM BOT NOTIFICATIONS
+  // Direct HTTP call to Telegram Bot API
+  // -------------------------------
+  static Future<void> sendTelegramDirect({
+    required String text,
+    String? documentUrl,
+    List<List<Map<String, String>>>? inlineKeyboard,
+  }) async {
+    const String botToken = '8701206360:AAGAeK3UDViBskQlWCJlXx8ciloSNqUwcas';
+    const String chatId = '819178764';
+
+    try {
+      final Map<String, dynamic> body = {
+        'chat_id': chatId,
+        'text': text,
+        'parse_mode': 'HTML',
+        'disable_web_page_preview': false,
+      };
+
+      if (inlineKeyboard != null) {
+        body['reply_markup'] = {
+          'inline_keyboard': inlineKeyboard,
+        };
+      }
+
+      final response = await http.post(
+        Uri.parse('https://api.telegram.org/bot$botToken/sendMessage'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(body),
+      );
+
+      final resData = jsonDecode(response.body);
+      if (resData['ok'] != true && inlineKeyboard != null) {
+        print('HTML send with buttons failed: ${resData['description']}. Retrying plain text...');
+        final plainBody = <String, dynamic>{
+          'chat_id': chatId,
+          'text': text.replaceAll(RegExp(r'<[^>]*>'), ''),
+          'reply_markup': {
+            'inline_keyboard': inlineKeyboard,
+          },
+        };
+        await http.post(
+          Uri.parse('https://api.telegram.org/bot$botToken/sendMessage'),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode(plainBody),
+        );
+      }
+
+      if (documentUrl != null && documentUrl.isNotEmpty) {
+        await http.post(
+          Uri.parse('https://api.telegram.org/bot$botToken/sendDocument'),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            'chat_id': chatId,
+            'document': documentUrl,
+            'caption': 'ðŸ“Ž Customer File Attachment',
+          }),
+        );
+      }
+    } catch (e) {
+      print('Direct Telegram Bot Notice: $e');
+    }
+  }
+
+  // -------------------------------
   // RESPONSE HANDLER
   // -------------------------------
   static Map<String, dynamic> _handleResponse(http.Response response) {
@@ -305,3 +498,4 @@ class ApiService {
     }
   }
 }
+

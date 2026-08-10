@@ -30,7 +30,7 @@ class _LiveOrderTrackerScreenState extends State<LiveOrderTrackerScreen> {
   RealtimeChannel? _statusSubscription;
 
   // Constants consistent with app theme
-  static const Color brandColor = Color(0xFF895129);
+  static const Color brandColor = Color(0xFF8D5C3C);
   late Color bgTheme;
   late Color cardTheme;
   late Color textThemeHeader;
@@ -42,7 +42,7 @@ class _LiveOrderTrackerScreenState extends State<LiveOrderTrackerScreen> {
 
   // Payment State
   final TextEditingController _refController = TextEditingController();
-  // Image picker state (uses native Android Photo Picker — no broad media permission needed)
+  // Image picker state (uses native Android Photo Picker â€” no broad media permission needed)
   String? _receiptFilePath;
   String? _receiptFileName;
   String? _receiptExtension;
@@ -180,7 +180,7 @@ class _LiveOrderTrackerScreenState extends State<LiveOrderTrackerScreen> {
                     onPressed: _callSupport,
                     icon: const Icon(Icons.phone_in_talk_rounded, size: 18, color: Colors.white),
                     label: const Text(
-                      "CALL +251911373034",
+                      "CALL US (+251911373034)",
                       style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13, color: Colors.white),
                     ),
                     style: ElevatedButton.styleFrom(
@@ -291,7 +291,7 @@ class _LiveOrderTrackerScreenState extends State<LiveOrderTrackerScreen> {
         if (receiptUrl != null) 'receipt_url': receiptUrl,
       }).eq('id', _job['id']);
 
-      _showSnack("Payment submitted for review! ✅");
+      _showSnack("Payment submitted for review! âœ…");
     } catch (e) {
       _showSnack("Error submitting payment: $e", isError: true);
     } finally {
@@ -318,7 +318,7 @@ class _LiveOrderTrackerScreenState extends State<LiveOrderTrackerScreen> {
     );
     if (confirm == true) {
       await _updateJobStatus('completed');
-      _showSnack("✅ Translation accepted! Order is now complete.");
+      _showSnack("âœ… Translation accepted! Order is now complete.");
       
       // Delay slightly to let the status update complete, then show Rating Dialog
       Future.delayed(const Duration(milliseconds: 500), () {
@@ -332,8 +332,8 @@ class _LiveOrderTrackerScreenState extends State<LiveOrderTrackerScreen> {
 
   Future<void> _submitRevisionRequest(List<String> selectedErrors, String customNote) async {
     final revisionCount = (_job['revision_count'] ?? 0) + 1;
-    final allNotes = [...selectedErrors, if (customNote.isNotEmpty) customNote].join('\n• ');
-    final formattedNotes = '• $allNotes';
+    final allNotes = [...selectedErrors, if (customNote.isNotEmpty) customNote].join('\nâ€¢ ');
+    final formattedNotes = 'â€¢ $allNotes';
 
     try {
       await supabase.from('jobs').update({
@@ -341,7 +341,7 @@ class _LiveOrderTrackerScreenState extends State<LiveOrderTrackerScreen> {
         'revision_notes': formattedNotes,
         'revision_count': revisionCount,
       }).eq('id', _job['id']);
-      _showSnack("✏️ Revision request sent to translator!");
+      _showSnack("âœï¸ Revision request sent to translator!");
     } catch (e) {
       _showSnack("Error sending revision: $e", isError: true);
     }
@@ -426,7 +426,7 @@ class _LiveOrderTrackerScreenState extends State<LiveOrderTrackerScreen> {
                           padding: const EdgeInsets.all(12),
                           margin: const EdgeInsets.only(bottom: 12),
                           decoration: BoxDecoration(color: Colors.orange.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.orange.withValues(alpha: 0.3))),
-                          child: const Text("⚠️ You have used 3+ revisions. Additional revisions may incur extra charges.", style: TextStyle(fontSize: 12, color: Colors.orange, fontWeight: FontWeight.w600)),
+                          child: const Text("âš ï¸ You have used 3+ revisions. Additional revisions may incur extra charges.", style: TextStyle(fontSize: 12, color: Colors.orange, fontWeight: FontWeight.w600)),
                         ),
                       SizedBox(
                         width: double.infinity,
@@ -521,7 +521,7 @@ class _LiveOrderTrackerScreenState extends State<LiveOrderTrackerScreen> {
   }
 
   Future<void> getReceiptImage() async {
-    // Use image_picker (native Android Photo Picker) — compliant with
+    // Use image_picker (native Android Photo Picker) â€” compliant with
     // Google Play Photo & Video Permissions policy (no READ_MEDIA_IMAGES needed).
     final ImagePicker picker = ImagePicker();
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
@@ -570,36 +570,40 @@ class _LiveOrderTrackerScreenState extends State<LiveOrderTrackerScreen> {
   @override
   Widget build(BuildContext context) {
     isDark = Theme.of(context).brightness == Brightness.dark;
-    bgTheme = Theme.of(context).scaffoldBackgroundColor;
+    bgTheme = Colors.white;
     cardTheme = Theme.of(context).cardColor;
-    textThemeHeader = isDark ? Colors.white : Colors.black;
-    textThemeSec = isDark ? Colors.white70 : Colors.black54;
+    textThemeHeader = Colors.black87;
+    textThemeSec = Colors.black54;
 
     return Scaffold(
       backgroundColor: bgTheme,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: bgTheme,
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black87,
+        surfaceTintColor: Colors.white,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new, color: textThemeHeader, size: 20),
+          icon: const Icon(Icons.arrow_back, color: Colors.black87, size: 22),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text("LIVE ORDER TRACKER",
-            overflow: TextOverflow.ellipsis,
-            style: GoogleFonts.inter(
-                fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: 1.2, color: brandColor)),
+        title: Text(
+          "Order Tracker",
+          style: GoogleFonts.inter(
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+            color: Colors.black87,
+          ),
+        ),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildStatusHeader(),
-            const SizedBox(height: 32),
+            const SizedBox(height: 24),
             _buildTrackerCard(),
             _buildSupportContactWidget(),
-            const SizedBox(height: 32),
-            _buildJobSummary(),
           ],
         ),
       ),
@@ -612,6 +616,7 @@ class _LiveOrderTrackerScreenState extends State<LiveOrderTrackerScreen> {
     // Status Display Mapping
     Map<String, dynamic> statusUi = {
       'pending': {'label': 'WAITING FOR QUOTE', 'color': Colors.grey},
+      'awaiting review': {'label': 'AWAITING ADMIN REVIEW', 'color': Colors.indigo},
       'quoted': {'label': 'PRICE QUOTED', 'color': brandColor},
       'price quoted': {'label': 'PRICE QUOTED', 'color': brandColor},
       'awaiting payment': {'label': 'AWAITING PAYMENT', 'color': brandColor},
@@ -663,11 +668,47 @@ class _LiveOrderTrackerScreenState extends State<LiveOrderTrackerScreen> {
     Color statusColor = brandColor;
     Widget? actions;
 
-    if (status == 'pending') {
-      title = "Analyzing Document";
-      message = "An expert translator is currently evaluating your document's complexity and word count to provide an accurate quote.";
-      icon = Icons.hourglass_empty_rounded;
-      statusColor = Colors.orange;
+    if (status == 'awaiting review') {
+      title = "Reviewing Handwritten Document";
+      message = "Your handwritten document is being reviewed by our admin team to confirm legibility before processing. We'll update you shortly!";
+      icon = Icons.hourglass_top_rounded;
+      statusColor = Colors.indigo;
+      actions = Container(
+        padding: const EdgeInsets.all(12),
+        margin: const EdgeInsets.only(top: 16),
+        decoration: BoxDecoration(
+          color: Colors.indigo.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: const Text(
+          "â³ Admin review in progress. You will receive a notification as soon as it's accepted.",
+          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.indigo),
+        ),
+      );
+    } else if (status == 'rejected') {
+      title = "Document Rejected";
+      message = _job['rejection_reason'] != null
+          ? "Rejection reason: ${_job['rejection_reason']}"
+          : "Unfortunately, your document submission was rejected by admin.";
+      icon = Icons.cancel_outlined;
+      statusColor = Colors.red;
+      actions = Container(
+        padding: const EdgeInsets.all(12),
+        margin: const EdgeInsets.only(top: 16),
+        decoration: BoxDecoration(
+          color: Colors.red.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Text(
+          _job['rejection_reason'] ?? "Please contact support for more details.",
+          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.redAccent),
+        ),
+      );
+    } else if (status == 'pending') {
+      title = "Order Received";
+      message = "Your translation request has been received. Please review your order details or complete payment to proceed.";
+      icon = Icons.assignment_turned_in_rounded;
+      statusColor = brandColor;
       actions = _buildPendingState();
     } else if (status == 'quoted' || status == 'price quoted') {
       title = "Official Quote Ready";
@@ -676,11 +717,12 @@ class _LiveOrderTrackerScreenState extends State<LiveOrderTrackerScreen> {
       statusColor = brandColor;
       actions = _buildQuotedState();
     } else if (status == 'accepted' || status == 'in progress' || status == 'in_progress') {
-      title = "Translation in Progress";
-      message = "Your project is in the hands of a professional. We'll notify you the moment the first draft is ready for review.";
-      icon = Icons.edit_note_rounded;
+      final urgency = _job['urgency'] ?? 'Normal';
+      title = "";
+      message = "";
+      icon = Icons.hourglass_bottom_rounded;
       statusColor = brandColor;
-      actions = _buildProgressAnimation();
+      actions = _buildWorkInProgressActions(urgency);
     } else if (status == 'awaiting payment') {
       title = "Payment Required";
       message = "To initiate the translation, please complete the initial payment as per the quote below.";
@@ -688,11 +730,11 @@ class _LiveOrderTrackerScreenState extends State<LiveOrderTrackerScreen> {
       statusColor = Colors.orange;
       actions = _buildAwaitingPaymentState();
     } else if (status == 'awaiting verification') {
-      title = "Verifying Transaction";
-      message = "Our finance team is confirming your payment receipt. This typically takes 15-30 minutes during business hours.";
+      title = "";
+      message = "";
       icon = Icons.verified_user_rounded;
-      statusColor = Colors.blue;
-      actions = _buildVerificationPulse();
+      statusColor = brandColor;
+      actions = _buildAwaitingVerificationCard();
     } else if (status == 'pending_review') {
       title = "Draft Ready for Review";
       message = "The translator has uploaded the document. Please review it carefully to ensure it meets your expectations.";
@@ -711,6 +753,10 @@ class _LiveOrderTrackerScreenState extends State<LiveOrderTrackerScreen> {
       icon = Icons.task_alt_rounded;
       statusColor = Colors.green;
       actions = _buildCompletionActions();
+    }
+
+    if (title.isEmpty && message.isEmpty && actions != null) {
+      return actions;
     }
 
     return Container(
@@ -888,54 +934,339 @@ class _LiveOrderTrackerScreenState extends State<LiveOrderTrackerScreen> {
     );
   }
 
-  Widget _buildProgressAnimation() {
-    final deliveryTime = _job['delivery_time']?.toString() ?? '';
-    return Column(
-      children: [
-        LinearProgressIndicator(
-          backgroundColor: brandColor.withValues(alpha: 0.1),
-          valueColor: const AlwaysStoppedAnimation<Color>(brandColor),
-          borderRadius: BorderRadius.circular(10),
-          minHeight: 8,
+  Widget _buildWorkInProgressActions(String urgency) {
+    final fromLang = _job['from_lang'] ?? '';
+    final toLang = _job['to_lang'] ?? '';
+    final pages = _job['page_count'];
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: cardTheme,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: brandColor.withValues(alpha: 0.3),
+          width: 1.5,
         ),
-        const SizedBox(height: 12),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text("Translator at work", style: TextStyle(fontSize: 11, color: textThemeSec, fontWeight: FontWeight.w600)),
-            Text(
-              deliveryTime.isNotEmpty ? "Est. Delivery: $deliveryTime" : "In progress...",
-              style: TextStyle(fontSize: 11, color: brandColor, fontWeight: FontWeight.w800),
+        boxShadow: [
+          BoxShadow(
+            color: brandColor.withValues(alpha: 0.10),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // â”€â”€ Clean Left-Aligned Header (No Symbol) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+          Text(
+            'Translation Underway',
+            style: GoogleFonts.inter(
+              fontSize: 22,
+              fontWeight: FontWeight.w900,
+              color: textThemeHeader,
             ),
-          ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            '$fromLang -> $toLang ${pages != null ? ' • $pages pages' : ''}',
+            style: GoogleFonts.inter(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: brandColor,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+
+          const SizedBox(height: 18),
+          Divider(height: 1, color: isDark ? Colors.white12 : Colors.grey.shade200),
+          const SizedBox(height: 18),
+
+          // â”€â”€ Processing & Delivery Level â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Row(
+                  children: [
+                    const Icon(Icons.timer_outlined, color: brandColor, size: 20),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        'Processing & Delivery',
+                        style: GoogleFonts.inter(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w800,
+                          color: textThemeHeader,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: brandColor.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  urgency.toUpperCase(),
+                  style: GoogleFonts.inter(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w900,
+                    color: brandColor,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 14),
+
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: brandColor.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: brandColor.withValues(alpha: 0.15)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.check_circle_outline_rounded, size: 18, color: Colors.green),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'Now you can leave this page. We will call you on your phone as soon as complete.',
+                    style: GoogleFonts.inter(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: textThemeHeader,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 22),
+
+          // â”€â”€ Taller & Bigger Proportional Call Admin Button â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+          SizedBox(
+            width: double.infinity,
+            height: 54,
+            child: ElevatedButton.icon(
+              onPressed: _callSupport,
+              icon: const Icon(Icons.phone_in_talk_rounded, size: 20, color: Colors.white),
+              label: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  "CALL US (+251911373034)",
+                  style: GoogleFonts.inter(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 15,
+                    color: Colors.white,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: brandColor,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAwaitingVerificationCard() {
+    final fromLang = _job['from_lang'] ?? '';
+    final toLang = _job['to_lang'] ?? '';
+    final pages = _job['page_count'];
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: cardTheme,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: brandColor.withValues(alpha: 0.3),
+          width: 1.5,
         ),
-      ],
+        boxShadow: [
+          BoxShadow(
+            color: brandColor.withValues(alpha: 0.10),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // â”€â”€ Clean Header â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+          Text(
+            'Payment Verification Underway',
+            style: GoogleFonts.inter(
+              fontSize: 22,
+              fontWeight: FontWeight.w900,
+              color: textThemeHeader,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            '$fromLang -> $toLang ${pages != null ? ' • $pages pages' : ''}',
+            style: GoogleFonts.inter(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: brandColor,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+
+          const SizedBox(height: 18),
+          Divider(height: 1, color: isDark ? Colors.white12 : Colors.grey.shade200),
+          const SizedBox(height: 18),
+
+          // â”€â”€ Status Info â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Row(
+                  children: [
+                    const Icon(Icons.verified_user_outlined, color: brandColor, size: 20),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        'Confirming Receipt',
+                        style: GoogleFonts.inter(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w800,
+                          color: textThemeHeader,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: brandColor.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  'IN REVIEW',
+                  style: GoogleFonts.inter(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w900,
+                    color: brandColor,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 14),
+
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: brandColor.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: brandColor.withValues(alpha: 0.15)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.check_circle_outline_rounded, size: 18, color: Colors.orange),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'Now you can leave this page. Verification takes ~15-30 mins during business hours.',
+                    style: GoogleFonts.inter(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: textThemeHeader,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 22),
+
+          // â”€â”€ Call Admin Button â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+          SizedBox(
+            width: double.infinity,
+            height: 54,
+            child: ElevatedButton.icon(
+              onPressed: _callSupport,
+              icon: const Icon(Icons.phone_in_talk_rounded, size: 20, color: Colors.white),
+              label: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  "CALL US (+251911373034)",
+                  style: GoogleFonts.inter(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 15,
+                    color: Colors.white,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: brandColor,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
 
 
   Widget _buildPriceBreakdown() {
-    final num price = _job['price'] ?? 0;
-    final num urgencyFee = _job['urgency_fee'] ?? 0;
-    final num subtotal = price + urgencyFee;
-    final num serviceCharge = subtotal * 0.15;
-    final num total = subtotal + serviceCharge;
+    final num totalPrice = (double.tryParse((_job['price'] ?? 0).toString()) ?? 0.0);
+    final bool isMedical = _job['is_medical'] == true;
+    final String urgencyLabel = _job['urgency'] ?? 'Normal';
 
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white, borderRadius: BorderRadius.circular(16)),
       child: Column(
         children: [
-          _priceRow("Translation Fee", "${price.toStringAsFixed(2)} ETB"),
-          if (urgencyFee > 0)
-            _priceRow("Urgency Fee (${_job['urgency']})", "${urgencyFee.toStringAsFixed(2)} ETB"),
-          _priceRow("Service Charge (15%)", "${serviceCharge.toStringAsFixed(2)} ETB"),
+          _priceRow("Document Type", isMedical ? "Medical Document ðŸ¥" : "General Document ðŸ“„"),
+          _priceRow("Service Urgency", "$urgencyLabel (Prioritized)"),
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 8),
             child: Divider(height: 1),
           ),
-          _priceRow("Total Amount", "${total.toStringAsFixed(2)} ETB", isBold: true),
+          _priceRow("Total Amount (incl. 20% fee)", "${totalPrice.toStringAsFixed(2)} ETB", isBold: true),
         ],
       ),
     );
@@ -988,7 +1319,6 @@ class _LiveOrderTrackerScreenState extends State<LiveOrderTrackerScreen> {
   }
 
   Widget _buildPaymentForm({bool isResubmission = false}) {
-    const String merchantPhone = "+251911373034";
     const String merchantName = "Eyuel Shimelis";
 
     return Column(
@@ -996,60 +1326,115 @@ class _LiveOrderTrackerScreenState extends State<LiveOrderTrackerScreen> {
       children: [
         _buildSectionLabel("PAYMENT DESTINATION"),
         const SizedBox(height: 12),
-        // --- PAY TO CARD ---
+        // --- PAY TO CARDS ---
         Container(
           width: double.infinity,
-          padding: const EdgeInsets.all(18),
+          padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [brandColor.withValues(alpha: 0.9), brandColor.withValues(alpha: 0.6)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
+            color: const Color(0xFFF8F9FA),
             borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: Colors.grey.shade200),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
-                  const Icon(Icons.account_balance_wallet_rounded, color: Colors.white70, size: 14),
+                  const Icon(Icons.phone_android_rounded, color: Colors.black54, size: 14),
                   const SizedBox(width: 6),
-                  Text("PAY VIA TELEBIRR / CBE",
-                      style: const TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.w800, letterSpacing: 1.2)),
+                  const Text("TELEBIRR",
+                      style: TextStyle(color: Colors.black54, fontSize: 10, fontWeight: FontWeight.w800, letterSpacing: 1.2)),
                 ],
               ),
               const SizedBox(height: 10),
-              Text(merchantName,
-                  style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w700)),
+              const Text(merchantName,
+                  style: TextStyle(color: Colors.black87, fontSize: 14, fontWeight: FontWeight.w700)),
               const SizedBox(height: 4),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Expanded(
-                    child: Text(merchantPhone,
+                    child: Text('0911373034',
                         style: GoogleFonts.robotoMono(
-                            color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900, letterSpacing: 1.2)),
+                            color: Colors.black87, fontSize: 18, fontWeight: FontWeight.w900, letterSpacing: 1.2)),
                   ),
-                  const SizedBox(width: 8),
                   GestureDetector(
                     onTap: () {
-                      Clipboard.setData(const ClipboardData(text: merchantPhone));
-                      _showSnack("📋 Number copied to clipboard!");
+                      Clipboard.setData(const ClipboardData(text: '0911373034'));
+                      _showSnack("Telebirr number copied!");
                     },
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.2),
+                        color: brandColor.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: Colors.white30),
+                        border: Border.all(color: brandColor.withValues(alpha: 0.3)),
                       ),
                       child: const Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.copy_rounded, color: Colors.white, size: 12),
+                          Icon(Icons.copy_rounded, color: brandColor, size: 12),
                           SizedBox(width: 4),
-                          Text("COPY", style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w800)),
+                          Text("COPY", style: TextStyle(color: brandColor, fontSize: 10, fontWeight: FontWeight.w800)),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF8F9FA),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: Colors.grey.shade200),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.account_balance_rounded, color: Colors.black54, size: 14),
+                  const SizedBox(width: 6),
+                  const Text("CBE (COMMERCIAL BANK OF ETHIOPIA)",
+                      style: TextStyle(color: Colors.black54, fontSize: 10, fontWeight: FontWeight.w800, letterSpacing: 1.2)),
+                ],
+              ),
+              const SizedBox(height: 10),
+              const Text(merchantName,
+                  style: TextStyle(color: Colors.black87, fontSize: 14, fontWeight: FontWeight.w700)),
+              const SizedBox(height: 4),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text('1000416227838',
+                        style: GoogleFonts.robotoMono(
+                            color: Colors.black87, fontSize: 18, fontWeight: FontWeight.w900, letterSpacing: 1.2)),
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      Clipboard.setData(const ClipboardData(text: '1000416227838'));
+                      _showSnack("ðŸ“‹ CBE number copied!");
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: brandColor.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: brandColor.withValues(alpha: 0.3)),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.copy_rounded, color: brandColor, size: 12),
+                          SizedBox(width: 4),
+                          Text("COPY", style: TextStyle(color: brandColor, fontSize: 10, fontWeight: FontWeight.w800)),
                         ],
                       ),
                     ),
@@ -1261,15 +1646,14 @@ class _LiveOrderTrackerScreenState extends State<LiveOrderTrackerScreen> {
         _buildSectionLabel("ASSIGNMENT DETAILS"),
         const SizedBox(height: 16),
         _summaryRow("Job ID", _job['id'].toString().substring(0, 8).toUpperCase()),
-        _summaryRow("Languages", "${_job['from_lang']} → ${_job['to_lang']}"),
-        _summaryRow("Base Price", "${(_job['price'] ?? 0).toStringAsFixed(2)} ETB"),
+        _summaryRow("Languages", "${_job['from_lang']} -> ${_job['to_lang']}"),
         _summaryRow(
           "Urgency / Delivery", 
           ((_job['delivery_time'] ?? '').toString().isNotEmpty) 
               ? _job['delivery_time'].toString() 
-              : "${_job['urgency'] ?? 'Normal'} (+${(_job['urgency_fee'] ?? 0).toStringAsFixed(2)} ETB)"
+              : "${_job['urgency'] ?? 'Normal'}"
         ),
-        _summaryRow("Total (with Tax)", "${(((_job['price'] ?? 0) + (_job['urgency_fee'] ?? 0)) * 1.15).toStringAsFixed(2)} ETB"),
+        _summaryRow("Total Price", "${(double.tryParse((_job['price'] ?? 0).toString()) ?? 0.0).toStringAsFixed(2)} ETB"),
       ],
     );
   }
@@ -1295,3 +1679,5 @@ class _LiveOrderTrackerScreenState extends State<LiveOrderTrackerScreen> {
     );
   }
 }
+
+

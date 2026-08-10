@@ -23,14 +23,14 @@ class _HowItWorksSheet extends StatefulWidget {
 
 class _HowItWorksSheetState extends State<_HowItWorksSheet>
     with SingleTickerProviderStateMixin {
-  static const _brandBrown = Color(0xFF895129);
+  static const _brandBrown = Color(0xFF8D5C3C);
 
   static const _steps = [
     _Step(
       img: 'assets/sss/Apple iPhone 16 Pro Max Screenshot 2.png',
       title: 'Browse Expert Translators',
       desc:
-          'Open the app and explore our marketplace of verified, top-rated professional translators. Filter by category — Legal, Medical, Business, and more.',
+          'Open the app and explore our marketplace of verified, top-rated professional translators. Filter by category: Legal, Medical, Business, and more.',
       icon: Icons.search_rounded,
     ),
     _Step(
@@ -49,7 +49,7 @@ class _HowItWorksSheetState extends State<_HowItWorksSheet>
     ),
     _Step(
       img: 'assets/sss/Screenshot 2026-06-11 131431.png',
-      title: 'Review the Price — Decide Wisely',
+      title: 'Review the Price - Decide Wisely',
       desc:
           'You will receive the official quote showing the translation fee and service charge. Accept to proceed or reject. Note: this decision cannot be changed.',
       icon: Icons.request_quote_outlined,
@@ -65,7 +65,7 @@ class _HowItWorksSheetState extends State<_HowItWorksSheet>
       img: 'assets/sss/Screenshot 2026-06-11 131402.png',
       title: 'Wait for Payment Verification',
       desc:
-          'Our finance team confirms your payment receipt. Verification typically takes 15–30 minutes during business hours.',
+          'Our finance team confirms your payment receipt. Verification typically takes 15-30 minutes during business hours.',
       icon: Icons.verified_outlined,
     ),
     _Step(
@@ -134,7 +134,7 @@ class _HowItWorksSheetState extends State<_HowItWorksSheet>
         ),
         child: Column(
           children: [
-            // ── handle ──
+            // â”€â”€ handle â”€â”€
             const SizedBox(height: 12),
             Container(
               width: 40,
@@ -146,7 +146,7 @@ class _HowItWorksSheetState extends State<_HowItWorksSheet>
             ),
             const SizedBox(height: 16),
 
-            // ── Header ──
+            // â”€â”€ Header â”€â”€
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Row(
@@ -195,7 +195,7 @@ class _HowItWorksSheetState extends State<_HowItWorksSheet>
 
             const SizedBox(height: 20),
 
-            // ── Main content (scrollable) ──
+            // â”€â”€ Main content (scrollable) â”€â”€
             Expanded(
               child: SingleChildScrollView(
                 controller: scrollCtrl,
@@ -203,7 +203,7 @@ class _HowItWorksSheetState extends State<_HowItWorksSheet>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // ── Screenshot (tappable) ──
+                    // â”€â”€ Screenshot (tappable) â”€â”€
                     GestureDetector(
                       onTap: _next,
                       child: AnimatedOpacity(
@@ -253,7 +253,7 @@ class _HowItWorksSheetState extends State<_HowItWorksSheet>
                                               BorderRadius.circular(20),
                                         ),
                                         child: const Text(
-                                          'Tap to continue →',
+                                          'Tap to continue ->',
                                           style: TextStyle(
                                             color: Colors.white,
                                             fontSize: 12,
@@ -272,7 +272,7 @@ class _HowItWorksSheetState extends State<_HowItWorksSheet>
 
                     const SizedBox(height: 24),
 
-                    // ── Step info card ──
+                    // â”€â”€ Step info card â”€â”€
                     AnimatedOpacity(
                       opacity: _textVisible ? 1.0 : 0.0,
                       duration: const Duration(milliseconds: 220),
@@ -337,7 +337,7 @@ class _HowItWorksSheetState extends State<_HowItWorksSheet>
 
                     const SizedBox(height: 24),
 
-                    // ── Dot indicators ──
+                    // â”€â”€ Dot indicators â”€â”€
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: List.generate(_steps.length, (i) {
@@ -362,7 +362,7 @@ class _HowItWorksSheetState extends State<_HowItWorksSheet>
 
                     const SizedBox(height: 24),
 
-                    // ── Prev / Next buttons ──
+                    // â”€â”€ Prev / Next buttons â”€â”€
                     Row(
                       children: [
                         // Prev
@@ -401,7 +401,7 @@ class _HowItWorksSheetState extends State<_HowItWorksSheet>
                                   : Icons.arrow_forward_rounded,
                               size: 18,
                             ),
-                            label: Text(isLast ? 'Done ✓' : 'Next'),
+                            label: Text(isLast ? 'Done' : 'Next'),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: _brandBrown,
                               foregroundColor: Colors.white,
@@ -440,3 +440,5 @@ class _Step {
     required this.icon,
   });
 }
+
+

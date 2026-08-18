@@ -343,8 +343,8 @@ class _LoginScreenState extends State<LoginScreen>
             "Ethiopia's Premier Translation Marketplace",
             style: TextStyle(
               fontSize: 11,
-              color: Colors.white.withValues(alpha: 0.6),
-              fontWeight: FontWeight.w500,
+              color: _brown,
+              fontWeight: FontWeight.w600,
               letterSpacing: 0.3,
             ),
           ),

@@ -133,20 +133,7 @@ class MarketplaceTab extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(height: 4),
-                SizedBox(
-                  width: 56,
-                  child: Text(
-                    "TIRGUMSRA",
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.inter(
-                      fontSize: 8.5,
-                      fontWeight: FontWeight.w700,
-                      color: DS.textPrimary,
-                      letterSpacing: 0.6,
-                    ),
-                  ),
-                ),
+
               ],
             ),
           ),
@@ -254,11 +241,11 @@ class MarketplaceTab extends StatelessWidget {
 
   Widget _buildCategoryRibbon() {
     final categories = [
-      {"label": "All", "emoji": "✨"},
-      {"label": "Legal", "emoji": "⚖️"},
-      {"label": "Medical", "emoji": "🏥"},
-      {"label": "Business", "emoji": "💼"},
-      {"label": "Books", "emoji": "📚"},
+      {"label": "All", "icon": Icons.auto_awesome},
+      {"label": "Legal", "icon": Icons.balance},
+      {"label": "Medical", "icon": Icons.local_hospital},
+      {"label": "Business", "icon": Icons.business_center},
+      {"label": "Books", "icon": Icons.menu_book},
     ];
     return SizedBox(
       height: 40,
@@ -270,7 +257,7 @@ class MarketplaceTab extends StatelessWidget {
           final cat = categories[i];
           final bool isSelected = selectedCategory == cat['label'];
           return GestureDetector(
-            onTap: () => onCategoryChanged(cat['label']!),
+            onTap: () => onCategoryChanged(cat['label'] as String),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
               margin: const EdgeInsets.only(right: 10),
@@ -283,13 +270,24 @@ class MarketplaceTab extends StatelessWidget {
                 ),
               ),
               child: Center(
-                child: Text(
-                  "${cat['emoji']} ${cat['label']}",
-                  style: GoogleFonts.inter(
-                    fontSize: 13,
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                    color: isSelected ? Colors.white : DS.textSecondary,
-                  ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      cat['icon'] as IconData,
+                      size: 16,
+                      color: isSelected ? Colors.white : DS.textSecondary,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      cat['label'] as String,
+                      style: GoogleFonts.inter(
+                        fontSize: 13,
+                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                        color: isSelected ? Colors.white : DS.textSecondary,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),

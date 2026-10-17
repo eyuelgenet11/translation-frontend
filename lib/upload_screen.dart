@@ -14,6 +14,7 @@ import 'services/api_service.dart';
 import 'services/notification_sound_service.dart';
 import 'payment_screen.dart';
 import 'repositories/job_repository.dart';
+import 'services/api_client.dart';
 import 'l10n/app_localizations.dart';
 
 class UploadScreen extends StatefulWidget {
@@ -114,6 +115,7 @@ class _UploadScreenState extends State<UploadScreen> {
   @override
   void initState() {
     super.initState();
+    ApiClient.warmUpBackend();
     _fetchLanguages();
   }
 

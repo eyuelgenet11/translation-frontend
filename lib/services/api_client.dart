@@ -11,6 +11,18 @@ import 'api_config.dart';
 class ApiClient {
   static final http.Client _httpClient = http.Client();
 
+  /// Silent background warm-up ping to wake up sleeping Render backend
+  static void warmUpBackend() {
+    try {
+      final uri = _buildUri('/health');
+      _httpClient.get(uri).then((res) {
+        // Render instance is awake and warm
+      }).catchError((_) {
+        // Silently ignore ping errors
+      });
+    } catch (_) {}
+  }
+
   /// Gets current Supabase JWT token, or null if unauthenticated
   static String? get _authToken {
     try {

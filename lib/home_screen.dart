@@ -91,6 +91,7 @@ class _MarketplaceHomeScreenState extends State<MarketplaceHomeScreen> {
   @override
   void initState() {
     super.initState();
+    ApiClient.warmUpBackend();
     _currentIndex = widget.initialIndex;
     _fetchUserProfile();
     _subscribeToProfile();

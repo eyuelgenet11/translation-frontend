@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -18,6 +18,7 @@ import 'services/locale_controller.dart';
 import 'services/theme_controller.dart';
 import 'services/font_scale_controller.dart';
 import 'services/push_notification_service.dart';
+import 'services/app_config_service.dart';
 import 'screens/splash_screen.dart';
 import 'login_screen.dart';
 import 'screens/admin_otp_screen.dart';
@@ -44,11 +45,11 @@ void main() async {
     // 1. Initialize Firebase
     await Firebase.initializeApp();
 
-    // 2. Initialize Supabase
+    // 2. Initialize Supabase dynamically from Render Backend (Zero hardcoded keys)
+    final supabaseConfig = await AppConfigService.getSupabaseConfig();
     await Supabase.initialize(
-      url: 'https://pbzptliuiwbifbrizkoi.supabase.co',
-      anonKey:
-          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBienB0bGl1aXdiaWZicml6a29pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2MTk4NTcsImV4cCI6MjA4NTE5NTg1N30.vK_FRa4P-kbdc7WtZ78RzLe7KFbZGlRs2bUyC9vy-ik',
+      url: supabaseConfig.url,
+      anonKey: supabaseConfig.anonKey,
     );
 
     // 3. Initialize Push Notification Service

@@ -18,16 +18,9 @@ class AppConfigService {
   static const String _prefUrlKey = 'cached_supabase_url';
   static const String _prefAnonKey = 'cached_supabase_anon_key';
 
-  // Environment-based or secure fallback values
-  static const String _defaultUrl = String.fromEnvironment(
-    'SUPABASE_URL',
-    defaultValue: 'https://pbzptliuiwbifbrizkoi.supabase.co',
-  );
-  static const String _defaultAnonKey = String.fromEnvironment(
-    'SUPABASE_ANON_KEY',
-    defaultValue:
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBienB0bGl1aXdiaWZicml6a29pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2MTk4NTcsImV4cCI6MjA4NTE5NTg1N30.vK_FRa4P-kbdc7WtZ78RzLe7KFbZGlRs2bUyC9vy-ik',
-  );
+  // Optional compile-time overrides via --dart-define (defaults to empty: fetched dynamically from backend)
+  static const String _defaultUrl = String.fromEnvironment('SUPABASE_URL', defaultValue: '');
+  static const String _defaultAnonKey = String.fromEnvironment('SUPABASE_ANON_KEY', defaultValue: '');
 
   /// Fetches Supabase client config dynamically from Render backend.
   /// Automatically caches locally and falls back gracefully when offline.

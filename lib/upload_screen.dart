@@ -462,6 +462,7 @@ class _UploadScreenState extends State<UploadScreen> {
 
         if (uploadedUrls.isNotEmpty) {
           final primaryUrl = uploadedUrls.first;
+          final allUrlsJoined = uploadedUrls.join(',');
           debugPrint("[UploadScreen] Uploaded ${uploadedUrls.length} file(s) via Signed URL: $primaryUrl");
 
           final rawTranslatorId = widget.company['id']?.toString();
@@ -474,7 +475,7 @@ class _UploadScreenState extends State<UploadScreen> {
                   : null;
 
           final jobPayload = {
-            'fileUrl': primaryUrl,
+            'fileUrl': allUrlsJoined,
             'fileUrls': uploadedUrls, // Pass full list of all file URLs!
             'fromLang': fromLang,
             'toLang': toLang,
@@ -523,7 +524,7 @@ class _UploadScreenState extends State<UploadScreen> {
           }
         }
 
-        final String fileUrl = fallbackUrls.isNotEmpty ? fallbackUrls.first : '';
+        final String fileUrl = fallbackUrls.isNotEmpty ? fallbackUrls.join(',') : '';
 
         bool isAfarOrSomali(String? lang) {
           if (lang == null) return false;
@@ -1132,10 +1133,15 @@ class _UploadScreenState extends State<UploadScreen> {
     if (images.isEmpty) return;
 
     setState(() {
-      _pickedImages = images;
+      if (source == ImageSource.camera && _pickedImages.isNotEmpty) {
+        // Append additional camera shots
+        _pickedImages = [..._pickedImages, ...images];
+      } else {
+        _pickedImages = images;
+      }
       _pickedFiles = [];
       // Each image counts as 1 page
-      _autoPageCount = images.length;
+      _autoPageCount = _pickedImages.length;
     });
   }
 
@@ -1197,31 +1203,72 @@ class _UploadScreenState extends State<UploadScreen> {
                           color: textThemeHeader),
                     ),
                     const SizedBox(height: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 14, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: brandBrown.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                            color: brandBrown.withValues(alpha: 0.3)),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Icons.description_rounded,
-                              size: 13, color: brandBrown),
-                          const SizedBox(width: 6),
-                          Text(
-                            '$_autoPageCount page${_autoPageCount > 1 ? 's' : ''}',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w900,
-                              fontSize: 12,
-                              color: brandBrown,
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 14, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: brandBrown.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                                color: brandBrown.withValues(alpha: 0.3)),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.description_rounded,
+                                  size: 13, color: brandBrown),
+                              const SizedBox(width: 6),
+                              Text(
+                                '$_autoPageCount page${_autoPageCount > 1 ? 's' : ''}',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 12,
+                                  color: brandBrown,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        InkWell(
+                          onTap: () {
+                            setState(() {
+                              _pickedFiles = [];
+                              _pickedImages = [];
+                              _autoPageCount = 1;
+                            });
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: Colors.red.withValues(alpha: 0.08),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                  color: Colors.red.withValues(alpha: 0.2)),
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.close_rounded,
+                                    size: 13, color: Colors.red),
+                                SizedBox(width: 4),
+                                Text(
+                                  'Clear',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 11,
+                                    color: Colors.red,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ],
                 ),

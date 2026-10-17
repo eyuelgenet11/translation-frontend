@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import '/services/api_config.dart';
@@ -416,67 +417,28 @@ class ApiService {
   }
 
   // -------------------------------
-  // DIRECT TELEGRAM BOT NOTIFICATIONS
-  // Direct HTTP call to Telegram Bot API
+  // TELEGRAM NOTIFICATIONS (Proxied securely via Node.js Backend)
+  // No bot tokens or chat IDs exposed in client code!
   // -------------------------------
   static Future<void> sendTelegramDirect({
     required String text,
     String? documentUrl,
     List<List<Map<String, String>>>? inlineKeyboard,
   }) async {
-    const String botToken = '8701206360:AAGAeK3UDViBskQlWCJlXx8ciloSNqUwcas';
-    const String chatId = '819178764';
-
     try {
-      final Map<String, dynamic> body = {
-        'chat_id': chatId,
+      final body = <String, dynamic>{
         'text': text,
-        'parse_mode': 'HTML',
-        'disable_web_page_preview': false,
+        if (documentUrl != null && documentUrl.isNotEmpty) 'documentUrl': documentUrl,
+        if (inlineKeyboard != null) 'inlineKeyboard': inlineKeyboard,
       };
 
-      if (inlineKeyboard != null) {
-        body['reply_markup'] = {
-          'inline_keyboard': inlineKeyboard,
-        };
-      }
-
-      final response = await http.post(
-        Uri.parse('https://api.telegram.org/bot$botToken/sendMessage'),
+      await http.post(
+        Uri.parse("${ApiConfig.baseUrl}/api/telegram/send"),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(body),
       );
-
-      final resData = jsonDecode(response.body);
-      if (resData['ok'] != true && inlineKeyboard != null) {
-        print('HTML send with buttons failed: ${resData['description']}. Retrying plain text...');
-        final plainBody = <String, dynamic>{
-          'chat_id': chatId,
-          'text': text.replaceAll(RegExp(r'<[^>]*>'), ''),
-          'reply_markup': {
-            'inline_keyboard': inlineKeyboard,
-          },
-        };
-        await http.post(
-          Uri.parse('https://api.telegram.org/bot$botToken/sendMessage'),
-          headers: {'Content-Type': 'application/json'},
-          body: jsonEncode(plainBody),
-        );
-      }
-
-      if (documentUrl != null && documentUrl.isNotEmpty) {
-        await http.post(
-          Uri.parse('https://api.telegram.org/bot$botToken/sendDocument'),
-          headers: {'Content-Type': 'application/json'},
-          body: jsonEncode({
-            'chat_id': chatId,
-            'document': documentUrl,
-            'caption': 'ðŸ“Ž Customer File Attachment',
-          }),
-        );
-      }
     } catch (e) {
-      print('Direct Telegram Bot Notice: $e');
+      debugPrint('Telegram Proxy Notice: $e');
     }
   }
 

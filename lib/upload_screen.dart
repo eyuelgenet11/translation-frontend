@@ -394,35 +394,43 @@ class _UploadScreenState extends State<UploadScreen> {
         return;
       }
 
-      // Determine file name and bytes - support both documents and images
-      String filename;
-      List<int> allBytes = [];
+      // Collect each file / image separately (preserving all files)
+      final List<Map<String, dynamic>> rawFiles = [];
 
       if (_pickedFiles.isNotEmpty) {
-        // Document path
-        final PlatformFile firstFile = _pickedFiles.first;
-        filename = firstFile.name;
         for (var f in _pickedFiles) {
-          if (f.bytes != null) {
-            allBytes.addAll(f.bytes!);
-          } else if (f.path != null) {
-            final raw = await io.File(f.path!).readAsBytes();
-            allBytes.addAll(raw);
+          List<int>? bytes = f.bytes;
+          if ((bytes == null || bytes.isEmpty) && f.path != null) {
+            final fileIo = io.File(f.path!);
+            if (await fileIo.exists()) {
+              bytes = await fileIo.readAsBytes();
+            }
+          }
+          if (bytes != null && bytes.isNotEmpty) {
+            final isPdf = f.name.toLowerCase().endsWith('.pdf');
+            rawFiles.add({
+              'filename': f.name,
+              'bytes': bytes,
+              'contentType': isPdf ? 'application/pdf' : 'image/jpeg',
+            });
           }
         }
       } else {
-        // Image path Ã¢â‚¬â€ use first image name & bytes
-        final XFile firstImage = _pickedImages.first;
-        filename = firstImage.name.isNotEmpty
-            ? firstImage.name
-            : 'image_${DateTime.now().millisecondsSinceEpoch}.jpg';
-        for (var img in _pickedImages) {
-          final raw = await img.readAsBytes();
-          allBytes.addAll(raw);
+        for (int i = 0; i < _pickedImages.length; i++) {
+          final img = _pickedImages[i];
+          final bytes = await img.readAsBytes();
+          final String name = img.name.isNotEmpty
+              ? img.name
+              : 'image_${DateTime.now().millisecondsSinceEpoch}_${i + 1}.jpg';
+          rawFiles.add({
+            'filename': name,
+            'bytes': bytes,
+            'contentType': 'image/jpeg',
+          });
         }
       }
 
-      if (allBytes.isEmpty) {
+      if (rawFiles.isEmpty) {
         setState(() => processing = false);
         _showSnack(
             "Unable to read file content. Please re-select the document or image.");
@@ -435,53 +443,56 @@ class _UploadScreenState extends State<UploadScreen> {
 
       Map<String, dynamic> result = {'success': false};
 
-      final contentType = filename.toLowerCase().endsWith('.pdf')
-          ? 'application/pdf'
-          : 'image/jpeg';
-
-      // ── STEP 1: Attempt Signed URL upload via Node.js Backend ──
+      // ── STEP 1: Attempt Signed URL upload via Node.js Backend for ALL files ──
       try {
-        final signedTicket = await JobRepository.getSignedUploadUrl(filename);
-        if (signedTicket != null && signedTicket['signedUrl'] != null) {
-          final isUploaded = await JobRepository.uploadToSignedUrl(
-            signedUrl: signedTicket['signedUrl'],
-            bytes: allBytes,
-            contentType: contentType,
-          );
-
-          if (isUploaded) {
-            final uploadedFileUrl = signedTicket['fileUrl'];
-            debugPrint("[UploadScreen] Uploaded directly via Signed URL to: $uploadedFileUrl");
-
-            final rawTranslatorId = widget.company['id']?.toString();
-            final uuidRegex = RegExp(
-                r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$',
-                caseSensitive: false);
-            final String? validTranslatorId =
-                (rawTranslatorId != null && uuidRegex.hasMatch(rawTranslatorId))
-                    ? rawTranslatorId
-                    : null;
-
-            final jobPayload = {
-              'fileUrl': uploadedFileUrl,
-              'fromLang': fromLang,
-              'toLang': toLang,
-              'pageCount': _autoPageCount,
-              'urgency': urgency,
-              'isHandwritten': isHandwritten,
-              'isMedical': isMedical,
-              'clientPhone': phone,
-              'deliveryType': deliveryType,
-              'merchantName': merchantNameStr,
-            };
-            if (validTranslatorId != null) {
-              jobPayload['translatorId'] = validTranslatorId;
+        final List<String> uploadedUrls = [];
+        for (final item in rawFiles) {
+          final signedTicket = await JobRepository.getSignedUploadUrl(item['filename'] as String);
+          if (signedTicket != null && signedTicket['signedUrl'] != null) {
+            final isUploaded = await JobRepository.uploadToSignedUrl(
+              signedUrl: signedTicket['signedUrl'],
+              bytes: item['bytes'] as List<int>,
+              contentType: item['contentType'] as String,
+            );
+            if (isUploaded && signedTicket['fileUrl'] != null) {
+              uploadedUrls.add(signedTicket['fileUrl'] as String);
             }
+          }
+        }
 
-            final createdJob = await JobRepository.createJob(jobPayload);
-            if (createdJob != null) {
-              result = {'success': true, 'data': createdJob};
-            }
+        if (uploadedUrls.isNotEmpty) {
+          final primaryUrl = uploadedUrls.first;
+          debugPrint("[UploadScreen] Uploaded ${uploadedUrls.length} file(s) via Signed URL: $primaryUrl");
+
+          final rawTranslatorId = widget.company['id']?.toString();
+          final uuidRegex = RegExp(
+              r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$',
+              caseSensitive: false);
+          final String? validTranslatorId =
+              (rawTranslatorId != null && uuidRegex.hasMatch(rawTranslatorId))
+                  ? rawTranslatorId
+                  : null;
+
+          final jobPayload = {
+            'fileUrl': primaryUrl,
+            'fileUrls': uploadedUrls, // Pass full list of all file URLs!
+            'fromLang': fromLang,
+            'toLang': toLang,
+            'pageCount': _autoPageCount,
+            'urgency': urgency,
+            'isHandwritten': isHandwritten,
+            'isMedical': isMedical,
+            'clientPhone': phone,
+            'deliveryType': deliveryType,
+            'merchantName': merchantNameStr,
+          };
+          if (validTranslatorId != null) {
+            jobPayload['translatorId'] = validTranslatorId;
+          }
+
+          final createdJob = await JobRepository.createJob(jobPayload);
+          if (createdJob != null) {
+            result = {'success': true, 'data': createdJob};
           }
         }
       } catch (backendErr) {
@@ -493,26 +504,26 @@ class _UploadScreenState extends State<UploadScreen> {
         debugPrint(
             "Backend unreachable. Using direct Supabase fallback...");
 
-        // Use same path format as backend: jobs/{userId}/{timestamp}_{filename}
-        final String storagePath =
-            'jobs/${user.id}/${DateTime.now().millisecondsSinceEpoch}_$filename';
-
-        try {
-          await supabase.storage.from('translations').uploadBinary(
-                storagePath,
-                Uint8List.fromList(allBytes),
-                fileOptions: FileOptions(
-                  contentType: filename.toLowerCase().endsWith('.pdf')
-                      ? 'application/pdf'
-                      : 'image/jpeg',
-                ),
-              );
-        } catch (storageErr) {
-          debugPrint("Storage upload note: $storageErr");
+        final List<String> fallbackUrls = [];
+        for (final item in rawFiles) {
+          final String storagePath =
+              'jobs/${user.id}/${DateTime.now().millisecondsSinceEpoch}_${item['filename']}';
+          try {
+            await supabase.storage.from('translations').uploadBinary(
+                  storagePath,
+                  Uint8List.fromList(item['bytes'] as List<int>),
+                  fileOptions: FileOptions(
+                    contentType: item['contentType'] as String,
+                  ),
+                );
+            final String url = supabase.storage.from('translations').getPublicUrl(storagePath);
+            fallbackUrls.add(url);
+          } catch (storageErr) {
+            debugPrint("Storage upload note: $storageErr");
+          }
         }
 
-        final String fileUrl =
-            supabase.storage.from('translations').getPublicUrl(storagePath);
+        final String fileUrl = fallbackUrls.isNotEmpty ? fallbackUrls.first : '';
 
         bool isAfarOrSomali(String? lang) {
           if (lang == null) return false;
@@ -593,7 +604,7 @@ class _UploadScreenState extends State<UploadScreen> {
         final insertedJob =
             await supabase.from('jobs').insert(jobPayload).select().single();
 
-        // Send Telegram Notification to Admin containing Merchant Name & File URL
+        // Send Telegram Notification to Admin containing Merchant Name & File URLs
         ApiService.notifyTelegram(
           jobId: insertedJob['id']?.toString() ?? '',
           merchantName: merchantNameStr,
@@ -604,7 +615,8 @@ class _UploadScreenState extends State<UploadScreen> {
           isHandwritten: isHandwritten,
           customerPhone: phone,
           fileUrl: fileUrl,
-          fileName: filename,
+          fileUrls: fallbackUrls,
+          fileName: rawFiles.map((f) => f['filename']).join(', '),
         );
 
         // Direct Telegram Bot HTTP call backup
@@ -616,6 +628,7 @@ class _UploadScreenState extends State<UploadScreen> {
               'Delivery: $deliveryType\n'
               'Price: ${totalPrice.toStringAsFixed(2)} ETB',
           documentUrl: fileUrl,
+          documentUrls: fallbackUrls,
         );
 
         result = {'success': true, 'data': insertedJob};

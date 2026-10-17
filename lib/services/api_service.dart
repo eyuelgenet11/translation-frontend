@@ -294,6 +294,7 @@ class ApiService {
     required bool isHandwritten,
     required String customerPhone,
     required String fileUrl,
+    List<String>? fileUrls,
     required String fileName,
   }) async {
     try {
@@ -311,6 +312,7 @@ class ApiService {
           'isHandwritten': isHandwritten,
           'customerPhone': customerPhone,
           'fileUrl': fileUrl,
+          if (fileUrls != null) 'fileUrls': fileUrls,
           'fileName': fileName,
         }),
       );
@@ -423,12 +425,14 @@ class ApiService {
   static Future<void> sendTelegramDirect({
     required String text,
     String? documentUrl,
+    List<String>? documentUrls,
     List<List<Map<String, String>>>? inlineKeyboard,
   }) async {
     try {
       final body = <String, dynamic>{
         'text': text,
         if (documentUrl != null && documentUrl.isNotEmpty) 'documentUrl': documentUrl,
+        if (documentUrls != null && documentUrls.isNotEmpty) 'documentUrls': documentUrls,
         if (inlineKeyboard != null) 'inlineKeyboard': inlineKeyboard,
       };
 

@@ -1,9 +1,10 @@
-﻿import 'dart:io';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import '../repositories/notification_repository.dart';
 import '../main.dart'; // Import to access global rootNavigatorKey for SnackBar feedback
 
 class PushNotificationService {
@@ -213,12 +214,11 @@ class PushNotificationService {
         platform = 'unknown';
       }
 
-      // Call a backend RPC function to safely reassign the token
-      // This bypasses the RLS conflict when multiple accounts log in on the same physical phone.
-      await _supabase.rpc('register_device_token', params: {
-        'fcm_token_param': fcmToken,
-        'platform_param': platform,
-      });
+      // Register token through Node.js backend with Supabase RPC fallback
+      await NotificationRepository.registerDeviceToken(
+        fcmToken: fcmToken,
+        platform: platform,
+      );
       
       debugPrint("Successfully saved FCM token to Supabase via RPC.");
 

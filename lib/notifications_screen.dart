@@ -1,7 +1,7 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'widgets/empty_state.dart';
+import 'repositories/notification_repository.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -11,7 +11,6 @@ class NotificationsScreen extends StatefulWidget {
 }
 
 class _NotificationsScreenState extends State<NotificationsScreen> {
-  final _supabase = Supabase.instance.client;
   bool _loading = true;
   List<Map<String, dynamic>> _notifications = [];
 
@@ -23,32 +22,16 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   Future<void> _fetchNotifications() async {
     try {
-      final userId = _supabase.auth.currentUser?.id;
-      if (userId == null) {
-        if (mounted) setState(() => _loading = false);
-        return;
-      }
-
-      final res = await _supabase
-          .from('notifications')
-          .select()
-          .eq('user_id', userId)
-          .order('created_at', ascending: false);
-
+      final items = await NotificationRepository.fetchNotifications();
       if (mounted) {
         setState(() {
-          _notifications = List<Map<String, dynamic>>.from(res);
+          _notifications = items;
           _loading = false;
         });
       }
 
-      // Mark all as read
-      await _supabase
-          .from('notifications')
-          .update({'is_read': true})
-          .eq('user_id', userId)
-          .eq('is_read', false);
-          
+      // Mark all as read via repository
+      await NotificationRepository.markAllAsRead();
     } catch (e) {
       debugPrint("Error fetching notifications: $e");
       if (mounted) setState(() => _loading = false);

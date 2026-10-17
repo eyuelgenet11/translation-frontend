@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'package:flutter/foundation.dart'; // For kIsWeb
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -8,6 +8,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:file_picker/file_picker.dart';
+import 'repositories/job_repository.dart';
 
 class CustomerJobDetail extends StatefulWidget {
   final Map job;
@@ -852,25 +853,12 @@ class _CustomerJobDetailState extends State<CustomerJobDetail> {
     if (confirm != true) return;
 
     try {
-      await supabase.from('point_redemption_requests').insert({
-        'customer_id': user.id,
-        'points_amount': amount.toInt(),
-        'job_id': jobId,
-        'status': 'pending'
-      });
+      final success = await JobRepository.redeemPoints(
+        jobId: jobId,
+        amount: amount,
+      );
 
-      // Update job status correctly based on current state
-      final currentStatus = (currentJobData['status'] ?? '').toString().toLowerCase();
-      String nextStatus = 'awaiting verification'; // default for final payment
-      if (currentStatus == 'awaiting down payment') {
-        nextStatus = 'down payment verification';
-      }
-
-      await supabase.from('jobs').update({
-        'status': nextStatus
-      }).eq('id', jobId);
-
-      if (mounted) {
+      if (success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           content: Text("Points request sent to admin!"),
         ));

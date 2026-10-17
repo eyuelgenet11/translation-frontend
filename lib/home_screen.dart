@@ -32,6 +32,7 @@ import 'config/security_config.dart';
 import 'services/admin_auth_service.dart';
 import 'services/role_security_service.dart';
 import 'notifications_screen.dart' show NotificationsScreen;
+import 'services/api_client.dart';
 
 // Thin wrapper so the notification bell can push this route
 class NotificationsScreenWrapper extends StatelessWidget {
@@ -563,29 +564,36 @@ class _MarketplaceHomeScreenState extends State<MarketplaceHomeScreen> {
   Future<void> _fetchTranslators() async {
     setState(() => loading = true);
     try {
-      final profilesData =
-          await supabase.from('profiles').select().eq('role', 'translator');
-      debugPrint("FETCHED ALL TRANSLATORS COUNT: ${profilesData.length}");
-      
-      List<dynamic> ratingsData = [];
-      try {
-        ratingsData = await supabase.from('translator_ratings_view').select();
-        debugPrint("FETCHED RATINGS VIEW COUNT: ${ratingsData.length}");
-      } catch (e) {
-        debugPrint("FAILED TO FETCH RATINGS VIEW (Graceful fallback): $e");
+      List<dynamic> mergedData = [];
+
+      // 1. Try Node.js Backend on Render
+      final apiRes = await ApiClient.get('/api/companies');
+      if (apiRes.isSuccess && apiRes.data is List && (apiRes.data as List).isNotEmpty) {
+        mergedData = apiRes.data as List;
+        debugPrint("FETCHED TRANSLATORS VIA RENDER BACKEND: ${mergedData.length}");
+      } else {
+        // 2. Direct Supabase Fallback
+        debugPrint("FETCHING TRANSLATORS VIA SUPABASE DIRECT FALLBACK...");
+        final profilesData =
+            await supabase.from('profiles').select().eq('role', 'translator');
+        
+        List<dynamic> ratingsData = [];
+        try {
+          ratingsData = await supabase.from('translator_ratings_view').select();
+        } catch (_) {}
+        
+        mergedData = profilesData.map((profile) {
+          final ratingInfo = ratingsData.firstWhere(
+            (r) => r['translator_id'] == profile['id'],
+            orElse: () => {'average_rating': 5.0, 'review_count': 0},
+          );
+          return {
+            ...profile,
+            'avg_rating': ratingInfo['average_rating'],
+            'review_count': ratingInfo['review_count'],
+          };
+        }).toList();
       }
-      
-      final mergedData = profilesData.map((profile) {
-        final ratingInfo = ratingsData.firstWhere(
-          (r) => r['translator_id'] == profile['id'],
-          orElse: () => {'average_rating': 5.0, 'review_count': 0},
-        );
-        return {
-          ...profile,
-          'avg_rating': ratingInfo['average_rating'],
-          'review_count': ratingInfo['review_count'],
-        };
-      }).toList();
 
       // List of requested merchants with real Google ratings
       final List<Map<String, dynamic>> googleMerchants = [

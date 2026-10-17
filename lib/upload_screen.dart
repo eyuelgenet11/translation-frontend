@@ -13,6 +13,7 @@ import 'ds.dart';
 import 'services/api_service.dart';
 import 'services/notification_sound_service.dart';
 import 'payment_screen.dart';
+import 'repositories/job_repository.dart';
 import 'l10n/app_localizations.dart';
 
 class UploadScreen extends StatefulWidget {
@@ -430,31 +431,65 @@ class _UploadScreenState extends State<UploadScreen> {
           widget.company['full_name'] ??
           'General Marketplace';
 
-      Map<String, dynamic> result;
+      Map<String, dynamic> result = {'success': false};
+
+      final contentType = filename.toLowerCase().endsWith('.pdf')
+          ? 'application/pdf'
+          : 'image/jpeg';
+
+      // ── STEP 1: Attempt Signed URL upload via Node.js Backend ──
       try {
-        result = await ApiService.submitJobWithNotify(
-          fileBytes: Uint8List.fromList(allBytes),
-          filename: filename,
-          userId: user.id,
-          fromLang: fromLang!,
-          toLang: toLang!,
-          pageCount: _autoPageCount,
-          urgency: urgency,
-          translatorId: widget.company['id']?.toString(),
-          merchantName: merchantNameStr,
-          isHandwritten: isHandwritten,
-          isMedical: isMedical,
-          customerPhone: phone,
-          deliveryType: deliveryType,
-        );
-      } catch (e) {
-        result = {'success': false, 'message': e.toString()};
+        final signedTicket = await JobRepository.getSignedUploadUrl(filename);
+        if (signedTicket != null && signedTicket['signedUrl'] != null) {
+          final isUploaded = await JobRepository.uploadToSignedUrl(
+            signedUrl: signedTicket['signedUrl'],
+            bytes: allBytes,
+            contentType: contentType,
+          );
+
+          if (isUploaded) {
+            final uploadedFileUrl = signedTicket['fileUrl'];
+            debugPrint("[UploadScreen] Uploaded directly via Signed URL to: $uploadedFileUrl");
+
+            final rawTranslatorId = widget.company['id']?.toString();
+            final uuidRegex = RegExp(
+                r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$',
+                caseSensitive: false);
+            final String? validTranslatorId =
+                (rawTranslatorId != null && uuidRegex.hasMatch(rawTranslatorId))
+                    ? rawTranslatorId
+                    : null;
+
+            final jobPayload = {
+              'fileUrl': uploadedFileUrl,
+              'fromLang': fromLang,
+              'toLang': toLang,
+              'pageCount': _autoPageCount,
+              'urgency': urgency,
+              'isHandwritten': isHandwritten,
+              'isMedical': isMedical,
+              'clientPhone': phone,
+              'deliveryType': deliveryType,
+              'merchantName': merchantNameStr,
+            };
+            if (validTranslatorId != null) {
+              jobPayload['translatorId'] = validTranslatorId;
+            }
+
+            final createdJob = await JobRepository.createJob(jobPayload);
+            if (createdJob != null) {
+              result = {'success': true, 'data': createdJob};
+            }
+          }
+        }
+      } catch (backendErr) {
+        debugPrint("[UploadScreen] Backend Signed URL flow note: $backendErr");
       }
 
-      // Fallback: If backend server is unreachable, upload directly via Supabase client
+      // ── STEP 2: Fallback: If backend server is unreachable, upload directly via Supabase client ──
       if (result['success'] != true) {
         debugPrint(
-            "Backend unreachable: ${result['message']}. Using direct Supabase fallback...");
+            "Backend unreachable. Using direct Supabase fallback...");
 
         // Use same path format as backend: jobs/{userId}/{timestamp}_{filename}
         final String storagePath =

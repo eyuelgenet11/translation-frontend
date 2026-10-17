@@ -1,8 +1,9 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'services/notification_sound_service.dart';
+import 'repositories/job_repository.dart';
 
 class JobStatusScreen extends StatefulWidget {
   const JobStatusScreen({super.key});
@@ -40,18 +41,10 @@ class _JobStatusScreenState extends State<JobStatusScreen> {
   Future<void> _fetchJobs() async {
     setState(() => _isLoading = true);
     try {
-      final userId = _supabase.auth.currentUser?.id;
-      if (userId == null) return;
-
-      final data = await _supabase
-          .from('jobs')
-          .select('*')
-          .eq('user_id', userId)
-          .order('created_at', ascending: false);
-
+      final jobs = await JobRepository.getJobs();
       if (mounted) {
         setState(() {
-          _jobs = List<Map<String, dynamic>>.from(data);
+          _jobs = jobs;
           _isLoading = false;
         });
       }

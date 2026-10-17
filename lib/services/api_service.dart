@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
@@ -262,7 +263,7 @@ class ApiService {
         contentType: MediaType('application', mimeType.split('/').last),
       ));
 
-      final streamedResponse = await request.send();
+      final streamedResponse = await request.send().timeout(const Duration(seconds: 7));
       final response = await http.Response.fromStream(streamedResponse);
 
       final data = jsonDecode(response.body);
@@ -372,7 +373,7 @@ class ApiService {
         ));
       }
 
-      final streamedResponse = await request.send();
+      final streamedResponse = await request.send().timeout(const Duration(seconds: 10));
       final response = await http.Response.fromStream(streamedResponse);
       return _handleResponse(response);
     } catch (e) {

@@ -1,6 +1,9 @@
-﻿import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart';
 
 class ApiConfig {
+  /// Render Production Cloud Backend URL
+  static const String renderUrl = "https://geez-app-backend.onrender.com";
+
   static String get localBaseUrl {
     if (kIsWeb) return "http://localhost:5000";
     if (defaultTargetPlatform == TargetPlatform.windows ||
@@ -12,7 +15,8 @@ class ApiConfig {
     return "http://192.168.8.22:5000";
   }
 
-  static String get baseUrl => localBaseUrl; // Final base URL
+  /// Active Backend Base URL: Points to Render Cloud Backend
+  static String get baseUrl => renderUrl;
 
   static String get fetchCompanies => "$baseUrl/api/companies";
   static String get login => "$baseUrl/api/login";

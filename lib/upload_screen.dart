@@ -506,9 +506,10 @@ class _UploadScreenState extends State<UploadScreen> {
             "Backend unreachable. Using direct Supabase fallback...");
 
         final List<String> fallbackUrls = [];
-        for (final item in rawFiles) {
+        for (int i = 0; i < rawFiles.length; i++) {
+          final item = rawFiles[i];
           final String storagePath =
-              'jobs/${user.id}/${DateTime.now().millisecondsSinceEpoch}_${item['filename']}';
+              'jobs/${user.id}/${DateTime.now().millisecondsSinceEpoch}_${i + 1}_${item['filename']}';
           try {
             await supabase.storage.from('translations').uploadBinary(
                   storagePath,

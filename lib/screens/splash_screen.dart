@@ -1,8 +1,6 @@
 import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import '../services/force_update_service.dart';
 import '../services/auth_service.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -83,36 +81,6 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
 
   void _navigateToNext() {
     Timer(const Duration(milliseconds: 3200), () async {
-      if (!mounted) return;
-
-      final update = await ForceUpdateService.checkForUpdate();
-      if (!mounted) return;
-
-      if (update.type == UpdateType.force) {
-        await showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (_) => ForceUpdateDialog(
-            requiredVersion: update.version,
-            releaseNotes: update.notes,
-            storeUrl: update.storeUrl,
-          ),
-        );
-        return;
-      }
-
-      if (update.type == UpdateType.soft) {
-        await showDialog(
-          context: context,
-          barrierDismissible: true,
-          builder: (_) => SoftUpdateDialog(
-            newVersion: update.version,
-            releaseNotes: update.notes,
-            storeUrl: update.storeUrl,
-          ),
-        );
-      }
-
       if (!mounted) return;
       await AuthService.tryAutoLogin(context);
     });

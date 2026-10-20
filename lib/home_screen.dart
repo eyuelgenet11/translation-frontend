@@ -13,7 +13,7 @@ import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:upgrader/upgrader.dart';
+import 'services/force_update_service.dart';
 
 import 'upload_screen.dart';
 import 'ds.dart';
@@ -105,6 +105,39 @@ class _MarketplaceHomeScreenState extends State<MarketplaceHomeScreen> {
     _redirectTranslatorsToPortal();
     _fetchUnreadNotificationCount();
     _subscribeToNotifications();
+
+    // Show update dialog once user is on home screen (post-frame so context is ready)
+    WidgetsBinding.instance.addPostFrameCallback((_) => _checkForUpdate());
+  }
+
+  Future<void> _checkForUpdate() async {
+    final update = await ForceUpdateService.checkForUpdate();
+    if (!mounted) return;
+
+    if (update.type == UpdateType.force) {
+      await showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => ForceUpdateDialog(
+          requiredVersion: update.version,
+          releaseNotes: update.notes,
+          storeUrl: update.storeUrl,
+        ),
+      );
+      return;
+    }
+
+    if (update.type == UpdateType.soft) {
+      await showDialog(
+        context: context,
+        barrierDismissible: true,
+        builder: (_) => SoftUpdateDialog(
+          newVersion: update.version,
+          releaseNotes: update.notes,
+          storeUrl: update.storeUrl,
+        ),
+      );
+    }
   }
 
   Future<void> _fetchUnreadNotificationCount() async {
@@ -1665,10 +1698,7 @@ class _MarketplaceHomeScreenState extends State<MarketplaceHomeScreen> {
 
     return Scaffold(
       backgroundColor: bgTheme,
-      body: UpgradeAlert(
-        upgrader: Upgrader(),
-        child: SafeArea(child: body),
-      ),
+      body: SafeArea(child: body),
       bottomNavigationBar: _buildFloatingNav(),
     );
   }

@@ -14,7 +14,6 @@ import 'services/role_security_service.dart';
 import 'services/admin_auth_service.dart';
 import 'config/security_config.dart';
 import 'services/push_notification_service.dart';
-import 'package:upgrader/upgrader.dart';
 import 'ds.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -243,30 +242,27 @@ class _LoginScreenState extends State<LoginScreen>
   Widget build(BuildContext context) {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.dark,
-      child: UpgradeAlert(
-        upgrader: Upgrader(),
-        child: Scaffold(
-          backgroundColor: DS.background,
-          body: SafeArea(
-            child: FadeTransition(
-              opacity: _fadeIn,
-              child: SlideTransition(
-                position: _slideUp,
-                child: Center(
-                  child: SingleChildScrollView(
-                    physics: const BouncingScrollPhysics(),
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: Column(
-                      children: [
-                        const SizedBox(height: 32),
-                        _buildHeader(),
-                        const SizedBox(height: 36),
-                        _buildCard(),
-                        const SizedBox(height: 24),
-                        _buildFooter(),
-                        const SizedBox(height: 32),
-                      ],
-                    ),
+      child: Scaffold(
+        backgroundColor: DS.background,
+        body: SafeArea(
+          child: FadeTransition(
+            opacity: _fadeIn,
+            child: SlideTransition(
+              position: _slideUp,
+              child: Center(
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 32),
+                      _buildHeader(),
+                      const SizedBox(height: 36),
+                      _buildCard(),
+                      const SizedBox(height: 24),
+                      _buildFooter(),
+                      const SizedBox(height: 32),
+                    ],
                   ),
                 ),
               ),

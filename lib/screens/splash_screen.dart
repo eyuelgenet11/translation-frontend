@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -92,7 +92,11 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
         await showDialog(
           context: context,
           barrierDismissible: false,
-          builder: (_) => ForceUpdateDialog(requiredVersion: update.version),
+          builder: (_) => ForceUpdateDialog(
+            requiredVersion: update.version,
+            releaseNotes: update.notes,
+            storeUrl: update.storeUrl,
+          ),
         );
         return;
       }
@@ -101,7 +105,11 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
         await showDialog(
           context: context,
           barrierDismissible: true,
-          builder: (_) => SoftUpdateDialog(newVersion: update.version),
+          builder: (_) => SoftUpdateDialog(
+            newVersion: update.version,
+            releaseNotes: update.notes,
+            storeUrl: update.storeUrl,
+          ),
         );
       }
 

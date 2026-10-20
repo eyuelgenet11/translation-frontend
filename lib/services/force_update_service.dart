@@ -9,7 +9,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'api_config.dart';
 
 // ── Fallback App Version if runtime reading fails ────────────────────────────
-const String kFallbackCurrentVersion = '1.2.2';
+const String kFallbackCurrentVersion = '1.2.3';
 
 // ── Store URLs ───────────────────────────────────────────────────────────────
 const String kAndroidPlayStoreUrl =
